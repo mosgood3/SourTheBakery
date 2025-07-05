@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #FFF8E1;
+  --peach: #F7E1B5;
+  --beige: #EFD9B1;
+  --cinnamon: #D19A6D;
+  --brown: #8B5B29;
+  --accent-pink: #F8BFD8;
+  --accent-gold: #F9A800;
+
+  --background: var(--cream);
+  --foreground: var(--brown);
+  --primary: var(--cinnamon);
+  --primary-foreground: var(--cream);
+  --secondary: var(--peach);
+  --accent: var(--accent-gold);
+  --muted: var(--beige);
+  --muted-foreground: var(--brown);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #fffaf3; /* lighter cream */
+    --foreground: #7c5c3e; /* medium brown */
+    --muted: #f9f6f2;      /* very pale beige */
+    --muted-foreground: #bfa074; /* taupe */
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.bg-hero { background-color: var(--cream); }
+.bg-about { background-color: var(--peach); }
+.bg-products { background-color: var(--beige); }
+.bg-gallery { background-color: var(--accent-pink); }
+.bg-footer, .bg-nav { background-color: var(--brown); }
+.text-brown { color: var(--brown); }
+.text-cream { color: var(--cream); }
+.text-cinnamon { color: var(--cinnamon); }
+.text-peach { color: var(--peach); }
+.text-beige { color: var(--beige); }
+.text-accent-gold { color: var(--accent-gold); }
+.text-accent-pink { color: var(--accent-pink); }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* Hide scrollbar for horizontal product list */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
