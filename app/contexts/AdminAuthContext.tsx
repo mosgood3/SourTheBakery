@@ -44,6 +44,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only run auth state listener on client side and when auth is available
+    if (typeof window === 'undefined' || !auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // Check if the user is an admin
@@ -69,6 +75,11 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       setLoading(true);
+      
+      // Check if auth is available
+      if (!auth) {
+        throw new Error('Authentication service not available');
+      }
       
       // Validate email format and check if it's in admin list before attempting login
       if (!email || !email.includes('@')) {
@@ -119,6 +130,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setError(null);
+      if (!auth) {
+        throw new Error('Authentication service not available');
+      }
       await signOut(auth);
       setAdmin(null);
     } catch (error: any) {

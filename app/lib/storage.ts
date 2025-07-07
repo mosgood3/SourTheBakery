@@ -10,6 +10,10 @@ import { storage } from './firebase';
 // Upload an image file to Firebase Storage
 export const uploadImage = async (file: File, folder: string = 'products'): Promise<string> => {
   try {
+    if (!storage) {
+      throw new Error('Storage service not available');
+    }
+
     // Create a unique filename
     const timestamp = Date.now();
     const fileName = `${folder}/${timestamp}_${file.name}`;
@@ -33,6 +37,10 @@ export const uploadImage = async (file: File, folder: string = 'products'): Prom
 // Delete an image from Firebase Storage
 export const deleteImage = async (imageUrl: string): Promise<void> => {
   try {
+    if (!storage) {
+      throw new Error('Storage service not available');
+    }
+
     // Extract the file path from the URL
     const url = new URL(imageUrl);
     const path = decodeURIComponent(url.pathname.split('/o/')[1]?.split('?')[0] || '');

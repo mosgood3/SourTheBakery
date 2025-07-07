@@ -105,6 +105,23 @@ const nextConfig: NextConfig = {
   // Trailing slash configuration
   trailingSlash: false,
 
+  // Disable server-side rendering for pages that use Firebase
+  // This helps prevent build-time Firebase initialization issues
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: false,
+  },
+
+  // ESLint configuration
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: false,
+  },
+
   // Base path configuration (if needed for deployment)
   // basePath: '',
 

@@ -25,6 +25,10 @@ export interface Product {
 // Get all products
 export const getProducts = async (): Promise<Product[]> => {
   try {
+    if (!db) {
+      throw new Error('Database service not available');
+    }
+
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     const products: Product[] = [];
@@ -46,6 +50,10 @@ export const getProducts = async (): Promise<Product[]> => {
 // Add a new product
 export const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   try {
+    if (!db) {
+      throw new Error('Database service not available');
+    }
+
     const docRef = await addDoc(collection(db, 'products'), {
       ...product,
       createdAt: serverTimestamp(),
@@ -61,6 +69,10 @@ export const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'up
 // Update a product
 export const updateProduct = async (id: string, product: Partial<Product>): Promise<void> => {
   try {
+    if (!db) {
+      throw new Error('Database service not available');
+    }
+
     const productRef = doc(db, 'products', id);
     await updateDoc(productRef, {
       ...product,
@@ -75,6 +87,10 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
 // Delete a product and its associated image
 export const deleteProduct = async (id: string, imageUrl?: string): Promise<void> => {
   try {
+    if (!db) {
+      throw new Error('Database service not available');
+    }
+
     const productRef = doc(db, 'products', id);
     await deleteDoc(productRef);
     

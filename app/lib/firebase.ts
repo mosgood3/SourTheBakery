@@ -1,7 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,16 +12,25 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase only on the client side
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let storage: FirebaseStorage | undefined;
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+if (typeof window !== 'undefined') {
+  // Only initialize Firebase on the client side
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
+  }
+  
+  // Initialize Firebase services
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+}
 
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
-
-// Initialize Firebase Storage and get a reference to the service
-export const storage = getStorage(app);
-
+export { auth, db, storage };
 export default app; 
