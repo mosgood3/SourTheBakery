@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
+import { Playfair_Display } from "next/font/google";
+import { Crimson_Text } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "./contexts/CartContext";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
@@ -16,19 +18,26 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+const crimson = Crimson_Text({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-crimson",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Sour The Bakery",
-  description: "Artisanal sourdough bread, cookies, brownies, and more",
+  description: "Handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable}`}>
+      <body className={`${inter.variable} ${playfair.variable} ${crimson.variable}`}>
         <AdminAuthProvider>
           <CartProvider>
             {children}

@@ -30,6 +30,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --font-sans: var(--font-inter);
   --font-serif: var(--font-playfair);
+  --font-vintage: var(--font-crimson);
 }
 
 @media (prefers-color-scheme: light) {
@@ -49,6 +50,10 @@ body {
 
 .font-serif {
   font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-vintage {
+  font-family: var(--font-vintage), Georgia, serif;
 }
 
 .bg-hero { background-color: var(--cream); }

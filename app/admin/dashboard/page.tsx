@@ -203,8 +203,16 @@ export default function AdminDashboard() {
 
             {activeTab === 'products' && (
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-accent-gold/20">
-                <h2 className="text-xl font-serif font-bold text-brown mb-4">Products Management</h2>
-                <p className="text-brown/70">Products management interface coming soon...</p>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-serif font-bold text-brown">Products Management</h2>
+                  <button
+                    onClick={() => router.push('/admin/products')}
+                    className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300"
+                  >
+                    Manage Products
+                  </button>
+                </div>
+                <p className="text-brown/70">Click "Manage Products" to add, edit, or delete your bakery products.</p>
               </div>
             )}
 

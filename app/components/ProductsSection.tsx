@@ -3,46 +3,111 @@
 import { useCart } from '../contexts/CartContext';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { getProducts, Product } from '../lib/products';
 
 export default function ProductsSection() {
   const { addItem } = useCart();
   const [currentProduct, setCurrentProduct] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const products = [
-    {
-      id: 1,
-      name: "Sourdough Bread",
-      image: "/heroloaf.PNG",
-      emoji: "🍞",
-      description: "Artisanal sourdough",
-      price: "$6.50"
-    },
-    {
-      id: 2,
-      name: "Brownies",
-      image: "/herobrownie.PNG", 
-      emoji: "🍫",
-      description: "Fudgy chocolate brownies",
-      price: "$4.50"
-    },
-    {
-      id: 3,
-      name: "Cookies",
-      image: "/cookies.jpg",
-      emoji: "🍪",
-      description: "Fresh baked cookies",
-      price: "$3.50"
-    }
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const fetchedProducts = await getProducts();
+        setProducts(fetchedProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleAddToCart = (product: typeof products[0]) => {
+    fetchProducts();
+  }, []);
+
+  const handleAddToCart = (product: Product) => {
     addItem({
-      id: product.id,
+      id: product.id || '',
       name: product.name,
       price: product.price,
       description: product.description,
     });
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <section id="products" className="py-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+              Our Products
+            </h2>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
+            <p className="mt-4 text-brown/70">Loading products...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <section id="products" className="py-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+              Our Products
+            </h2>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-accent-gold text-brown px-6 py-3 rounded-full font-semibold hover:bg-accent-gold/90 transition-colors duration-300"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Show empty state
+  if (products.length === 0) {
+    return (
+      <section id="products" className="py-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+              Our Products
+            </h2>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-brown/70 text-xl">No products available at the moment.</p>
+            <p className="text-brown/50 mt-2">Check back soon for fresh baked goods!</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="products" className="py-24 bg-background">
@@ -118,7 +183,6 @@ export default function ProductsSection() {
                           </div>
                           
                           {/* Product Info */}
-                          <div className="text-7xl mb-6">{product.emoji}</div>
                           <h3 className="text-3xl font-serif font-bold text-brown mb-4">
                             {product.name}
                           </h3>
@@ -184,7 +248,6 @@ export default function ProductsSection() {
                     </div>
                     
                     {/* Product Info */}
-                    <div className="text-6xl mb-4">{product.emoji}</div>
                     <h3 className="text-2xl font-serif font-bold text-brown mb-3">
                       {product.name}
                     </h3>

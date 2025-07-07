@@ -65,10 +65,12 @@ export default function HeroSection() {
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen text-center">
         {/* Text Content */}
         <div className="flex flex-col justify-center items-center space-y-8 mb-12">
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-serif font-bold text-accent-gold mb-4 leading-tight">
-            Let's Get
-            <span className="block text-brown mt-2">SOUR</span>
-          </h1>
+          <div className="vintage-container">
+            <h1 className="text-7xl sm:text-8xl md:text-9xl lg:text-10xl font-bold mb-4 leading-tight vintage-text">
+              <span className="block text-accent-gold font-vintage">LET'S GET</span>
+              <span className="block text-brown font-extrabold font-vintage elegant-text">SOUR</span>
+            </h1>
+          </div>
           <p className="text-xl md:text-2xl lg:text-3xl text-brown mb-4 max-w-2xl leading-relaxed">
             Crafted with passion, baked with love. Discover our handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients.
           </p>
@@ -121,8 +123,70 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Custom CSS for 3D effects */}
+      {/* Custom CSS for vintage effects */}
       <style jsx>{`
+        .font-vintage {
+          font-family: var(--font-vintage), Georgia, serif;
+        }
+        
+        .vintage-container {
+          position: relative;
+          display: inline-block;
+        }
+        
+        .vintage-text {
+          position: relative;
+          animation: vintage-float 4s ease-in-out infinite;
+        }
+        
+        .elegant-text {
+          text-shadow: 
+            2px 2px 0px rgba(139, 91, 41, 0.3),
+            4px 4px 0px rgba(139, 91, 41, 0.2),
+            6px 6px 0px rgba(139, 91, 41, 0.1);
+          animation: elegant-pulse 3s ease-in-out infinite alternate;
+          letter-spacing: 0.1em;
+        }
+        
+        .vintage-text::before {
+          content: '';
+          position: absolute;
+          top: -10px;
+          left: -10px;
+          right: -10px;
+          bottom: -10px;
+          background: linear-gradient(45deg, transparent 30%, rgba(249, 168, 0, 0.1) 50%, transparent 70%);
+          z-index: -1;
+          animation: vintage-shine 6s ease-in-out infinite;
+        }
+        
+        @keyframes vintage-float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-5px) rotate(0.5deg); }
+          50% { transform: translateY(-10px) rotate(0deg); }
+          75% { transform: translateY(-5px) rotate(-0.5deg); }
+        }
+        
+        @keyframes elegant-pulse {
+          from {
+            text-shadow: 
+              2px 2px 0px rgba(139, 91, 41, 0.3),
+              4px 4px 0px rgba(139, 91, 41, 0.2),
+              6px 6px 0px rgba(139, 91, 41, 0.1);
+          }
+          to {
+            text-shadow: 
+              3px 3px 0px rgba(139, 91, 41, 0.4),
+              6px 6px 0px rgba(139, 91, 41, 0.3),
+              9px 9px 0px rgba(139, 91, 41, 0.2);
+          }
+        }
+        
+        @keyframes vintage-shine {
+          0%, 100% { opacity: 0; transform: translateX(-100%); }
+          50% { opacity: 1; transform: translateX(100%); }
+        }
+        
         .perspective-1000 {
           perspective: 1000px;
         }
