@@ -44,7 +44,7 @@ export default function ProductsSection() {
       <section id="products" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Our Products
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -66,7 +66,7 @@ export default function ProductsSection() {
       <section id="products" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Our Products
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -93,7 +93,7 @@ export default function ProductsSection() {
       <section id="products" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Our Products
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -114,7 +114,7 @@ export default function ProductsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground mb-6">
+          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
             Our Products
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -170,6 +170,14 @@ export default function ProductsSection() {
                     <div className="relative w-full h-full flex items-center justify-center">
                       {/* Product Card */}
                       <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-transform duration-300" style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}>
+                        {/* Retro Bestseller Badge */}
+                        {index === 0 && (
+                          <div className="absolute -top-2 -right-2 transform rotate-12">
+                            <div className="bg-gradient-to-r from-accent-gold to-yellow-400 text-brown px-3 py-1 rounded-full text-sm font-bold shadow-lg border-2 border-brown/20">
+                              ★ Bestseller
+                            </div>
+                          </div>
+                        )}
                         <div className="text-center">
                           {/* Product Image */}
                           <div className="relative w-56 h-56 mx-auto mb-8">
@@ -183,7 +191,7 @@ export default function ProductsSection() {
                           </div>
                           
                           {/* Product Info */}
-                          <h3 className="text-3xl font-serif font-bold text-brown mb-4">
+                          <h3 className="text-3xl font-bold text-brown mb-4">
                             {product.name}
                           </h3>
                           <p className="text-brown/80 text-xl mb-8">
@@ -232,10 +240,18 @@ export default function ProductsSection() {
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="flex-shrink-0 w-80 bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                  className="flex-shrink-0 w-80 bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-all duration-300 cursor-pointer relative"
                   style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}
                   onClick={() => handleAddToCart(product)}
                 >
+                  {/* Retro Bestseller Badge */}
+                  {product.id === products[0]?.id && (
+                    <div className="absolute -top-2 -right-2 transform rotate-12">
+                      <div className="bg-gradient-to-r from-accent-gold to-yellow-400 text-brown px-3 py-1 rounded-full text-sm font-bold shadow-lg border-2 border-brown/20">
+                        ★ Bestseller
+                      </div>
+                    </div>
+                  )}
                   <div className="text-center">
                     {/* Product Image */}
                     <div className="relative w-48 h-48 mx-auto mb-6">
@@ -248,7 +264,7 @@ export default function ProductsSection() {
                     </div>
                     
                     {/* Product Info */}
-                    <h3 className="text-2xl font-serif font-bold text-brown mb-3">
+                    <h3 className="text-2xl font-bold text-brown mb-3">
                       {product.name}
                     </h3>
                     <p className="text-brown/80 text-lg mb-6">
@@ -282,7 +298,7 @@ export default function ProductsSection() {
         {/* Call to Action */}
         <div className="text-center">
           <div className="bg-muted/30 rounded-3xl p-12 max-w-4xl mx-auto">
-            <h3 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
+            <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Ready to Order?
             </h3>
             <p className="text-xl text-muted-foreground mb-8">

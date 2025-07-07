@@ -20,13 +20,13 @@ export default function HeroSection() {
     };
     window.addEventListener('resize', handleResize);
     const colors: [number, number, number][] = [
-      [255, 248, 225], // cream
-      [247, 225, 181], // peach
-      [232, 217, 177], // beige
-      [249, 168, 0],   // accent gold
-      [248, 191, 216], // accent pink
-      [209, 154, 109], // cinnamon
-      [139, 91, 41],   // brown
+      [255, 240, 200], // deeper cream
+      [235, 180, 120], // richer peach
+      [210, 180, 140], // deeper beige
+      [255, 140, 0],   // vibrant gold
+      [255, 150, 180], // vibrant pink
+      [180, 100, 60],  // deeper cinnamon
+      [100, 60, 20],   // darker brown
     ];
     function lerp(a: number, b: number, t: number): number { return a + (b - a) * t; }
     let animationId: number;
@@ -41,8 +41,8 @@ export default function HeroSection() {
         const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
         const c1 = colors[i];
         const c2 = colors[(i + 1) % colors.length];
-        grad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},0.45)`);
-        grad.addColorStop(1, `rgba(${c2[0]},${c2[1]},${c2[2]},0.05)`);
+        grad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},0.65)`);
+        grad.addColorStop(1, `rgba(${c2[0]},${c2[1]},${c2[2]},0.15)`);
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, 2 * Math.PI);
@@ -66,9 +66,9 @@ export default function HeroSection() {
         {/* Text Content */}
         <div className="flex flex-col justify-center items-center space-y-8 mb-12">
           <div className="vintage-container">
-            <h1 className="text-7xl sm:text-8xl md:text-9xl lg:text-10xl font-bold mb-4 leading-tight vintage-text">
-              <span className="block text-accent-gold font-vintage">LET'S GET</span>
-              <span className="block text-brown font-extrabold font-vintage elegant-text">SOUR</span>
+            <h1 className="text-7xl sm:text-8xl md:text-9xl lg:text-10xl  mb-4 leading-wide vintage-text">
+              <span className="block text-accent-gold font-vintage lobster-vintage-shadow">LET'S GET</span>
+              <span className="block text-brown font-vintage lobster-vintage-shadow">SOUR</span>
             </h1>
           </div>
           <p className="text-xl md:text-2xl lg:text-3xl text-brown mb-4 max-w-2xl leading-relaxed">
@@ -77,12 +77,13 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-6">
             <button 
               onClick={toggleCart}
-              className="border-2 cursor-pointer border-accent-gold text-brown px-10 py-5 rounded-full text-xl font-semibold hover:bg-accent-gold hover:text-brown transition-all duration-300 min-w-[200px]"            >
+              className="vintage-btn order-btn"
+            >
               Order Now
             </button>
             <a 
               href="#products"
-              className="border-2 border-accent-gold text-brown px-10 py-5 rounded-full text-xl font-semibold hover:bg-accent-gold hover:text-brown transition-all duration-300 min-w-[200px]"
+              className="vintage-btn menu-btn"
             >
               View Menu
             </a>
@@ -104,11 +105,13 @@ export default function HeroSection() {
               { src: "/IMG_5965.jpg", alt: "Bakery interior", height: "h-36 md:h-52" }
             ].map((image, index) => (
               <div key={index} className={`group relative ${image.height} rounded-2xl overflow-hidden shadow-xl transform hover:scale-105 transition-all duration-500 mb-4 md:mb-6 break-inside-avoid`}>
+                {/* Vintage border */}
+                <div className="absolute inset-0 border-2 border-accent-gold/40 rounded-2xl pointer-events-none z-10"></div>
                 <Image 
                   src={image.src} 
                   alt={image.alt} 
                   fill 
-                  className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                  className="object-cover group-hover:scale-110 transition-transform duration-500 sepia-vintage" 
                   sizes="(max-width: 768px) 50vw, 33vw" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brown/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
@@ -121,6 +124,22 @@ export default function HeroSection() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Wavy Vintage Divider */}
+      <div className="absolute bottom-0 left-0 w-full overflow-hidden">
+        <svg className="relative w-full h-16" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path 
+            d="M0,0 C300,60 600,60 900,30 C1050,15 1200,45 1200,60 L1200,120 L0,120 Z" 
+            fill="#F7E1B5" 
+            opacity="0.8"
+          />
+          <path 
+            d="M0,0 C300,40 600,40 900,20 C1050,10 1200,30 1200,40 L1200,120 L0,120 Z" 
+            fill="#D19A6D" 
+            opacity="0.3"
+          />
+        </svg>
       </div>
 
       {/* Custom CSS for vintage effects */}
@@ -236,6 +255,54 @@ export default function HeroSection() {
           60% { transform: translateY(-10px) scale(1.03); }
           80% { transform: translateY(0) scale(1); }
           100% { transform: translateY(0) scale(1); }
+        }
+        .lobster-vintage-shadow {
+          font-family: var(--font-lobster), Georgia, serif;
+          text-shadow:
+            6px 6px 0px #2d2d2d,
+            2px 2px 0px rgba(0,0,0,0.15);
+          letter-spacing: 0.03em;
+        }
+        .vintage-btn {
+          font-family: var(--font-lobster), var(--font-vintage), Georgia, serif;
+          font-size: 1.4rem;
+          font-weight: 700;
+          border-radius: 9999px;
+          padding: 1.1rem 2.5rem;
+          min-width: 200px;
+          box-shadow: 0 4px 16px 0 rgba(139,91,41,0.10), 0 1.5px 0 #b88b4a;
+          transition: all 0.18s cubic-bezier(.4,2,.6,1);
+          cursor: pointer;
+          border: 2.5px solid #f9a800;
+          margin-bottom: 0.5rem;
+        }
+        .order-btn {
+          background: linear-gradient(90deg, #ffd700 60%, #f9a800 100%);
+          color: #633a13;
+          border-color: #f9a800;
+        }
+        .order-btn:hover, .order-btn:focus {
+          background: linear-gradient(90deg, #ffe066 60%, #f9a800 100%);
+          color: #4d2c0c;
+          box-shadow: 0 8px 32px 0 rgba(139,91,41,0.18), 0 2.5px 0 #b88b4a;
+          transform: translateY(-2px) scale(1.04);
+        }
+        .menu-btn {
+          background: linear-gradient(90deg, #633a13 60%, #b88b4a 100%);
+          color: #fffbe9;
+          border-color: #f9a800;
+        }
+        .menu-btn:hover, .menu-btn:focus {
+          background: linear-gradient(90deg, #7a4a1a 60%, #d1a06b 100%);
+          color: #ffe066;
+          box-shadow: 0 8px 32px 0 rgba(139,91,41,0.18), 0 2.5px 0 #b88b4a;
+          transform: translateY(-2px) scale(1.04);
+        }
+        .sepia-vintage {
+          filter: sepia(0.2) contrast(1.1) brightness(0.95);
+        }
+        .sepia-vintage:hover {
+          filter: sepia(0.1) contrast(1.05) brightness(1);
         }
       `}</style>
     </section>

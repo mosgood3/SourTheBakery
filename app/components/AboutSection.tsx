@@ -15,9 +15,24 @@ export default function AboutSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center">
-          <h2 className="text-5xl md:text-7xl font-serif font-bold text-brown mb-6">
+          {/* Decorative flourishes */}
+          <div className="flex items-center justify-center mb-4">
+            <div className="text-accent-gold text-2xl mr-4">✦</div>
+            <div className="text-accent-pink text-xl mr-2">•</div>
+            <div className="text-cinnamon text-lg mr-2">•</div>
+            <div className="text-accent-gold text-xl mr-2">•</div>
+            <div className="text-accent-pink text-2xl mr-4">✦</div>
+          </div>
+          <h2 className="text-5xl md:text-7xl font-bold text-brown mb-6">
             Our Story
           </h2>
+          <div className="flex items-center justify-center mt-4">
+            <div className="text-accent-pink text-2xl mr-4">✦</div>
+            <div className="text-accent-gold text-xl mr-2">•</div>
+            <div className="text-cinnamon text-lg mr-2">•</div>
+            <div className="text-accent-gold text-xl mr-2">•</div>
+            <div className="text-accent-pink text-2xl mr-4">✦</div>
+          </div>
           <div className="w-24 h-1 bg-accent-gold mx-auto rounded-full"></div>
         </div>
 
@@ -25,7 +40,7 @@ export default function AboutSection() {
           {/* Left: Story Content */}
           <div className="space-y-8">
             <div className="rounded-3xl p-8">
-              <h3 className="text-3xl font-serif font-bold text-brown mb-6">
+              <h3 className="text-3xl font-bold text-brown mb-6">
                 From Family Kitchen to Community Favorite
               </h3>
               <p className="text-lg text-brown/95 mb-6 leading-relaxed">
@@ -67,7 +82,7 @@ export default function AboutSection() {
 
               {/* Floating Quote Card */}
               <div className="absolute -bottom-8 -right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-accent-gold/20 max-w-xs transform rotate-3">
-                <p className="text-brown italic text-lg font-serif">
+                <p className="text-brown italic text-lg">
                   "Every bite tells a story of tradition, passion, and love for baking."
                 </p>
                 <div className="text-accent-gold text-2xl mt-2">✨</div>
@@ -86,7 +101,7 @@ export default function AboutSection() {
 
         {/* Call to Action */}
         <div className="bg-gradient-to-r from-accent-gold/10 to-accent-pink/10 rounded-3xl p-12 text-center border border-accent-gold/20">
-          <h3 className="text-3xl font-serif font-bold text-brown mb-4">
+          <h3 className="text-3xl font-bold text-brown mb-4">
             Visit Our Bakery
           </h3>
           <p className="text-lg text-brown/90 mb-8 max-w-2xl mx-auto">
