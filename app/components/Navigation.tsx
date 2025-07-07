@@ -28,7 +28,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
             <Image
-              src="/logo2.png"
+              src="/logo2.PNG"
               alt="Sour The Bakery Logo"
               width={300}
               height={300}
