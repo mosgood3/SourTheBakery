@@ -44,10 +44,17 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
 
   // Debug Stripe key and promise
   useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     console.log('Stripe key debug:', {
-      key: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Present' : 'Missing',
-      keyLength: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.length,
-      keyStart: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 10) + '...'
+      key: key ? 'Present' : 'Missing',
+      keyLength: key?.length || 0,
+      keyStart: key?.substring(0, 10) + '...' || 'N/A',
+      keyType: key?.startsWith('pk_test_') ? 'Test' : key?.startsWith('pk_live_') ? 'Live' : 'Invalid',
+      envVars: {
+        hasKey: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        hasSecret: !!process.env.STRIPE_SECRET_KEY,
+        hasWebhook: !!process.env.STRIPE_WEBHOOK_SECRET
+      }
     });
 
     // Test the stripe promise
