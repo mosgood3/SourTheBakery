@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { isOrderWindowOpen } from '../lib/products';
 import { loadStripe } from '@stripe/stripe-js';
@@ -24,24 +24,43 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isStripeReady, setIsStripeReady] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
+
+  // Check if Stripe is ready
+  useEffect(() => {
+    if (stripe && elements) {
+      setIsStripeReady(true);
+    } else {
+      setIsStripeReady(false);
+    }
+  }, [stripe, elements]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!isOrderWindowOpen()) {
       setError('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
       return;
     }
-    if (!stripe || !elements) {
-      setError('Stripe has not loaded yet.');
+    
+    if (!isStripeReady) {
+      setError('Payment system is still loading. Please wait a moment and try again.');
       return;
     }
+    
+    if (!stripe || !elements) {
+      setError('Payment system is not ready. Please refresh the page and try again.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
+      
       // 1. Create PaymentIntent on the server
       const response = await fetch('/api/stripe/create-payment-intent', {
         method: 'POST',
@@ -53,8 +72,10 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           items: state.items,
         }),
       });
+      
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to create payment intent');
+      
       // 2. Confirm card payment
       const result = await stripe.confirmCardPayment(data.clientSecret, {
         payment_method: {
@@ -66,18 +87,46 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           },
         },
       });
+      
       if (result.error) {
         setError(result.error.message || 'Payment failed.');
         return;
       }
+      
       if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+        // 3. Verify payment status and wait for order creation
         setSuccess(true);
+        
+        // Wait a moment for webhook to process, then verify order was created
+        setTimeout(async () => {
+          try {
+            // Check if order was created via webhook
+            const orderCheckResponse = await fetch('/api/orders/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                paymentIntentId: result.paymentIntent.id,
+                customerEmail: formData.customerEmail,
+              }),
+            });
+            
+            if (orderCheckResponse.ok) {
+              const orderData = await orderCheckResponse.json();
+              console.log('Order verified:', orderData.orderId);
+            } else {
+              console.warn('Order verification failed, but payment succeeded');
+            }
+          } catch (verifyError) {
+            console.warn('Order verification error:', verifyError);
+          }
+        }, 2000);
+        
         clearCart();
         setFormData({ customerName: '', customerEmail: '', customerPhone: '' });
         setTimeout(() => {
           setSuccess(false);
           onClose();
-        }, 3000);
+        }, 5000); // Give more time for webhook processing
       }
     } catch (err: any) {
       setError(err.message || 'Payment failed.');
@@ -159,8 +208,13 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
             <div className="p-4 bg-green-50 border border-green-200">
               <div className="text-center">
                 <div className="text-4xl mb-2">✅</div>
-                <h3 className="text-lg font-semibold text-green-800 mb-2">Order Submitted Successfully!</h3>
-                <p className="text-green-700">Thank you for your order. We'll contact you soon with pickup details.</p>
+                <h3 className="text-lg font-semibold text-green-800 mb-2">Payment Successful!</h3>
+                <p className="text-green-700 mb-2">Your payment has been processed successfully.</p>
+                <p className="text-green-700 text-sm">We're creating your order and will contact you soon with pickup details.</p>
+                <div className="mt-3 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                  <span className="text-green-700 text-sm">Processing order...</span>
+                </div>
               </div>
             </div>
           )}
@@ -250,7 +304,14 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                     Card Details *
                   </label>
                   <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
-                    <CardElement options={{ hidePostalCode: true }} />
+                    {!isStripeReady ? (
+                      <div className="flex items-center justify-center py-4 text-muted-foreground">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                        Loading payment form...
+                      </div>
+                    ) : (
+                      <CardElement options={{ hidePostalCode: true }} />
+                    )}
                   </div>
                 </div>
               </div>
@@ -282,11 +343,11 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || isRedirecting || orderStatus.status === 'closed'}
+                  disabled={isSubmitting || isRedirecting || orderStatus.status === 'closed' || !isStripeReady}
                   onClick={handleSubmit}
                   className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isRedirecting ? 'Redirecting...' : isSubmitting ? 'Submitting...' : 'Pay with Card'}
+                  {isRedirecting ? 'Redirecting...' : isSubmitting ? 'Submitting...' : !isStripeReady ? 'Loading Payment...' : 'Pay with Card'}
                 </button>
               </div>
             </div>
