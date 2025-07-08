@@ -25,17 +25,47 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isStripeReady, setIsStripeReady] = useState(false);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+  const [forceShowCard, setForceShowCard] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
 
   // Check if Stripe is ready
   useEffect(() => {
+    console.log('Stripe debug:', { stripe: !!stripe, elements: !!elements });
+    
     if (stripe && elements) {
       setIsStripeReady(true);
+      setStripeError(null);
     } else {
       setIsStripeReady(false);
+      if (!stripe) {
+        setStripeError('Stripe instance not available');
+      } else if (!elements) {
+        setStripeError('Stripe Elements not available');
+      }
     }
   }, [stripe, elements]);
+
+  // Force show card element after 5 seconds if not ready
+  useEffect(() => {
+    if (!isStripeReady) {
+      const timer = setTimeout(() => {
+        console.log('Forcing CardElement to show after timeout');
+        setForceShowCard(true);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isStripeReady]);
+
+  // Debug Stripe key
+  useEffect(() => {
+    console.log('Stripe key debug:', {
+      key: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Present' : 'Missing',
+      keyLength: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.length
+    });
+  }, []);
 
   if (!isOpen) return null;
 
@@ -304,10 +334,18 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                     Card Details *
                   </label>
                   <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
-                    {!isStripeReady ? (
-                      <div className="flex items-center justify-center py-4 text-muted-foreground">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                        Loading payment form...
+                    {!isStripeReady && !forceShowCard ? (
+                      <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2 mb-2"></div>
+                        <div>Loading payment form...</div>
+                        {stripeError && (
+                          <div className="text-xs text-red-500 mt-1">
+                            Debug: {stripeError}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-2">
+                          If this doesn't load, try refreshing the page
+                        </div>
                       </div>
                     ) : (
                       <CardElement options={{ hidePostalCode: true }} />
