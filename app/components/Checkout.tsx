@@ -11,7 +11,18 @@ interface CheckoutProps {
   onClose: () => void;
 }
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = (() => {
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!key) {
+    console.error('Stripe publishable key is missing!');
+    return Promise.reject(new Error('Stripe publishable key is missing'));
+  }
+  if (!key.startsWith('pk_')) {
+    console.error('Invalid Stripe publishable key format!');
+    return Promise.reject(new Error('Invalid Stripe publishable key format'));
+  }
+  return loadStripe(key);
+})();
 
 function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const { state, getTotalPrice, clearCart } = useCart();
@@ -27,25 +38,50 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const [isStripeReady, setIsStripeReady] = useState(false);
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [forceShowCard, setForceShowCard] = useState(false);
+  const [stripeLoadError, setStripeLoadError] = useState<string | null>(null);
   const stripe = useStripe();
   const elements = useElements();
 
+  // Debug Stripe key and promise
+  useEffect(() => {
+    console.log('Stripe key debug:', {
+      key: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Present' : 'Missing',
+      keyLength: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.length,
+      keyStart: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 10) + '...'
+    });
+
+    // Test the stripe promise
+    stripePromise.then((stripeInstance) => {
+      console.log('Stripe promise resolved:', !!stripeInstance);
+      setStripeLoadError(null);
+    }).catch((error) => {
+      console.error('Stripe promise failed:', error);
+      setStripeLoadError(error.message);
+    });
+  }, []);
+
   // Check if Stripe is ready
   useEffect(() => {
-    console.log('Stripe debug:', { stripe: !!stripe, elements: !!elements });
+    console.log('Stripe debug:', { 
+      stripe: !!stripe, 
+      elements: !!elements,
+      stripeLoadError: stripeLoadError 
+    });
     
     if (stripe && elements) {
       setIsStripeReady(true);
       setStripeError(null);
     } else {
       setIsStripeReady(false);
-      if (!stripe) {
+      if (stripeLoadError) {
+        setStripeError(`Stripe failed to load: ${stripeLoadError}`);
+      } else if (!stripe) {
         setStripeError('Stripe instance not available');
       } else if (!elements) {
         setStripeError('Stripe Elements not available');
       }
     }
-  }, [stripe, elements]);
+  }, [stripe, elements, stripeLoadError]);
 
   // Force show card element after 5 seconds if not ready
   useEffect(() => {
@@ -58,14 +94,6 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
       return () => clearTimeout(timer);
     }
   }, [isStripeReady]);
-
-  // Debug Stripe key
-  useEffect(() => {
-    console.log('Stripe key debug:', {
-      key: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Present' : 'Missing',
-      keyLength: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.length
-    });
-  }, []);
 
   if (!isOpen) return null;
 
@@ -339,12 +367,17 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2 mb-2"></div>
                         <div>Loading payment form...</div>
                         {stripeError && (
-                          <div className="text-xs text-red-500 mt-1">
+                          <div className="text-xs text-red-500 mt-1 text-center">
                             Debug: {stripeError}
                           </div>
                         )}
-                        <div className="text-xs text-gray-400 mt-2">
-                          If this doesn't load, try refreshing the page
+                        {stripeLoadError && (
+                          <div className="text-xs text-red-500 mt-1 text-center">
+                            Stripe Error: {stripeLoadError}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-2 text-center">
+                          If this doesn't load, check your Stripe configuration
                         </div>
                       </div>
                     ) : (
