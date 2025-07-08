@@ -40,7 +40,7 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <a href="#home" className="text-brown hover:text-accent-gold transition-colors">Home</a>
-            <a href="#products" className="text-brown hover:text-accent-gold transition-colors">Products</a>
+            <a href="#menu" className="text-brown hover:text-accent-gold transition-colors">Menu</a>
             <a href="#about" className="text-brown hover:text-accent-gold transition-colors">About</a>
             <a href="#contact" className="text-brown hover:text-accent-gold transition-colors">Contact</a>
             
@@ -100,7 +100,7 @@ export default function Navigation() {
         <div className="md:hidden border-t border-muted transition-all duration-300" style={{ backgroundColor: 'var(--peach)' }}>
           <div className="px-2 pt-2 pb-3 space-y-1">
             <a href="#home" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Home</a>
-            <a href="#products" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Products</a>
+            <a href="#menu" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Menu</a>
             <a href="#about" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">About</a>
             <a href="#contact" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Contact</a>
             

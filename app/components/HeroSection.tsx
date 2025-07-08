@@ -3,6 +3,7 @@
 import { useCart } from '../contexts/CartContext';
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { PorchPickupSection } from './ProductsSection';
 
 export default function HeroSection() {
   const { toggleCart } = useCart();
@@ -27,6 +28,12 @@ export default function HeroSection() {
               <span className="block text-accent-gold font-vintage lobster-vintage-shadow">LET'S GET</span>
               <span className="block text-brown font-vintage lobster-vintage-shadow">SOUR</span>
             </h1>
+          </div>
+          {/* Replace stats with a cool, non-numeric phrase */}
+          <div className="mt-8 mb-8">
+            <p className="text-2xl md:text-3xl font-serif text-accent-gold font-bold drop-shadow-lg">
+              Locally Loved • Handcrafted with Heart
+            </p>
           </div>
           <p className="text-xl md:text-2xl lg:text-3xl text-brown mb-4 max-w-2xl leading-relaxed">
             Crafted with passion, baked with love. Discover our handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients.
@@ -80,6 +87,8 @@ export default function HeroSection() {
             ))}
           </div>
         </div>
+        {/* Porch Pickup Section - moved here */}
+        <PorchPickupSection/>
       </div>
 
       {/* Custom CSS for vintage effects */}

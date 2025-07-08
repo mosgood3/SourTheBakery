@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { createOrder, isOrderWindowOpen, Order } from '../lib/products';
+import { isOrderWindowOpen } from '../lib/products';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 interface CheckoutProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function Checkout({ isOpen, onClose }: CheckoutProps) {
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const { state, getTotalPrice, clearCart } = useCart();
   const [formData, setFormData] = useState({
     customerName: '',
@@ -17,58 +21,66 @@ export default function Checkout({ isOpen, onClose }: CheckoutProps) {
     customerPhone: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const stripe = useStripe();
+  const elements = useElements();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!isOrderWindowOpen()) {
       setError('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
       return;
     }
-
+    if (!stripe || !elements) {
+      setError('Stripe has not loaded yet.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       setError(null);
-
-      const orderData = {
-        customerName: formData.customerName,
-        customerEmail: formData.customerEmail,
-        customerPhone: formData.customerPhone,
-        items: state.items.map(item => ({
-          productId: item.id,
-          productName: item.name,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        total: parseFloat(getTotalPrice().replace('$', '')),
-        status: 'pending' as const
-      };
-
-      await createOrder(orderData);
-      
-      setSuccess(true);
-      clearCart();
-      
-      // Reset form
-      setFormData({
-        customerName: '',
-        customerEmail: '',
-        customerPhone: ''
+      // 1. Create PaymentIntent on the server
+      const response = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: formData.customerName,
+          customerEmail: formData.customerEmail,
+          customerPhone: formData.customerPhone,
+          items: state.items,
+        }),
       });
-
-      // Close checkout after 3 seconds
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-      }, 3000);
-
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to create payment intent');
+      // 2. Confirm card payment
+      const result = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement)!,
+          billing_details: {
+            name: formData.customerName,
+            email: formData.customerEmail,
+            phone: formData.customerPhone,
+          },
+        },
+      });
+      if (result.error) {
+        setError(result.error.message || 'Payment failed.');
+        return;
+      }
+      if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+        setSuccess(true);
+        clearCart();
+        setFormData({ customerName: '', customerEmail: '', customerPhone: '' });
+        setTimeout(() => {
+          setSuccess(false);
+          onClose();
+        }, 3000);
+      }
     } catch (err: any) {
-      console.error('Error creating order:', err);
-      setError(err.message || 'Failed to create order. Please try again.');
+      setError(err.message || 'Payment failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -232,6 +244,15 @@ export default function Checkout({ isOpen, onClose }: CheckoutProps) {
                     required
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-2">
+                    Card Details *
+                  </label>
+                  <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
+                    <CardElement options={{ hidePostalCode: true }} />
+                  </div>
+                </div>
               </div>
 
               {/* Important Notes */}
@@ -254,18 +275,18 @@ export default function Checkout({ isOpen, onClose }: CheckoutProps) {
                 <button
                   type="button"
                   onClick={onClose}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isRedirecting}
                   className="flex-1 px-4 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Back to Cart
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || orderStatus.status === 'closed'}
+                  disabled={isSubmitting || isRedirecting || orderStatus.status === 'closed'}
                   onClick={handleSubmit}
                   className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Place Order'}
+                  {isRedirecting ? 'Redirecting...' : isSubmitting ? 'Submitting...' : 'Pay with Card'}
                 </button>
               </div>
             </div>
@@ -273,5 +294,13 @@ export default function Checkout({ isOpen, onClose }: CheckoutProps) {
         </div>
       </div>
     </>
+  );
+}
+
+export default function Checkout(props: CheckoutProps) {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm {...props} />
+    </Elements>
   );
 } 

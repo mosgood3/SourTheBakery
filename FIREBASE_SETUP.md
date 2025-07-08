@@ -99,9 +99,9 @@ You can add some sample products to test the system:
 {
   "name": "Sourdough Bread",
   "description": "Artisanal sourdough bread made with traditional techniques",
-  "price": "$6.50",
+  "price": "$8.00",
   "image": "https://firebasestorage.googleapis.com/v0/b/your-project.appspot.com/o/products%2F1234567890_sourdough.jpg?alt=media&token=...",
-  "weeklyCap": 50,
+  "weeklyCap": 6,
   "createdAt": [server timestamp],
   "updatedAt": [server timestamp]
 }
@@ -110,9 +110,19 @@ You can add some sample products to test the system:
 ### Sample Product 2:
 ```json
 {
-  "name": "Brownies",
+  "name": "Brownies 4-pack",
   "description": "Fudgy chocolate brownies with rich cocoa flavor",
-  "price": "$4.50",
+  "price": "$5",
+  "image": "https://firebasestorage.googleapis.com/v0/b/your-project.appspot.com/o/products%2F1234567891_brownies.jpg?alt=media&token=...",
+  "weeklyCap": 5,
+  "createdAt": [server timestamp],
+  "updatedAt": [server timestamp]
+}
+
+{
+  "name": "Choc-Chip Cookies 5-pack",
+  "description": "Fudgy chocolate brownies with rich cocoa flavor",
+  "price": "$6.00",
   "image": "https://firebasestorage.googleapis.com/v0/b/your-project.appspot.com/o/products%2F1234567891_brownies.jpg?alt=media&token=...",
   "weeklyCap": 30,
   "createdAt": [server timestamp],

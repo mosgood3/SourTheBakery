@@ -106,7 +106,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent-gold text-brown py-3 px-6 rounded-xl font-semibold hover:bg-accent-gold/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:ring-offset-2"
+              className="w-full bg-accent-gold text-brown border-1 bg-cinnamon cursor-pointer border-brown py-3 px-6 rounded-xl font-semibold hover:bg-accent-gold/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:ring-offset-2"
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </button>
@@ -116,7 +116,7 @@ export default function AdminLogin() {
           <div className="text-center mt-6">
             <a
               href="/"
-              className="text-brown/70 hover:text-accent-gold transition-colors duration-300 text-sm focus:outline-none focus:ring-2 focus:ring-accent-gold focus:ring-offset-2 rounded"
+              className="text-brown/70 font-bold hover:text-accent-gold transition-colors duration-300 text-sm focus:outline-none focus:ring-2 focus:ring-accent-gold focus:ring-offset-2 rounded"
             >
               ← Back to Bakery
             </a>

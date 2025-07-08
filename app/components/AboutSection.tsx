@@ -51,17 +51,7 @@ export default function AboutSection() {
               </p>
             </div>
 
-            {/* Statistics */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 border-2 border-accent-gold/30">
-                <div className="text-4xl font-bold text-accent-gold mb-2">1000+</div>
-                <div className="text-brown font-semibold">Happy Customers</div>
-              </div>
-              <div className="rounded-2xl p-6 text-center transform hover:scale-105 transition-all duration-300 border-2 border-accent-pink/30">
-                <div className="text-4xl font-bold text-accent-pink mb-2">50+</div>
-                <div className="text-brown font-semibold">Unique Recipes</div>
-              </div>
-            </div>
+            {/* Statistics - removed */}
           </div>
 
           {/* Right: Baker Image & Quote */}
@@ -97,24 +87,6 @@ export default function AboutSection() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="bg-gradient-to-r from-accent-gold/10 to-accent-pink/10 rounded-3xl p-12 text-center border border-accent-gold/20">
-          <h3 className="text-3xl font-bold text-brown mb-4">
-            Visit Our Farm Stand
-          </h3>
-          <p className="text-lg text-brown/90 mb-8 max-w-2xl mx-auto">
-            Experience the warmth and aroma of our freshly baked goods in person. Come see where the magic happens!
-          </p>
-          <a 
-            href="https://maps.google.com/?q=12+Gaylord+Drive+Rocky+Hill+CT+06111"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-all duration-300 border-2 border-brown transform hover:scale-105"
-          >
-            Get Directions
-          </a>
         </div>
       </div>
     </section>

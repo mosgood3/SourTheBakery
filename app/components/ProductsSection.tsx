@@ -5,6 +5,50 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { getProducts, Product, isOrderWindowOpen } from '../lib/products';
 
+export function PorchPickupSection() {
+  return (
+    <>
+      <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
+      <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 px-8 lg:px-16 max-w-xl mx-auto shadow-xl">
+        <div className="text-brown/90 text-lg font-bold text-center mb-4">
+          <span role="img" aria-label="door">🚪</span> <span className="font-bold">Farm Stand Pickup Only:</span> All online orders are for farm stand pickup at 12 Gaylord Drive, Rocky Hill, CT.
+        </div>
+        {/* Responsive: vertical on small, horizontal on md+ */}
+        <div className="flex flex-col md:grid md:grid-cols-5 gap-y-2 md:gap-x-2 items-center justify-items-center w-full">
+          {/* Order Online */}
+          <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md w-40 h-32">
+            <span className="text-2xl">🛒</span>
+            <span className="font-semibold text-brown text-base mt-1">Order Online</span>
+            <span className="text-sm text-brown/70 mt-1">Mon 6am - Thu 5pm</span>
+          </div>
+          {/* Arrow */}
+          <div className="my-1 md:my-0 md:col-start-2 flex items-center justify-center">
+            <span className="text-2xl text-brown md:hidden">↓</span>
+            <span className="text-2xl text-brown hidden md:inline">→</span>
+          </div>
+          {/* Baker Prepares */}
+          <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-3 w-40 h-32">
+            <span className="text-2xl">👩‍🍳</span>
+            <span className="font-semibold text-brown text-base mt-1">Baker Prepares</span>
+            <span className="text-sm text-brown/70 mt-1">Fri & Sat</span>
+          </div>
+          {/* Arrow */}
+          <div className="my-1 md:my-0 md:col-start-4 flex items-center justify-center">
+            <span className="text-2xl text-brown md:hidden">↓</span>
+            <span className="text-2xl text-brown hidden md:inline">→</span>
+          </div>
+          {/* Porch Pickup */}
+          <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-5 w-40 h-32">
+            <span className="text-2xl">🏡</span>
+            <span className="font-semibold text-brown text-base mt-1">Porch Pickup</span>
+            <span className="text-sm text-brown/70 mt-1">Sun 9am-1pm</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function ProductsSection() {
   const { addItem } = useCart();
   const [currentProduct, setCurrentProduct] = useState(0);
@@ -50,7 +94,7 @@ export default function ProductsSection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-              Our Products
+              Menu
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
@@ -72,7 +116,7 @@ export default function ProductsSection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-              Our Products
+              Menu
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
@@ -99,7 +143,7 @@ export default function ProductsSection() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-              Our Products
+              Menu
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
@@ -120,38 +164,11 @@ export default function ProductsSection() {
         {/* Section Header */}
         <div className="text-center mb-20">
           <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-            Our Products
+            Menu
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
           </p>
-          {/* Porch Pickup Disclaimer and Workflow */}
-          <div className="mt-8 mb-8 bg-muted/30 rounded-2xl border border-accent-gold/30 p-6 max-w-2xl mx-auto">
-            <div className="text-brown/80 text-sm font-medium text-center">
-              🚪 <span className="font-semibold">Porch Pickup Only:</span> All online orders are for porch pickup at 12 Gaylord Drive, Rocky Hill, CT.
-            </div>
-            <div className="mt-4 flex flex-col items-center w-full">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-2 flex-wrap w-full">
-                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
-                  <span className="text-2xl">🛒</span>
-                  <span className="font-semibold text-brown text-xs mt-1">Order Online</span>
-                  <span className="text-[11px] text-brown/70">Mon 6am - Thu 5pm</span>
-                </div>
-                <span className="my-1 md:my-0 md:mx-2 text-2xl text-brown"> <span className="block md:hidden">↓</span><span className="hidden md:block">→</span> </span>
-                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
-                  <span className="text-2xl">👩‍🍳</span>
-                  <span className="font-semibold text-brown text-xs mt-1">Baker Prepares</span>
-                  <span className="text-[11px] text-brown/70">Fri & Sat</span>
-                </div>
-                <span className="my-1 md:my-0 md:mx-2 text-2xl text-brown"> <span className="block md:hidden">↓</span><span className="hidden md:block">→</span> </span>
-                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
-                  <span className="text-2xl">🏡</span>
-                  <span className="font-semibold text-brown text-xs mt-1">Porch Pickup</span>
-                  <span className="text-[11px] text-brown/70">Sun 9am-1pm</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* 3D Rotating Product Showcase - Small/Medium Screens */}
@@ -331,17 +348,19 @@ export default function ProductsSection() {
         <div className="text-center">
           <div className="bg-muted/30 rounded-3xl p-12 max-w-4xl mx-auto">
             <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Ready to Order?
+              Visit Our Farm Stand
             </h3>
-            <p className="text-xl text-muted-foreground mb-8">
-              Browse our full menu and place your order for pickup or delivery.
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Experience the warmth and aroma of our freshly baked goods in person. Come see where the magic happens!
             </p>
-            <button 
-              onClick={() => handleAddToCart(products[currentProduct])}
-              className="bg-primary text-primary-foreground px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 shadow-xl cursor-pointer"
+            <a
+              href="https://maps.google.com/?q=12+Gaylord+Drive+Rocky+Hill+CT+06111"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-primary text-primary-foreground px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 shadow-xl cursor-pointer"
             >
-              View Full Menu
-            </button>
+              Get Directions
+            </a>
           </div>
         </div>
       </div>
