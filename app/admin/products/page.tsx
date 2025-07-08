@@ -25,7 +25,8 @@ export default function AdminProducts() {
     name: '',
     description: '',
     price: '',
-    image: ''
+    image: '',
+    weeklyCap: ''
   });
 
   // Redirect if not admin
@@ -98,7 +99,8 @@ export default function AdminProducts() {
 
       const productData = {
         ...formData,
-        image: imageUrl
+        image: imageUrl,
+        weeklyCap: formData.weeklyCap ? parseInt(formData.weeklyCap) : undefined
       };
 
       if (editingId) {
@@ -109,7 +111,7 @@ export default function AdminProducts() {
       }
 
       // Reset form
-      setFormData({ name: '', description: '', price: '', image: '' });
+      setFormData({ name: '', description: '', price: '', image: '', weeklyCap: '' });
       setSelectedFile(null);
       setImagePreview(null);
       setIsAdding(false);
@@ -134,7 +136,8 @@ export default function AdminProducts() {
       name: product.name,
       description: product.description,
       price: product.price,
-      image: product.image
+      image: product.image,
+      weeklyCap: product.weeklyCap?.toString() || ''
     });
     setImagePreview(product.image);
     setSelectedFile(null);
@@ -156,7 +159,7 @@ export default function AdminProducts() {
   const cancelEdit = () => {
     setEditingId(null);
     setIsAdding(false);
-    setFormData({ name: '', description: '', price: '', image: '' });
+    setFormData({ name: '', description: '', price: '', image: '', weeklyCap: '' });
     setSelectedFile(null);
     setImagePreview(null);
     if (fileInputRef.current) {
@@ -245,6 +248,25 @@ export default function AdminProducts() {
                     placeholder="$6.50"
                     required
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-brown mb-2">
+                    Weekly Cap (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.weeklyCap}
+                    onChange={(e) => setFormData({ ...formData, weeklyCap: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50"
+                    placeholder="50"
+                    min="0"
+                  />
+                  <p className="text-sm text-brown/60 mt-1">
+                    Maximum number of this item that can be sold per week. Leave empty for no limit.
+                  </p>
                 </div>
               </div>
 
@@ -362,6 +384,11 @@ export default function AdminProducts() {
                   <p className="text-lg font-semibold text-accent-gold">
                     {product.price}
                   </p>
+                  {product.weeklyCap && (
+                    <p className="text-sm text-brown/60 mt-1">
+                      Weekly Cap: {product.weeklyCap}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-2">

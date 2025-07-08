@@ -43,6 +43,12 @@ service cloud.firestore {
         request.auth.token.email in ['sourthebakeryllc@gmail.com'];
     }
     
+    // Allow read/write access to orders for admin only
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
     // Deny all other access
     match /{document=**} {
       allow read, write: if false;
@@ -95,6 +101,7 @@ You can add some sample products to test the system:
   "description": "Artisanal sourdough bread made with traditional techniques",
   "price": "$6.50",
   "image": "https://firebasestorage.googleapis.com/v0/b/your-project.appspot.com/o/products%2F1234567890_sourdough.jpg?alt=media&token=...",
+  "weeklyCap": 50,
   "createdAt": [server timestamp],
   "updatedAt": [server timestamp]
 }
@@ -107,6 +114,7 @@ You can add some sample products to test the system:
   "description": "Fudgy chocolate brownies with rich cocoa flavor",
   "price": "$4.50",
   "image": "https://firebasestorage.googleapis.com/v0/b/your-project.appspot.com/o/products%2F1234567891_brownies.jpg?alt=media&token=...",
+  "weeklyCap": 30,
   "createdAt": [server timestamp],
   "updatedAt": [server timestamp]
 }
@@ -145,7 +153,21 @@ service cloud.firestore {
         request.resource.data.name is string &&
         request.resource.data.description is string &&
         request.resource.data.price is string &&
-        request.resource.data.image is string;
+        request.resource.data.image is string &&
+        (request.resource.data.weeklyCap == null || request.resource.data.weeklyCap is number);
+    }
+    
+    // Allow read/write access to orders for admin only
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'] &&
+        request.resource.data.keys().hasAll(['customerName', 'customerEmail', 'customerPhone', 'items', 'total', 'status']) &&
+        request.resource.data.customerName is string &&
+        request.resource.data.customerEmail is string &&
+        request.resource.data.customerPhone is string &&
+        request.resource.data.items is list &&
+        request.resource.data.total is number &&
+        request.resource.data.status in ['pending', 'confirmed', 'completed', 'cancelled'];
     }
     
     // Deny all other access
@@ -203,13 +225,26 @@ service firebase.storage {
 
 ## Data Structure
 
+### Products Collection
 Each product document contains:
 - `name` (string): Product name
 - `description` (string): Product description
 - `price` (string): Price with currency symbol
 - `image` (string): Firebase Storage download URL
+- `weeklyCap` (number, optional): Maximum number of items that can be sold per week
 - `createdAt` (timestamp): When product was created
 - `updatedAt` (timestamp): When product was last updated
+
+### Orders Collection
+Each order document contains:
+- `customerName` (string): Customer's full name
+- `customerEmail` (string): Customer's email address
+- `customerPhone` (string): Customer's phone number
+- `items` (array): Array of order items with productId, productName, quantity, and price
+- `total` (number): Total order amount
+- `status` (string): Order status ('pending', 'confirmed', 'completed', 'cancelled')
+- `createdAt` (timestamp): When order was created
+- `updatedAt` (timestamp): When order was last updated
 
 ## Cost Considerations
 

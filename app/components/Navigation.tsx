@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { GiShoppingCart } from "react-icons/gi";
-import { FaTiktok, FaInstagram, FaYoutube } from 'react-icons/fa';
+import { FaTiktok, FaInstagram } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function Navigation() {
@@ -46,14 +46,11 @@ export default function Navigation() {
             
             {/* Social Media Icons */}
             <div className="flex items-center space-x-4">
-              <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
+              <a href="https://www.tiktok.com/@sourthebakery" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
                 <FaTiktok size={20} />
               </a>
-              <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
+              <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
                 <FaInstagram size={20} />
-              </a>
-              <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-red-600 hover:scale-110 transition-all duration-300">
-                <FaYoutube size={22} />
               </a>
             </div>
             
@@ -109,14 +106,11 @@ export default function Navigation() {
             
             {/* Social Media Icons for Mobile */}
             <div className="flex items-center space-x-6 px-3 py-4 border-t border-muted mt-4">
-              <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
+              <a href="https://www.tiktok.com/@sourthebakery" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
                 <FaTiktok size={24} />
               </a>
-              <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
+              <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
                 <FaInstagram size={24} />
-              </a>
-              <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-red-600 hover:scale-110 transition-all duration-300">
-                <FaYoutube size={26} />
               </a>
             </div>
           </div>

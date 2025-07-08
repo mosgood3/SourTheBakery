@@ -1,4 +1,4 @@
-import { FaTiktok, FaInstagram, FaYoutube } from 'react-icons/fa';
+import { FaTiktok, FaInstagram } from 'react-icons/fa';
 
 export default function Footer() {
   return (
@@ -13,14 +13,11 @@ export default function Footer() {
               Crafting delicious memories, one bite at a time. We bring the warmth and tradition of artisanal baking to every creation.
             </p>
             <div className="flex space-x-4">
-              <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
+              <a href="https://www.tiktok.com/@sourthebakery" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
                 <FaTiktok size={24} />
               </a>
-              <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
+              <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
                 <FaInstagram size={24} />
-              </a>
-              <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-red-600 hover:scale-110 transition-all duration-300">
-                <FaYoutube size={26} />
               </a>
             </div>
           </div>
@@ -40,7 +37,7 @@ export default function Footer() {
               </div>
               <div>
                 <p className="text-cream/80 mb-1">Email</p>
-                <p className="text-cream/60">hello@sourthebakery.com</p>
+                <p className="text-cream/60">sourthebakeryllc@gmail.com</p>
               </div>
             </div>
           </div>

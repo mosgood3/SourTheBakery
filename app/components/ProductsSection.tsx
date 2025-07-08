@@ -3,7 +3,7 @@
 import { useCart } from '../contexts/CartContext';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { getProducts, Product } from '../lib/products';
+import { getProducts, Product, isOrderWindowOpen } from '../lib/products';
 
 export default function ProductsSection() {
   const { addItem } = useCart();
@@ -30,6 +30,11 @@ export default function ProductsSection() {
   }, []);
 
   const handleAddToCart = (product: Product) => {
+    if (!isOrderWindowOpen()) {
+      alert('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
+      return;
+    }
+    
     addItem({
       id: product.id || '',
       name: product.name,
@@ -120,6 +125,33 @@ export default function ProductsSection() {
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
           </p>
+          {/* Porch Pickup Disclaimer and Workflow */}
+          <div className="mt-8 mb-8 bg-muted/30 rounded-2xl border border-accent-gold/30 p-6 max-w-2xl mx-auto">
+            <div className="text-brown/80 text-sm font-medium text-center">
+              🚪 <span className="font-semibold">Porch Pickup Only:</span> All online orders are for porch pickup at 12 Gaylord Drive, Rocky Hill, CT.
+            </div>
+            <div className="mt-4 flex flex-col items-center w-full">
+              <div className="flex flex-row items-center justify-center gap-2 flex-wrap">
+                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-2xl">🛒</span>
+                  <span className="font-semibold text-brown text-xs mt-1">Order Online</span>
+                  <span className="text-[11px] text-brown/70">Mon 6am - Thu 5pm</span>
+                </div>
+                <span className="mx-2 text-2xl text-brown">→</span>
+                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-2xl">👩‍🍳</span>
+                  <span className="font-semibold text-brown text-xs mt-1">Baker Prepares</span>
+                  <span className="text-[11px] text-brown/70">Fri & Sat</span>
+                </div>
+                <span className="mx-2 text-2xl text-brown">→</span>
+                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-2xl">🏡</span>
+                  <span className="font-semibold text-brown text-xs mt-1">Porch Pickup</span>
+                  <span className="text-[11px] text-brown/70">Sun 9am-1pm</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 3D Rotating Product Showcase - Small/Medium Screens */}
@@ -204,7 +236,7 @@ export default function ProductsSection() {
                               e.stopPropagation();
                               handleAddToCart(product);
                             }}
-                            className="bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+                            className="bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
                           >
                             Add to Cart
                           </button>
@@ -236,7 +268,7 @@ export default function ProductsSection() {
         {/* Horizontal Scrollable Product List - Large Screens */}
         <div className="hidden md:block mb-16">
           <div className="flex justify-center">
-            <div className="flex gap-8 overflow-x-auto pb-8 scrollbar-hide max-w-6xl">
+            <div className="flex gap-8 overflow-visible pb-8 scrollbar-hide max-w-6xl">
               {products.map((product) => (
                 <div
                   key={product.id}
@@ -277,7 +309,7 @@ export default function ProductsSection() {
                         e.stopPropagation();
                         handleAddToCart(product);
                       }}
-                      className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+                      className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
                     >
                       Add to Cart
                     </button>

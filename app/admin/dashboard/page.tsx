@@ -197,7 +197,13 @@ export default function AdminDashboard() {
             {activeTab === 'orders' && (
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-accent-gold/20">
                 <h2 className="text-xl font-serif font-bold text-brown mb-4">Orders Management</h2>
-                <p className="text-brown/70">Orders management interface coming soon...</p>
+                <p className="text-brown/70 mb-4">Manage customer orders and update their status.</p>
+                <button
+                  onClick={() => router.push('/admin/orders')}
+                  className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300"
+                >
+                  View All Orders
+                </button>
               </div>
             )}
 

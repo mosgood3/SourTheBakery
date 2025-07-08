@@ -7,61 +7,18 @@ import Image from 'next/image';
 export default function HeroSection() {
   const { toggleCart } = useCart();
 
-  useEffect(() => {
-    const canvas = document.getElementById('gradient-canvas') as HTMLCanvasElement | null;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
-    if (!ctx) return;
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', handleResize);
-    const colors: [number, number, number][] = [
-      [255, 240, 200], // deeper cream
-      [235, 180, 120], // richer peach
-      [210, 180, 140], // deeper beige
-      [255, 140, 0],   // vibrant gold
-      [255, 150, 180], // vibrant pink
-      [180, 100, 60],  // deeper cinnamon
-      [100, 60, 20],   // darker brown
-    ];
-    function lerp(a: number, b: number, t: number): number { return a + (b - a) * t; }
-    let animationId: number;
-    function draw(time: number) {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, width, height);
-      for (let i = 0; i < 5; i++) {
-        const t = (time / 2000 + i * 0.2) % 1;
-        const x = lerp(0, width, Math.abs(Math.sin(time / (3000 + i * 1000) + i)));
-        const y = lerp(0, height, Math.abs(Math.cos(time / (4000 + i * 800) + i)));
-        const r = lerp(width * 0.3, width * 0.6, Math.abs(Math.sin(time / (2500 + i * 900) + i)));
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-        const c1 = colors[i];
-        const c2 = colors[(i + 1) % colors.length];
-        grad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},0.65)`);
-        grad.addColorStop(1, `rgba(${c2[0]},${c2[1]},${c2[2]},0.15)`);
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-      animationId = requestAnimationFrame(draw);
-    }
-    animationId = requestAnimationFrame(draw);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
-
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 sm:pt-36 md:pt-40 lg:pt-44">
-      {/* Stripe-style Animated Gradient Background */}
-      <canvas id="gradient-canvas" className="absolute inset-0 w-full h-full z-0" data-transition-in style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0}} />
-      
+    <section
+      id="home"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 sm:pt-36 md:pt-40 lg:pt-44"
+      /* Bakery SVG pattern background, matches admin login */
+      style={{
+        backgroundImage: "url('data:image/svg+xml;utf8,<svg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"40\" height=\"40\" fill=\"%23fff8e1\"/><ellipse cx=\"20\" cy=\"20\" rx=\"19\" ry=\"19\" fill=\"%23f7e1b5\" fill-opacity=\"0.13\"/><ellipse cx=\"10\" cy=\"10\" rx=\"6\" ry=\"6\" fill=\"%23d19a6d\" fill-opacity=\"0.07\"/><ellipse cx=\"30\" cy=\"30\" rx=\"7\" ry=\"7\" fill=\"%238b5b29\" fill-opacity=\"0.04\"/></svg>')",
+        backgroundSize: '120px 120px',
+        backgroundBlendMode: 'multiply',
+        backgroundColor: 'var(--background)',
+      }}
+    >
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen text-center">
         {/* Text Content */}
         <div className="flex flex-col justify-center items-center space-y-8 mb-12">
@@ -88,8 +45,34 @@ export default function HeroSection() {
               View Menu
             </a>
           </div>
+          {/* Order Disclaimer */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-accent-gold/90 to-yellow-400/90 backdrop-blur-sm rounded-xl border-2 border-accent-gold/60 shadow-lg max-w-2xl">
+            <div className="text-brown/80 text-sm font-medium text-center">
+              🚪 <span className="font-semibold">Porch Pickup Only:</span> All online orders are for porch pickup at 12 Gaylord Drive, Rocky Hill, CT.
+            </div>
+            <div className="mt-4 flex flex-col items-center w-full">
+              <div className="flex flex-row items-center justify-center gap-2 flex-wrap">
+                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-2xl">🛒</span>
+                  <span className="font-semibold text-brown text-xs mt-1">Order Online</span>
+                  <span className="text-[11px] text-brown/70">Mon 6am - Thu 5pm</span>
+                </div>
+                <span className="mx-2 text-2xl text-brown">→</span>
+                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-2xl">👩‍🍳</span>
+                  <span className="font-semibold text-brown text-xs mt-1">Baker Prepares</span>
+                  <span className="text-[11px] text-brown/70">Fri & Sat</span>
+                </div>
+                <span className="mx-2 text-2xl text-brown">→</span>
+                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-2xl">🏡</span>
+                  <span className="font-semibold text-brown text-xs mt-1">Porch Pickup</span>
+                  <span className="text-[11px] text-brown/70">Sun 9am-1pm</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
         {/* Bakery Gallery Section */}
         <div className="mt-20 w-full">
           <h3 className="text-3xl md:text-4xl font-serif font-bold text-brown mb-8 text-center">
@@ -124,22 +107,6 @@ export default function HeroSection() {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Wavy Vintage Divider */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden">
-        <svg className="relative w-full h-16" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path 
-            d="M0,0 C300,60 600,60 900,30 C1050,15 1200,45 1200,60 L1200,120 L0,120 Z" 
-            fill="#F7E1B5" 
-            opacity="0.8"
-          />
-          <path 
-            d="M0,0 C300,40 600,40 900,20 C1050,10 1200,30 1200,40 L1200,120 L0,120 Z" 
-            fill="#D19A6D" 
-            opacity="0.3"
-          />
-        </svg>
       </div>
 
       {/* Custom CSS for vintage effects */}
@@ -258,9 +225,7 @@ export default function HeroSection() {
         }
         .lobster-vintage-shadow {
           font-family: var(--font-lobster), Georgia, serif;
-          text-shadow:
-            6px 6px 0px #2d2d2d,
-            2px 2px 0px rgba(0,0,0,0.15);
+          font-weight: 900;
           letter-spacing: 0.03em;
         }
         .vintage-btn {
@@ -288,12 +253,12 @@ export default function HeroSection() {
           transform: translateY(-2px) scale(1.04);
         }
         .menu-btn {
-          background: linear-gradient(90deg, #633a13 60%, #b88b4a 100%);
+          background: #633a13;
           color: #fffbe9;
           border-color: #f9a800;
         }
         .menu-btn:hover, .menu-btn:focus {
-          background: linear-gradient(90deg, #7a4a1a 60%, #d1a06b 100%);
+          background: #7a4a1a;
           color: #ffe066;
           box-shadow: 0 8px 32px 0 rgba(139,91,41,0.18), 0 2.5px 0 #b88b4a;
           transform: translateY(-2px) scale(1.04);

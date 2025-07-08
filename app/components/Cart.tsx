@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
+import Checkout from './Checkout';
 
 export default function Cart() {
   const { state, removeItem, updateQuantity, clearCart, closeCart, getTotalPrice } = useCart();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   if (!state.isOpen) return null;
 
@@ -101,10 +104,7 @@ export default function Cart() {
                   Clear Cart
                 </button>
                 <button
-                  onClick={() => {
-                    alert('Checkout functionality would be implemented here!');
-                    closeCart();
-                  }}
+                  onClick={() => setIsCheckoutOpen(true)}
                   className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   Checkout
@@ -114,6 +114,15 @@ export default function Cart() {
           )}
         </div>
       </div>
+
+      {/* Checkout Component */}
+      <Checkout 
+        isOpen={isCheckoutOpen} 
+        onClose={() => {
+          setIsCheckoutOpen(false);
+          closeCart();
+        }} 
+      />
     </>
   );
 } 
