@@ -131,19 +131,19 @@ export default function ProductsSection() {
               🚪 <span className="font-semibold">Porch Pickup Only:</span> All online orders are for porch pickup at 12 Gaylord Drive, Rocky Hill, CT.
             </div>
             <div className="mt-4 flex flex-col items-center w-full">
-              <div className="flex flex-row items-center justify-center gap-2 flex-wrap">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-2 flex-wrap w-full">
                 <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
                   <span className="text-2xl">🛒</span>
                   <span className="font-semibold text-brown text-xs mt-1">Order Online</span>
                   <span className="text-[11px] text-brown/70">Mon 6am - Thu 5pm</span>
                 </div>
-                <span className="mx-2 text-2xl text-brown">→</span>
+                <span className="my-1 md:my-0 md:mx-2 text-2xl text-brown"> <span className="block md:hidden">↓</span><span className="hidden md:block">→</span> </span>
                 <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
                   <span className="text-2xl">👩‍🍳</span>
                   <span className="font-semibold text-brown text-xs mt-1">Baker Prepares</span>
                   <span className="text-[11px] text-brown/70">Fri & Sat</span>
                 </div>
-                <span className="mx-2 text-2xl text-brown">→</span>
+                <span className="my-1 md:my-0 md:mx-2 text-2xl text-brown"> <span className="block md:hidden">↓</span><span className="hidden md:block">→</span> </span>
                 <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
                   <span className="text-2xl">🏡</span>
                   <span className="font-semibold text-brown text-xs mt-1">Porch Pickup</span>

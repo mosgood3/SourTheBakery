@@ -45,33 +45,6 @@ export default function HeroSection() {
               View Menu
             </a>
           </div>
-          {/* Order Disclaimer */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-accent-gold/90 to-yellow-400/90 backdrop-blur-sm rounded-xl border-2 border-accent-gold/60 shadow-lg max-w-2xl">
-            <div className="text-brown/80 text-sm font-medium text-center">
-              🚪 <span className="font-semibold">Porch Pickup Only:</span> All online orders are for porch pickup at 12 Gaylord Drive, Rocky Hill, CT.
-            </div>
-            <div className="mt-4 flex flex-col items-center w-full">
-              <div className="flex flex-row items-center justify-center gap-2 flex-wrap">
-                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
-                  <span className="text-2xl">🛒</span>
-                  <span className="font-semibold text-brown text-xs mt-1">Order Online</span>
-                  <span className="text-[11px] text-brown/70">Mon 6am - Thu 5pm</span>
-                </div>
-                <span className="mx-2 text-2xl text-brown">→</span>
-                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
-                  <span className="text-2xl">👩‍🍳</span>
-                  <span className="font-semibold text-brown text-xs mt-1">Baker Prepares</span>
-                  <span className="text-[11px] text-brown/70">Fri & Sat</span>
-                </div>
-                <span className="mx-2 text-2xl text-brown">→</span>
-                <div className="flex flex-col items-center bg-white/80 border-2 border-accent-gold rounded-xl px-4 py-2 min-w-[110px]">
-                  <span className="text-2xl">🏡</span>
-                  <span className="font-semibold text-brown text-xs mt-1">Porch Pickup</span>
-                  <span className="text-[11px] text-brown/70">Sun 9am-1pm</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
         {/* Bakery Gallery Section */}
         <div className="mt-20 w-full">
