@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createOrder } from '../../lib/products';
+import { serverTimestamp, Timestamp } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+function getNextSunday(): Date {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const daysUntilSunday = (7 - dayOfWeek) % 7 || 7;
+  const nextSunday = new Date(now);
+  nextSunday.setDate(now.getDate() + daysUntilSunday);
+  nextSunday.setHours(9, 0, 0, 0); // Set to 9:00 AM
+  return nextSunday;
+}
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
@@ -41,15 +52,18 @@ export async function POST(req: NextRequest) {
         return new NextResponse('Invalid items metadata', { status: 400 });
       }
 
-      // Create order
-      const orderId = await createOrder({
+      // Create order with all required fields
+      const orderData = {
         customerName: metadata.customerName,
         customerEmail: paymentIntent.receipt_email || '',
         customerPhone: metadata.customerPhone,
-        items: items,
+        items,
         total: paymentIntent.amount / 100,
-        status: 'pending',
-      });
+        status: 'pending' as const,
+        orderDate: serverTimestamp(),
+        pickupDate: Timestamp.fromDate(getNextSunday()),
+      };
+      const orderId = await createOrder(orderData);
 
       console.log('Order created successfully:', orderId);
       
