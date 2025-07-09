@@ -64,7 +64,7 @@ export default function Footer() {
             <p className="text-cream/60 text-sm">
               © 2024 Sour The Bakery. All rights reserved.
             </p>
-            <div className="flex space-x-6 text-sm">
+            <div className="flex space-x-6 text-sm items-center">
               <a href="#" className="text-cream/60 hover:text-accent-gold transition-colors">
                 Privacy Policy
               </a>
@@ -73,6 +73,13 @@ export default function Footer() {
               </a>
               <a href="#" className="text-cream/60 hover:text-accent-gold transition-colors">
                 Accessibility
+              </a>
+              <a
+                href="/admin/login"
+                className="ml-4 px-3 py-1 rounded-lg border border-accent-gold text-accent-gold bg-transparent hover:bg-accent-gold hover:text-brown transition-colors duration-200 text-xs font-semibold shadow-sm"
+                style={{ marginLeft: '1.5rem' }}
+              >
+                Admin Login
               </a>
             </div>
           </div>
