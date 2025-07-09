@@ -4,15 +4,17 @@ import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { isOrderWindowOpen } from '../lib/products';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 
 interface CheckoutProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
 const stripePromise = (() => {
-  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  const key = STRIPE_PUBLISHABLE_KEY;
   if (!key) {
     console.error('Stripe publishable key is missing!');
     return Promise.reject(new Error('Stripe publishable key is missing'));
@@ -28,8 +30,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const { state, getTotalPrice, clearCart } = useCart();
   const [formData, setFormData] = useState({
     customerName: '',
-    customerEmail: '',
-    customerPhone: ''
+    customerEmail: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -44,14 +45,14 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
 
   // Debug Stripe key and promise
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    const key = STRIPE_PUBLISHABLE_KEY;
     console.log('Stripe key debug:', {
       key: key ? 'Present' : 'Missing',
       keyLength: key?.length || 0,
       keyStart: key?.substring(0, 10) + '...' || 'N/A',
       keyType: key?.startsWith('pk_test_') ? 'Test' : key?.startsWith('pk_live_') ? 'Live' : 'Invalid',
       envVars: {
-        hasKey: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        hasKey: !!STRIPE_PUBLISHABLE_KEY,
         hasSecret: !!process.env.STRIPE_SECRET_KEY,
         hasWebhook: !!process.env.STRIPE_WEBHOOK_SECRET
       }
@@ -104,6 +105,24 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
 
   if (!isOpen) return null;
 
+  // Stripe input style to match theme
+  const stripeInputStyle = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#6B4F27', // text-brown
+        fontFamily: 'serif',
+        '::placeholder': {
+          color: '#bfae9c', // match your input placeholder
+          opacity: 1,
+        },
+      },
+      invalid: {
+        color: '#e3342f',
+      },
+    },
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -133,7 +152,6 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         body: JSON.stringify({
           customerName: formData.customerName,
           customerEmail: formData.customerEmail,
-          customerPhone: formData.customerPhone,
           items: state.items,
         }),
       });
@@ -144,11 +162,10 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
       // 2. Confirm card payment
       const result = await stripe.confirmCardPayment(data.clientSecret, {
         payment_method: {
-          card: elements.getElement(CardElement)!,
+          card: elements.getElement(CardNumberElement)!,
           billing_details: {
             name: formData.customerName,
             email: formData.customerEmail,
-            phone: formData.customerPhone,
           },
         },
       });
@@ -187,7 +204,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         }, 2000);
         
         clearCart();
-        setFormData({ customerName: '', customerEmail: '', customerPhone: '' });
+        setFormData({ customerName: '', customerEmail: '' });
         setTimeout(() => {
           setSuccess(false);
           onClose();
@@ -322,74 +339,49 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
                 
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.customerName}
-                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
-                    placeholder="John Doe"
-                    required
-                  />
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Full Name *</label>
+                    <input
+                      type="text"
+                      value={formData.customerName}
+                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
+                      placeholder="Jane Doe"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Email Address *</label>
+                    <input
+                      type="email"
+                      value={formData.customerEmail}
+                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
+                      placeholder="jane@example.com"
+                      required
+                    />
+                  </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.customerEmail}
-                    onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
-                    placeholder="john@example.com"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-2">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.customerPhone}
-                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
-                    placeholder="(555) 123-4567"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-2">
-                    Card Details *
-                  </label>
-                  <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
-                    {!isStripeReady && !forceShowCard ? (
-                      <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2 mb-2"></div>
-                        <div>Loading payment form...</div>
-                        {stripeError && (
-                          <div className="text-xs text-red-500 mt-1 text-center">
-                            Debug: {stripeError}
-                          </div>
-                        )}
-                        {stripeLoadError && (
-                          <div className="text-xs text-red-500 mt-1 text-center">
-                            Stripe Error: {stripeLoadError}
-                          </div>
-                        )}
-                        <div className="text-xs text-gray-400 mt-2 text-center">
-                          If this doesn't load, check your Stripe configuration
-                        </div>
-                      </div>
-                    ) : (
-                      <CardElement options={{ hidePostalCode: true }} />
-                    )}
+                <h3 className="text-xl font-serif font-bold text-brown mb-4 mt-8">Payment Information</h3>
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Card Number *</label>
+                    <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white/50">
+                      <CardNumberElement options={stripeInputStyle} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Expiry *</label>
+                    <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white/50">
+                      <CardExpiryElement options={stripeInputStyle} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-2">CVC *</label>
+                    <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white/50">
+                      <CardCvcElement options={stripeInputStyle} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -401,7 +393,6 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                   <li>• Orders are only accepted Monday 6am to Thursday 5pm</li>
                   <li>• Pickup is available Sunday 9am-1pm</li>
                   <li>• We'll contact you to confirm your order</li>
-                  <li>• Payment is due at pickup</li>
                 </ul>
               </div>
             </form>
