@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ProductsPanel from './products/ProductsPanel';
