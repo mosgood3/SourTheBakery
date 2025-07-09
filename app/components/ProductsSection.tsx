@@ -78,6 +78,12 @@ export default function ProductsSection() {
       alert('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
       return;
     }
+
+    // Check if product is sold out
+    if (product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0) {
+      alert(`${product.name} is sold out for this week.`);
+      return;
+    }
     
     addItem({
       id: product.id || '',
@@ -248,15 +254,21 @@ export default function ProductsSection() {
                           </p>
                                                   
                           {/* Add to Cart Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(product);
-                            }}
-                            className="bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
-                          >
-                            Add to Cart
-                          </button>
+                          {product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0 ? (
+                            <div className="bg-red-100 text-red-800 px-8 py-4 rounded-full text-lg font-semibold border-2 border-red-300">
+                              Sold Out
+                            </div>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(product);
+                              }}
+                              className="bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
+                            >
+                              Add to Cart
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -321,15 +333,21 @@ export default function ProductsSection() {
                     </p>
                                         
                     {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToCart(product);
-                      }}
-                      className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
-                    >
-                      Add to Cart
-                    </button>
+                    {product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0 ? (
+                      <div className="bg-red-100 text-red-800 px-6 py-3 rounded-full text-base font-semibold border-2 border-red-300">
+                        Sold Out
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product);
+                        }}
+                        className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
+                      >
+                        Add to Cart
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

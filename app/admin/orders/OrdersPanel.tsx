@@ -63,7 +63,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
         <div className="flex gap-4">
           <button
             onClick={fetchOrders}
-            className="flex items-center gap-2 bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md"
+            className="flex items-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
           >
             <FiRefreshCw size={18} />
             Refresh Orders
@@ -73,13 +73,21 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       {/* Tabs */}
       <div className="flex gap-4 mb-6">
         <button
-          className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 ${activeTab === 'pending' ? 'bg-accent-gold text-brown' : 'bg-white text-brown/60 border border-accent-gold/30'}`}
+          className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 focus:outline-none cursor-pointer 
+            ${activeTab === 'pending' 
+              ? 'text-2xl underline underline-offset-8 decoration-4 decoration-accent-gold text-brown' 
+              : 'text-lg text-brown/60 hover:text-brown'}
+          `}
           onClick={() => setActiveTab('pending')}
         >
           Pending Orders
         </button>
         <button
-          className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 ${activeTab === 'completed' ? 'bg-accent-gold text-brown' : 'bg-white text-brown/60 border border-accent-gold/30'}`}
+          className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 focus:outline-none cursor-pointer 
+            ${activeTab === 'completed' 
+              ? 'text-2xl underline underline-offset-8 decoration-4 decoration-accent-gold text-brown' 
+              : 'text-lg text-brown/60 hover:text-brown'}
+          `}
           onClick={() => setActiveTab('completed')}
         >
           Completed Orders
@@ -148,7 +156,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   <button
                     onClick={() => handleStatusUpdate(order.id!, 'completed')}
                     disabled={updatingStatus === order.id || order.status === 'completed'}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 ${order.status === 'completed' ? 'bg-green-100 text-green-600 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 cursor-pointer ${order.status === 'completed' ? 'bg-green-100 text-green-600 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
                   >
                     {updatingStatus === order.id ? 'Updating...' : 'Mark Complete'}
                   </button>

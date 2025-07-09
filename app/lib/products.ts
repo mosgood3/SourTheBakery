@@ -21,6 +21,7 @@ export interface Product {
   price: string;
   image: string; // Now stores Firebase Storage URL
   weeklyCap?: number; // Maximum number of items that can be sold per week
+  weeklyAmountRemaining?: number; // Current amount remaining for this week
   createdAt?: any;
   updatedAt?: any;
 }
@@ -87,7 +88,7 @@ export const getCurrentWeekEnd = (): Date => {
 };
 
 // Check if a product has reached its weekly cap
-export const checkWeeklyCap = async (productId: string, requestedQuantity: number): Promise<{ available: boolean; currentSold: number; cap: number }> => {
+export const checkWeeklyCap = async (productId: string, requestedQuantity: number): Promise<{ available: boolean; currentSold: number; cap: number; remaining: number }> => {
   try {
     if (!db) {
       throw new Error('Database service not available');
@@ -103,36 +104,16 @@ export const checkWeeklyCap = async (productId: string, requestedQuantity: numbe
 
     const product = productSnap.docs[0].data() as Product;
     const weeklyCap = product.weeklyCap || 0;
+    const weeklyAmountRemaining = product.weeklyAmountRemaining ?? weeklyCap;
 
     if (weeklyCap === 0) {
-      return { available: true, currentSold: 0, cap: 0 }; // No cap set
+      return { available: true, currentSold: 0, cap: 0, remaining: 0 }; // No cap set
     }
 
-    // Get current week's orders
-    const weekStart = getCurrentWeekStart();
-    const weekEnd = getCurrentWeekEnd();
-
-    const ordersQuery = query(
-      collection(db, 'orders'),
-      where('createdAt', '>=', Timestamp.fromDate(weekStart)),
-      where('createdAt', '<=', Timestamp.fromDate(weekEnd)),
-      where('status', 'in', ['pending', 'confirmed', 'completed'])
-    );
-
-    const ordersSnap = await getDocs(ordersQuery);
-    let currentSold = 0;
-
-    ordersSnap.forEach((orderDoc) => {
-      const order = orderDoc.data() as Order;
-      order.items.forEach((item) => {
-        if (item.productId === productId) {
-          currentSold += item.quantity;
-        }
-      });
-    });
-
-    const available = (currentSold + requestedQuantity) <= weeklyCap;
-    return { available, currentSold, cap: weeklyCap };
+    const available = requestedQuantity <= weeklyAmountRemaining;
+    const currentSold = weeklyCap - weeklyAmountRemaining;
+    
+    return { available, currentSold, cap: weeklyCap, remaining: weeklyAmountRemaining };
   } catch (error) {
     console.error('Error checking weekly cap:', error);
     throw error;
@@ -171,11 +152,15 @@ export const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'up
       throw new Error('Database service not available');
     }
 
-    const docRef = await addDoc(collection(db, 'products'), {
+    // Initialize weeklyAmountRemaining to weeklyCap if not provided
+    const productData = {
       ...product,
+      weeklyAmountRemaining: product.weeklyAmountRemaining ?? product.weeklyCap ?? 0,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    };
+
+    const docRef = await addDoc(collection(db, 'products'), productData);
     return docRef.id;
   } catch (error) {
     console.error('Error adding product:', error);
@@ -238,12 +223,19 @@ export const createOrder = async (order: Omit<Order, 'id' | 'createdAt' | 'updat
       throw new Error('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
     }
 
-    // Check weekly caps for all items
+    // Check weekly caps for all items and update remaining amounts
     for (const item of order.items) {
       const capCheck = await checkWeeklyCap(item.productId, item.quantity);
       if (!capCheck.available) {
-        throw new Error(`${item.productName} has reached its weekly limit. Only ${capCheck.cap - capCheck.currentSold} available this week.`);
+        throw new Error(`${item.productName} has reached its weekly limit. Only ${capCheck.remaining} available this week.`);
       }
+      
+      // Update the product's weeklyAmountRemaining
+      const productRef = doc(db, 'products', item.productId);
+      await updateDoc(productRef, {
+        weeklyAmountRemaining: capCheck.remaining - item.quantity,
+        updatedAt: serverTimestamp()
+      });
     }
 
     const docRef = await addDoc(collection(db, 'orders'), {
@@ -297,6 +289,50 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
     });
   } catch (error) {
     console.error('Error updating order status:', error);
+    throw error;
+  }
+};
+
+// Reset weekly amounts for all products (admin function)
+export const resetWeeklyAmounts = async (): Promise<void> => {
+  try {
+    if (!db) {
+      throw new Error('Database service not available');
+    }
+
+    const productsQuery = query(collection(db, 'products'));
+    const productsSnap = await getDocs(productsQuery);
+    
+    const updatePromises = productsSnap.docs.map((docSnapshot) => {
+      const product = docSnapshot.data() as Product;
+      const productRef = doc(db!, 'products', docSnapshot.id);
+      return updateDoc(productRef, {
+        weeklyAmountRemaining: product.weeklyCap || 0,
+        updatedAt: serverTimestamp()
+      });
+    });
+
+    await Promise.all(updatePromises);
+  } catch (error) {
+    console.error('Error resetting weekly amounts:', error);
+    throw error;
+  }
+};
+
+// Update product's weekly amount remaining (admin function)
+export const updateProductWeeklyAmount = async (productId: string, weeklyAmountRemaining: number): Promise<void> => {
+  try {
+    if (!db) {
+      throw new Error('Database service not available');
+    }
+
+    const productRef = doc(db, 'products', productId);
+    await updateDoc(productRef, {
+      weeklyAmountRemaining,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error('Error updating product weekly amount:', error);
     throw error;
   }
 }; 

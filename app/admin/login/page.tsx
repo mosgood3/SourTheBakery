@@ -20,7 +20,7 @@ export default function AdminLogin() {
   // Redirect if already logged in
   useEffect(() => {
     if (admin) {
-      router.push('/admin/dashboard');
+      router.push('/admin');
     }
   }, [admin, router]);
 
