@@ -6,6 +6,7 @@ import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { getProducts, addProduct, updateProduct, deleteProduct, Product } from '../../lib/products';
 import { uploadImage, isValidImageFile, isValidFileSize } from '../../lib/storage';
 import Image from 'next/image';
+import { FiPlus } from 'react-icons/fi';
 
 export default function AdminProducts() {
   const { admin, loading: authLoading } = useAdminAuth();
@@ -196,17 +197,13 @@ export default function AdminProducts() {
             <p className="text-brown/70">Manage your bakery products</p>
           </div>
           <div className="flex gap-4">
-            <button
-              onClick={() => router.push('/admin/dashboard')}
-              className="bg-brown text-white px-6 py-3 rounded-xl font-semibold hover:bg-brown/90 transition-colors duration-300"
-            >
-              Back to Dashboard
-            </button>
+            {/* Removed Back to Dashboard button */}
             {!isAdding && (
               <button
                 onClick={() => setIsAdding(true)}
-                className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300"
+                className="flex items-center gap-2 bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md"
               >
+                <FiPlus size={18} />
                 Add Product
               </button>
             )}

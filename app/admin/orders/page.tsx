@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { getOrders, updateOrderStatus, Order } from '../../lib/products';
+import { FiRefreshCw } from 'react-icons/fi';
 
 export default function AdminOrders() {
   const { admin, loading: authLoading } = useAdminAuth();
@@ -107,16 +108,12 @@ export default function AdminOrders() {
             <p className="text-brown/70">View and manage customer orders</p>
           </div>
           <div className="flex gap-4">
-            <button
-              onClick={() => router.push('/admin/dashboard')}
-              className="bg-brown text-white px-6 py-3 rounded-xl font-semibold hover:bg-brown/90 transition-colors duration-300"
-            >
-              Back to Dashboard
-            </button>
+            {/* Removed Back to Dashboard button */}
             <button
               onClick={fetchOrders}
-              className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300"
+              className="flex items-center gap-2 bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md"
             >
+              <FiRefreshCw size={18} />
               Refresh Orders
             </button>
           </div>
