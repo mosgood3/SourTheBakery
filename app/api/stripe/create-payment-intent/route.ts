@@ -1,6 +1,3 @@
-// Debug: File loaded
-console.log('[DEBUG] create-payment-intent API route loaded');
-
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
@@ -10,7 +7,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 export async function POST(req: NextRequest) {
   console.log('[DEBUG] POST handler called for /api/stripe/create-payment-intent');
   try {
-    // Defensive: Log the method (should always be POST)
     console.log('[DEBUG] Request method:', req.method);
     const body = await req.json();
     console.log('[DEBUG] Request body:', body);
@@ -40,11 +36,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-// Defensive: Handle other methods (should not be needed, but helps debugging)
-export async function handler(req: NextRequest) {
-  if (req.method !== 'POST') {
-    console.warn('[DEBUG] Method not allowed:', req.method);
-    return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
-  }
-} 
