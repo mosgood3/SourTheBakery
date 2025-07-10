@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrders } from '../../lib/products';
+import { getOrders } from '../../../lib/products';
 
 export async function POST(req: NextRequest) {
   try {
