@@ -1,11 +1,19 @@
+// Debug: File loaded
+console.log('[DEBUG] create-payment-intent API route loaded');
+
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
+// This endpoint is intended to handle POST requests from the frontend and send a POST to Stripe
 export async function POST(req: NextRequest) {
+  console.log('[DEBUG] POST handler called for /api/stripe/create-payment-intent');
   try {
+    // Defensive: Log the method (should always be POST)
+    console.log('[DEBUG] Request method:', req.method);
     const body = await req.json();
+    console.log('[DEBUG] Request body:', body);
     const { items, customerName, customerEmail, customerPhone } = body;
 
     // Calculate total amount in cents
@@ -13,6 +21,7 @@ export async function POST(req: NextRequest) {
       return sum + Math.round(parseFloat(item.price.replace('$', '')) * 100) * item.quantity;
     }, 0);
 
+    // Send POST request to Stripe to create a PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
       currency: 'usd',
@@ -24,9 +33,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    console.log('[DEBUG] PaymentIntent created:', paymentIntent.id);
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (err: any) {
-    console.error('Stripe PaymentIntent error:', err);
+    console.error('[DEBUG] Stripe PaymentIntent error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// Defensive: Handle other methods (should not be needed, but helps debugging)
+export async function handler(req: NextRequest) {
+  if (req.method !== 'POST') {
+    console.warn('[DEBUG] Method not allowed:', req.method);
+    return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
   }
 } 
