@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { db } from '../../../lib/firebaseServer';
+import { doc, getDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
@@ -12,10 +14,26 @@ export async function POST(req: NextRequest) {
     console.log('[DEBUG] Request body:', body);
     const { items, customerName, customerEmail, customerPhone } = body;
 
-    // Calculate total amount in cents
-    const total = items.reduce((sum: number, item: any) => {
-      return sum + Math.round(parseFloat(item.price.replace('$', '')) * 100) * item.quantity;
-    }, 0);
+    // Fetch authoritative prices from Firestore and calculate total
+    const pricedItems = [] as { productId: string; productName: string; quantity: number; price: string }[];
+    let total = 0;
+
+    for (const item of items) {
+      const docRef = doc(db, 'products', item.id);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        throw new Error(`Product not found: ${item.id}`);
+      }
+      const data = snap.data() as { name: string; price: string };
+      const priceNum = parseFloat(data.price.replace('$', ''));
+      total += Math.round(priceNum * 100) * item.quantity;
+      pricedItems.push({
+        productId: item.id,
+        productName: data.name,
+        quantity: item.quantity,
+        price: data.price,
+      });
+    }
 
     // Send POST request to Stripe to create a PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -25,7 +43,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         customerName,
         customerPhone,
-        items: JSON.stringify(items),
+        items: JSON.stringify(pricedItems),
       },
     });
 
