@@ -30,7 +30,8 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const { state, getTotalPrice, clearCart } = useCart();
   const [formData, setFormData] = useState({
     customerName: '',
-    customerEmail: ''
+    customerEmail: '',
+    customerPhone: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -152,6 +153,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         body: JSON.stringify({
           customerName: formData.customerName,
           customerEmail: formData.customerEmail,
+          customerPhone: formData.customerPhone,
           items: state.items,
         }),
       });
@@ -166,6 +168,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           billing_details: {
             name: formData.customerName,
             email: formData.customerEmail,
+            phone: formData.customerPhone,
           },
         },
       });
@@ -204,7 +207,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         }, 2000);
         
         clearCart();
-        setFormData({ customerName: '', customerEmail: '' });
+        setFormData({ customerName: '', customerEmail: '', customerPhone: '' });
         setTimeout(() => {
           setSuccess(false);
           onClose();
@@ -351,18 +354,29 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">Email Address *</label>
-                    <input
-                      type="email"
-                      value={formData.customerEmail}
-                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
-                      placeholder="jane@example.com"
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-2">Email Address *</label>
+                  <input
+                    type="email"
+                    value={formData.customerEmail}
+                    onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
+                    placeholder="jane@example.com"
+                    required
+                  />
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-2">Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
+                    placeholder="123-456-7890"
+                    required
+                  />
+                </div>
+              </div>
                 <h3 className="text-xl font-serif font-bold text-brown mb-4 mt-8">Payment Information</h3>
                 <div className="grid grid-cols-1 gap-6">
                   <div>
