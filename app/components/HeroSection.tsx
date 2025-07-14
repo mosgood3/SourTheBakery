@@ -1,12 +1,13 @@
 'use client';
 
 import { useCart } from '../contexts/CartContext';
-import { useEffect } from 'react';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { PorchPickupSection } from './ProductsSection';
+import CateringForm from './CateringForm';
 
 export default function HeroSection() {
   const { toggleCart } = useCart();
+  const [showCateringForm, setShowCateringForm] = useState(false);
 
   return (
     <section
@@ -39,57 +40,26 @@ export default function HeroSection() {
             Crafted with passion, baked with love. Discover our handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients.
           </p>
           <div className="flex flex-col sm:flex-row gap-6">
-            <button 
-              onClick={toggleCart}
+            <a 
+              href="#products"
               className="vintage-btn order-btn"
             >
               Order Now
-            </button>
-            <a 
-              href="#products"
+            </a>
+            <a
+              href="/catering"
               className="vintage-btn menu-btn"
             >
-              View Menu
+              Catering
             </a>
-          </div>
-        </div>
-        {/* Bakery Gallery Section */}
-        <div className="mt-20 w-full">
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-brown mb-8 text-center">
-            Bakery Gallery
-          </h3>
-          <div className="columns-2 md:columns-3 gap-4 md:gap-6 max-w-6xl mx-auto">
-            {[
-              { src: "/IMG_6090.JPEG", alt: "Fresh sourdough bread", height: "h-48 md:h-64" },
-              { src: "/IMG_6089.JPEG", alt: "Artisan cookies", height: "h-32 md:h-48" },
-              { src: "/IMG_5992.jpg", alt: "Homemade brownies", height: "h-56 md:h-72" },
-              { src: "/IMG_5982.jpg", alt: "Bakery display", height: "h-40 md:h-56" },
-              { src: "/IMG_5966.jpg", alt: "Fresh pastries", height: "h-48 md:h-64" },
-              { src: "/IMG_5965.jpg", alt: "Bakery interior", height: "h-36 md:h-52" }
-            ].map((image, index) => (
-              <div key={index} className={`group relative ${image.height} rounded-2xl overflow-hidden shadow-xl transform hover:scale-105 transition-all duration-500 mb-4 md:mb-6 break-inside-avoid`}>
-                {/* Vintage border */}
-                <div className="absolute inset-0 border-2 border-accent-gold/40 rounded-2xl pointer-events-none z-10"></div>
-                <Image 
-                  src={image.src} 
-                  alt={image.alt} 
-                  fill 
-                  className="object-cover group-hover:scale-110 transition-transform duration-500 sepia-vintage" 
-                  sizes="(max-width: 768px) 50vw, 33vw" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brown/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <h4 className="text-white font-semibold text-sm md:text-base drop-shadow-lg">
-                    {image.alt}
-                  </h4>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
         {/* Porch Pickup Section - moved here */}
         <PorchPickupSection/>
       </div>
+
+      {/* Catering Form Modal */}
+      {showCateringForm && <CateringForm />}
 
       {/* Custom CSS for vintage effects */}
       <style jsx>{`

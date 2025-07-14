@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { deleteImage } from './storage';
+import { isOrderWindowOpen as isOrderWindowOpenFromSettings } from './settings';
 
 export interface Product {
   id?: string;
@@ -218,9 +219,10 @@ export const createOrder = async (order: Omit<Order, 'id' | 'createdAt' | 'updat
       throw new Error('Database service not available');
     }
 
-    // Check if order window is open
-    if (!isOrderWindowOpen()) {
-      throw new Error('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
+    // Check if order window is open using settings
+    const orderWindowOpen = await isOrderWindowOpenFromSettings();
+    if (!orderWindowOpen) {
+      throw new Error('Orders are not available at this time. Please check the order window settings.');
     }
 
     // Check weekly caps for all items and update remaining amounts

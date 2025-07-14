@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { isOrderWindowOpen } from '../lib/products';
+import { isOrderWindowOpen, getSettings } from '../lib/settings';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 
@@ -126,8 +126,15 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isOrderWindowOpen()) {
-      setError('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
+    try {
+      const orderWindowOpen = await isOrderWindowOpen();
+      if (!orderWindowOpen) {
+        setError('Orders are not available at this time. Please check the order window settings.');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking order window:', error);
+      setError('Unable to check order availability. Please try again.');
       return;
     }
     
@@ -217,40 +224,68 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
     }
   };
 
-  const getOrderWindowStatus = () => {
-    const isOpen = isOrderWindowOpen();
-    const now = new Date();
-    const currentDay = now.getDay();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
+  const [orderStatus, setOrderStatus] = useState({
+    status: 'loading',
+    message: 'Checking order availability...',
+    color: 'text-gray-600'
+  });
 
-    if (isOpen) {
-      return {
-        status: 'open',
-        message: 'Orders are currently being accepted!',
-        color: 'text-green-600'
-      };
-    } else {
-      let message = 'Orders are currently closed. ';
-      if (currentDay === 4 && currentHour >= 17) { // Thursday after 5pm
-        message += 'Orders will reopen Monday at 6am.';
-      } else if (currentDay >= 5) { // Friday or Saturday
-        message += 'Orders will reopen Monday at 6am.';
-      } else if (currentDay === 0) { // Sunday
-        message += 'Orders will reopen Monday at 6am.';
-      } else if (currentDay === 1 && currentHour < 6) { // Monday before 6am
-        message += 'Orders will open at 6am today.';
+  useEffect(() => {
+    const checkOrderWindow = async () => {
+      try {
+        const isOpen = await isOrderWindowOpen();
+        const settings = await getSettings();
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+
+        if (isOpen) {
+          setOrderStatus({
+            status: 'open',
+            message: 'Orders are currently being accepted!',
+            color: 'text-green-600'
+          });
+        } else {
+          let message = 'Orders are currently closed. ';
+          
+          // Check if it's outside the order window days
+          if (!settings.orderWindowDays.includes(currentDay)) {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const nextOrderDay = settings.orderWindowDays.find((day: number) => day > currentDay) || settings.orderWindowDays[0];
+            const nextDayName = dayNames[nextOrderDay];
+            message += `Orders will reopen ${nextDayName} at ${settings.orderWindowStart}.`;
+          } else {
+            // It's an order day but outside the time window
+            const [startHour, startMinute] = settings.orderWindowStart.split(':').map(Number);
+            const [endHour, endMinute] = settings.orderWindowEnd.split(':').map(Number);
+            const startTime = startHour * 60 + startMinute;
+            const endTime = endHour * 60 + endMinute;
+            
+            if (currentTime < startTime) {
+              message += `Orders will open at ${settings.orderWindowStart} today.`;
+            } else if (currentTime > endTime) {
+              message += `Orders will reopen tomorrow at ${settings.orderWindowStart}.`;
+            }
+          }
+          
+          setOrderStatus({
+            status: 'closed',
+            message,
+            color: 'text-red-600'
+          });
+        }
+      } catch (error) {
+        console.error('Error checking order window:', error);
+        setOrderStatus({
+          status: 'error',
+          message: 'Unable to check order availability',
+          color: 'text-red-600'
+        });
       }
-      
-      return {
-        status: 'closed',
-        message,
-        color: 'text-red-600'
-      };
-    }
-  };
+    };
 
-  const orderStatus = getOrderWindowStatus();
+    checkOrderWindow();
+  }, []);
 
   return (
     <>
@@ -390,8 +425,8 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
               <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
                 <h4 className="font-semibold text-yellow-800 mb-2">Important Information</h4>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Orders are only accepted Monday 6am to Thursday 5pm</li>
-                  <li>• Pickup is available Sunday 9am-1pm</li>
+                  <li>• Orders are only accepted during the configured order window</li>
+                  <li>• Pickup is available at the scheduled time and location</li>
                   <li>• We'll contact you to confirm your order</li>
                 </ul>
               </div>

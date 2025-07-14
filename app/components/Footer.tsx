@@ -1,4 +1,4 @@
-import { FaTiktok, FaInstagram } from 'react-icons/fa';
+import { FaTiktok, FaInstagram, FaFacebook } from 'react-icons/fa';
 
 export default function Footer() {
   return (
@@ -18,6 +18,9 @@ export default function Footer() {
               </a>
               <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
                 <FaInstagram size={24} />
+              </a>
+              <a href="https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-blue-600 hover:scale-110 transition-all duration-300">
+                <FaFacebook size={24} />
               </a>
             </div>
           </div>

@@ -124,15 +124,15 @@ export default function ProductsPanel({ admin }: { admin: any }) {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-4xl font-serif font-bold text-brown mb-2">Product Management</h1>
           <p className="text-brown/70">Manage your bakery products</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <button
             onClick={handleResetWeeklyAmounts}
-            className="flex items-center gap-2 bg-brown/10 text-brown px-6 py-3 rounded-xl font-semibold hover:bg-brown/20 transition-colors duration-300 shadow-md border border-brown/20 cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-brown/10 text-brown px-6 py-3 rounded-xl font-semibold hover:bg-brown/20 transition-colors duration-300 shadow-md border border-brown/20 cursor-pointer"
             disabled={resetting}
           >
             <FiRefreshCw size={18} />
@@ -141,7 +141,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
           {!isAdding && (
             <button
               onClick={() => setIsAdding(true)}
-              className="flex items-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
             >
               <FiPlus size={18} />
               Add Product

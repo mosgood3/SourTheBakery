@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ProductsPanel from './products/ProductsPanel';
 import OrdersPanel from './orders/OrdersPanel';
+import SettingsPanel from './settings/SettingsPanel';
 import { FiLogOut } from 'react-icons/fi';
 
 export default function AdminTabbedPanel() {
   const { admin, loading: authLoading, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings'>('orders');
 
   const handleLogout = async () => {
     try {
@@ -69,12 +70,23 @@ export default function AdminTabbedPanel() {
         >
           Products
         </button>
+        <button
+          className={`px-6 py-3 text-lg font-semibold border-b-4 transition-all duration-200 cursor-pointer ${
+            activeTab === "settings"
+              ? "border-accent-gold text-brown"
+              : "border-transparent text-brown/50 hover:text-brown"
+          }`}
+          onClick={() => setActiveTab("settings")}
+        >
+          Settings
+        </button>
       </nav>
 
       {/* Tab Content */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === "orders" && <OrdersPanel admin={admin} />}
         {activeTab === "products" && <ProductsPanel admin={admin} />}
+        {activeTab === "settings" && <SettingsPanel admin={admin} />}
       </main>
     </div>
   );

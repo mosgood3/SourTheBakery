@@ -106,7 +106,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent-gold text-brown border-1 bg-cinnamon cursor-pointer border-brown py-3 px-6 rounded-xl font-semibold hover:bg-accent-gold/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:ring-offset-2"
+              className="w-full bg-accent-gold text-peach bg-cinnamon cursor-pointer py-3 px-6 rounded-xl font-semibold bg-blue-600 hover:bg-accent-gold/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:ring-offset-2"
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </button>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { GiShoppingCart } from "react-icons/gi";
-import { FaTiktok, FaInstagram } from 'react-icons/fa';
+import { FaTiktok, FaInstagram, FaFacebook } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function Navigation() {
@@ -40,7 +40,7 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <a href="#home" className="text-brown hover:text-accent-gold transition-colors">Home</a>
-            <a href="#menu" className="text-brown hover:text-accent-gold transition-colors">Menu</a>
+            <a href="#products" className="text-brown hover:text-accent-gold transition-colors">Menu</a>
             <a href="#about" className="text-brown hover:text-accent-gold transition-colors">About</a>
             <a href="#contact" className="text-brown hover:text-accent-gold transition-colors">Contact</a>
             
@@ -51,6 +51,9 @@ export default function Navigation() {
               </a>
               <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
                 <FaInstagram size={20} />
+              </a>
+              <a href="https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-blue-600 hover:scale-110 transition-all duration-300">
+                <FaFacebook size={20} />
               </a>
             </div>
             
@@ -100,7 +103,7 @@ export default function Navigation() {
         <div className="md:hidden border-t border-muted transition-all duration-300" style={{ backgroundColor: 'var(--peach)' }}>
           <div className="px-2 pt-2 pb-3 space-y-1">
             <a href="#home" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Home</a>
-            <a href="#menu" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Menu</a>
+            <a href="#products" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Menu</a>
             <a href="#about" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">About</a>
             <a href="#contact" className="block px-3 py-2 text-brown hover:text-accent-gold transition-colors">Contact</a>
             
@@ -111,6 +114,9 @@ export default function Navigation() {
               </a>
               <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
                 <FaInstagram size={24} />
+              </a>
+              <a href="https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-blue-600 hover:scale-110 transition-all duration-300">
+                <FaFacebook size={24} />
               </a>
             </div>
           </div>

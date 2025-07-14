@@ -3,15 +3,68 @@
 import { useCart } from '../contexts/CartContext';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { getProducts, Product, isOrderWindowOpen } from '../lib/products';
+import { getProducts, Product } from '../lib/products';
+import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings';
 
 export function PorchPickupSection() {
+  const [pickupInfo, setPickupInfo] = useState<{ date: string; time: string; location: string } | null>(null);
+  const [orderWindowInfo, setOrderWindowInfo] = useState<{ start: string; end: string; days: string[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const [pickup, settings] = await Promise.all([
+          getPickupInfo(),
+          getSettings()
+        ]);
+        
+        setPickupInfo(pickup);
+        
+        // Format order window days
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const orderDays = settings.orderWindowDays.map((day: number) => dayNames[day]);
+        setOrderWindowInfo({
+          start: settings.orderWindowStart,
+          end: settings.orderWindowEnd,
+          days: orderDays
+        });
+      } catch (error) {
+        console.error('Failed to fetch info:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInfo();
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
+        <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 px-8 lg:px-16 max-w-xl mx-auto shadow-xl">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-gold"></div>
+            <p className="mt-2 text-brown/70">Loading schedule...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const pickupDate = pickupInfo ? new Date(pickupInfo.date).toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric' 
+  }) : 'TBD';
+
   return (
     <>
       <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
-      <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 px-8 lg:px-16 max-w-xl mx-auto shadow-xl">
+      <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 py-10 px-8 lg:px-12 xl:px-16 max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mx-auto shadow-xl">
         <div className="text-brown/90 text-lg font-bold text-center mb-4">
-          <span role="img" aria-label="door">🚪</span> <span className="font-bold">Farm Stand Pickup Only:</span> All online orders are for farm stand pickup at 12 Gaylord Drive, Rocky Hill, CT.
+          <span role="img" aria-label="door">🚪</span> <span className="font-bold">Farm Stand Pickup Only:</span> All online orders are for farm stand pickup at {pickupInfo?.location || '12 Gaylord Drive, Rocky Hill, CT'}.
         </div>
         {/* Responsive: vertical on small, horizontal on md+ */}
         <div className="flex flex-col md:grid md:grid-cols-5 gap-y-2 md:gap-x-2 items-center justify-items-center w-full">
@@ -19,7 +72,9 @@ export function PorchPickupSection() {
           <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md w-40 h-32">
             <span className="text-2xl">🛒</span>
             <span className="font-semibold text-brown text-base mt-1">Order Online</span>
-            <span className="text-sm text-brown/70 mt-1">Mon 6am - Thu 5pm</span>
+            <span className="text-sm text-brown/70 mt-1 text-center">
+              {orderWindowInfo ? `${orderWindowInfo.days.join(', ')} ${orderWindowInfo.start}-${orderWindowInfo.end}` : 'Loading...'}
+            </span>
           </div>
           {/* Arrow */}
           <div className="my-1 md:my-0 md:col-start-2 flex items-center justify-center">
@@ -41,7 +96,7 @@ export function PorchPickupSection() {
           <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-5 w-40 h-32">
             <span className="text-2xl">🏡</span>
             <span className="font-semibold text-brown text-base mt-1">Porch Pickup</span>
-            <span className="text-sm text-brown/70 mt-1">Sun 9am-1pm</span>
+            <span className="text-sm text-brown/70 mt-1">{pickupDate} {pickupInfo?.time}</span>
           </div>
         </div>
       </div>
@@ -73,24 +128,30 @@ export default function ProductsSection() {
     fetchProducts();
   }, []);
 
-  const handleAddToCart = (product: Product) => {
-    if (!isOrderWindowOpen()) {
-      alert('Orders are not available at this time. Order window is Monday 6am to Thursday 5pm.');
-      return;
-    }
+  const handleAddToCart = async (product: Product) => {
+    try {
+      const orderWindowOpen = await isOrderWindowOpen();
+      if (!orderWindowOpen) {
+        alert('Orders are not available at this time. Please check the order window settings.');
+        return;
+      }
 
-    // Check if product is sold out
-    if (product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0) {
-      alert(`${product.name} is sold out for this week.`);
-      return;
+      // Check if product is sold out
+      if (product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0) {
+        alert(`${product.name} is sold out for this week.`);
+        return;
+      }
+      
+      addItem({
+        id: product.id || '',
+        name: product.name,
+        price: product.price,
+        description: product.description,
+      });
+    } catch (error) {
+      console.error('Error checking order window:', error);
+      alert('Unable to check order availability. Please try again.');
     }
-    
-    addItem({
-      id: product.id || '',
-      name: product.name,
-      price: product.price,
-      description: product.description,
-    });
   };
 
   // Show loading state
@@ -379,6 +440,58 @@ export default function ProductsSection() {
             >
               Get Directions
             </a>
+          </div>
+        </div>
+
+        {/* Bakery Gallery Section */}
+        <div className="mt-20 text-center">
+          <h3 className="text-3xl md:text-4xl font-serif font-bold text-brown mb-8">
+            Bakery Gallery
+          </h3>
+          <div className="max-w-4xl mx-auto">
+            <div 
+              style={{ 
+                position: 'relative', 
+                width: '100%', 
+                height: 0, 
+                paddingTop: '177.7778%',
+                paddingBottom: 0, 
+                boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)', 
+                marginTop: '1.6em', 
+                marginBottom: '0.9em', 
+                overflow: 'hidden',
+                borderRadius: '8px', 
+                willChange: 'transform'
+              }}
+            >
+              <iframe 
+                loading="lazy" 
+                style={{ 
+                  position: 'absolute', 
+                  width: '100%', 
+                  height: '100%', 
+                  top: 0, 
+                  left: 0, 
+                  border: 'none', 
+                  padding: 0,
+                  margin: 0
+                }}
+                src="https://www.canva.com/design/DAGs85F6wiA/GJfUonSoMjhLO-uLXCgRLg/view?embed" 
+                allowFullScreen={true}
+                allow="fullscreen"
+                title="Bakery Gallery - Neutral Autumn Collage Moodboard"
+              />
+            </div>
+            <div className="text-center mt-4">
+              <a 
+                href="https://www.canva.com/design/DAGs85F6wiA/GJfUonSoMjhLO-uLXCgRLg/view?utm_content=DAGs85F6wiA&utm_campaign=designshare&utm_medium=embeds&utm_source=link" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-brown/70 hover:text-accent-gold transition-colors duration-300 text-sm"
+              >
+                Neutral Autumn Collage Moodboard Instagram Story by Matthew Osgood
+              </a>
+            </div>
           </div>
         </div>
       </div>
