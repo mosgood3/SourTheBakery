@@ -48,7 +48,7 @@ export default function CateringForm() {
       <div className="bg-cream rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-cinnamon">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-lobster text-brown mb-2 lobster-heading">
-            Catering Request
+            Cookie Catering Request
           </h2>
           <p className="text-brown/80">
             Let us know about your special event and we'll get back to you soon!

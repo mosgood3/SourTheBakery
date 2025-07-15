@@ -44,11 +44,9 @@ export default function AboutSection() {
                 From Family Kitchen to Community Favorite
               </h3>
               <p className="text-lg text-brown/95 mb-6 leading-relaxed">
-                Founded in 2020, Sour The Bakery began as a small family passion project. What started in our home kitchen has grown into a beloved local bakery, serving our community with love and dedication.
-              </p>
+              Founded in 2025, Sour The Bakery is the realization of years spent perfecting our signature sourdough recipe and cultivating an unwavering passion for baking. What began as a dedicated home pursuit has blossomed into a beloved local bakery, proudly serving our community fresh, handcrafted goods made with care and love.              </p>
               <p className="text-lg text-brown/95 leading-relaxed">
-                We believe in the art of slow fermentation, using traditional sourdough starters that have been nurtured for generations. Every loaf, every pastry, every cake is made with the same care and attention to detail that we would use for our own family.
-              </p>
+              We deeply believe in the art of slow fermentation, honoring traditional sourdough techniques. Each loaf, pastry, and cake is thoughtfully crafted, ensuring every bite reflects our commitment to quality and dedication to exceptional baking.              </p>
             </div>
 
             {/* Statistics - removed */}

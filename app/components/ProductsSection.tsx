@@ -307,9 +307,12 @@ export default function ProductsSection() {
                           </div>
                           
                           {/* Product Info */}
-                          <h3 className="text-3xl font-bold text-brown mb-4">
+                          <h3 className="text-3xl font-bold text-brown mb-2">
                             {product.name}
                           </h3>
+                          <p className="text-xl text-cinnamon font-semibold mb-2">
+                            ${parseFloat(product.price).toFixed(2)}
+                          </p>
                           <p className="text-brown/80 text-xl mb-8">
                             {product.description}
                           </p>
@@ -386,9 +389,12 @@ export default function ProductsSection() {
                     </div>
                     
                     {/* Product Info */}
-                    <h3 className="text-2xl font-bold text-brown mb-3">
+                    <h3 className="text-2xl font-bold text-brown mb-1">
                       {product.name}
                     </h3>
+                    <p className="text-lg text-cinnamon font-semibold mb-1">
+                      ${parseFloat(product.price).toFixed(2)}
+                    </p>
                     <p className="text-brown/80 text-lg mb-6">
                       {product.description}
                     </p>
@@ -449,48 +455,16 @@ export default function ProductsSection() {
             Bakery Gallery
           </h3>
           <div className="max-w-4xl mx-auto">
-            <div 
-              style={{ 
-                position: 'relative', 
-                width: '100%', 
-                height: 0, 
-                paddingTop: '177.7778%',
-                paddingBottom: 0, 
-                boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)', 
-                marginTop: '1.6em', 
-                marginBottom: '0.9em', 
-                overflow: 'hidden',
-                borderRadius: '8px', 
-                willChange: 'transform'
-              }}
-            >
-              <iframe 
-                loading="lazy" 
-                style={{ 
-                  position: 'absolute', 
-                  width: '100%', 
-                  height: '100%', 
-                  top: 0, 
-                  left: 0, 
-                  border: 'none', 
-                  padding: 0,
-                  margin: 0
-                }}
-                src="https://www.canva.com/design/DAGs85F6wiA/GJfUonSoMjhLO-uLXCgRLg/view?embed" 
+            {/* Canva Moodboard Embed */}
+            <div style={{position: 'relative', width: '100%', height: 0, paddingTop: '177.7778%', paddingBottom: 0, boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)', marginTop: '1.6em', marginBottom: '0.9em', overflow: 'hidden', borderRadius: '8px', willChange: 'transform'}}>
+              <iframe
+                loading="lazy"
+                style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 'none', padding: 0, margin: 0}}
+                src="https://www.canva.com/design/DAGtL_JDERI/28XwgwUu8uvKiqy51eLDjA/view?embed"
                 allowFullScreen={true}
                 allow="fullscreen"
-                title="Bakery Gallery - Neutral Autumn Collage Moodboard"
-              />
-            </div>
-            <div className="text-center mt-4">
-              <a 
-                href="https://www.canva.com/design/DAGs85F6wiA/GJfUonSoMjhLO-uLXCgRLg/view?utm_content=DAGs85F6wiA&utm_campaign=designshare&utm_medium=embeds&utm_source=link" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-brown/70 hover:text-accent-gold transition-colors duration-300 text-sm"
-              >
-                Neutral Autumn Collage Moodboard Instagram Story by Matthew Osgood
-              </a>
+                title=" "
+              ></iframe>
             </div>
           </div>
         </div>

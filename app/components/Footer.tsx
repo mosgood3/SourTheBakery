@@ -65,7 +65,7 @@ export default function Footer() {
         <div className="border-t border-beige pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-cream/60 text-sm">
-              © 2024 Sour The Bakery. All rights reserved.
+              © {new Date().getFullYear()} Sour The Bakery. All rights reserved.
             </p>
             <div className="flex space-x-6 text-sm items-center">
               <a href="#" className="text-cream/60 hover:text-accent-gold transition-colors">
@@ -79,8 +79,8 @@ export default function Footer() {
               </a>
               <a
                 href="/admin/login"
-                className="ml-4 px-3 py-1 rounded-lg border border-accent-gold text-accent-gold bg-transparent hover:bg-accent-gold hover:text-brown transition-colors duration-200 text-xs font-semibold shadow-sm"
-                style={{ marginLeft: '1.5rem' }}
+                className="md:ml-4 px-3 py-1 rounded-lg border border-accent-gold text-accent-gold bg-transparent hover:bg-accent-gold hover:text-brown transition-colors duration-200 text-xs font-semibold shadow-sm text-center md:text-left w-full md:w-auto"
+                style={{ marginLeft: '1rem' }}
               >
                 Admin Login
               </a>

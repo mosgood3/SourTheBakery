@@ -57,7 +57,7 @@ export default function CateringPage() {
             Catering Request
           </h2>
           <p className="text-brown/80">
-            Let us know about your special event and we'll get back to you soon!
+            Let us know what cookies you’d like and how many (we currently only offer catering for cookies), and we’ll get back to you soon!
           </p>
         </div>
 
@@ -114,7 +114,7 @@ export default function CateringPage() {
 
             <div>
               <label htmlFor="message" className="block text-brown font-semibold mb-2">
-                Tell us about your event *
+                What cookies and how many? *
               </label>
               <textarea
                 id="message"
@@ -124,7 +124,7 @@ export default function CateringPage() {
                 required
                 rows={4}
                 className="w-full px-4 py-3 border-2 border-cinnamon/30 rounded-xl bg-white focus:border-cinnamon focus:outline-none transition-colors duration-300 resize-none"
-                placeholder="What type of event? How many people? Any specific dietary requirements? Special requests?"
+                placeholder="Please list the types of cookies and quantities you’d like. (e.g., 3 dozen chocolate chip, 2 dozen snickerdoodle)"
               />
             </div>
 
