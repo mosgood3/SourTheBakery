@@ -5,11 +5,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 // This endpoint is intended to handle POST requests from the frontend and send a POST to Stripe
 export async function POST(req: NextRequest) {
-  console.log('[DEBUG] POST handler called for /api/stripe/create-payment-intent');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[DEBUG] POST handler called for /api/stripe/create-payment-intent');
+  }
   try {
-    console.log('[DEBUG] Request method:', req.method);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[DEBUG] Request method:', req.method);
+    }
     const body = await req.json();
-    console.log('[DEBUG] Request body:', body);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[DEBUG] Request body:', body);
+    }
     const { items, customerName, customerEmail, customerPhone } = body;
 
     // Calculate total amount in cents
@@ -29,7 +35,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log('[DEBUG] PaymentIntent created:', paymentIntent.id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[DEBUG] PaymentIntent created:', paymentIntent.id);
+    }
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (err: any) {
     console.error('[DEBUG] Stripe PaymentIntent error:', err);
