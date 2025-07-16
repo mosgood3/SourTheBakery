@@ -1,15 +1,15 @@
 import { 
   collection, 
-  doc, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
   orderBy,
   serverTimestamp,
-  where,
-  Timestamp 
+  Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { deleteImage } from './storage';
@@ -97,13 +97,13 @@ export const checkWeeklyCap = async (productId: string, requestedQuantity: numbe
 
     // Get the product to check its weekly cap
     const productRef = doc(db, 'products', productId);
-    const productSnap = await getDocs(query(collection(db, 'products'), where('__name__', '==', productId)));
-    
-    if (productSnap.empty) {
+    const productSnapshot = await getDoc(productRef);
+
+    if (!productSnapshot.exists()) {
       throw new Error('Product not found');
     }
 
-    const product = productSnap.docs[0].data() as Product;
+    const product = productSnapshot.data() as Product;
     const weeklyCap = product.weeklyCap || 0;
     const weeklyAmountRemaining = product.weeklyAmountRemaining ?? weeklyCap;
 
@@ -113,7 +113,7 @@ export const checkWeeklyCap = async (productId: string, requestedQuantity: numbe
 
     const available = requestedQuantity <= weeklyAmountRemaining;
     const currentSold = weeklyCap - weeklyAmountRemaining;
-    
+
     return { available, currentSold, cap: weeklyCap, remaining: weeklyAmountRemaining };
   } catch (error) {
     console.error('Error checking weekly cap:', error);
