@@ -1,6 +1,5 @@
 'use client';
 
-import { AdminAuthProvider } from '../contexts/AdminAuthContext';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
@@ -83,10 +82,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AdminAuthProvider>
-      <AdminAuthGuard>
-        {children}
-      </AdminAuthGuard>
-    </AdminAuthProvider>
+    <AdminAuthGuard>
+      {children}
+    </AdminAuthGuard>
   );
-} 
+}
+
+

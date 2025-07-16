@@ -68,25 +68,6 @@ export const isOrderWindowOpen = (): boolean => {
   }
 };
 
-// Get the current week's start date (Sunday)
-export const getCurrentWeekStart = (): Date => {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const daysToSubtract = dayOfWeek;
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - daysToSubtract);
-  weekStart.setHours(0, 0, 0, 0);
-  return weekStart;
-};
-
-// Get the current week's end date (Saturday)
-export const getCurrentWeekEnd = (): Date => {
-  const weekStart = getCurrentWeekStart();
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
-  return weekEnd;
-};
 
 // Check if a product has reached its weekly cap
 export const checkWeeklyCap = async (productId: string, requestedQuantity: number): Promise<{ available: boolean; currentSold: number; cap: number; remaining: number }> => {
