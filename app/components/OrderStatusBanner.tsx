@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { isOrderWindowOpen } from '../lib/settings';
+import { isOrderWindowOpen, getSettings } from '../lib/settings';
 
 export default function OrderStatusBanner() {
   const [status, setStatus] = useState({
@@ -13,10 +13,13 @@ export default function OrderStatusBanner() {
   useEffect(() => {
     const checkOrderWindow = async () => {
       try {
-        const isOpen = await isOrderWindowOpen();
+        const [isOpen, settings] = await Promise.all([
+          isOrderWindowOpen(),
+          getSettings()
+        ]);
         const now = new Date();
         const currentDay = now.getDay();
-        const currentHour = now.getHours();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
 
         if (isOpen) {
           setStatus({
@@ -27,17 +30,25 @@ export default function OrderStatusBanner() {
         } else {
           let message = '⏰ Orders are currently closed';
           let subMessage = '';
-          
-          if (currentDay === 4 && currentHour >= 17) { // Thursday after 5pm
-            subMessage = 'Orders will reopen Monday at 6am';
-          } else if (currentDay >= 5) { // Friday or Saturday
-            subMessage = 'Orders will reopen Monday at 6am';
-          } else if (currentDay === 0) { // Sunday
-            subMessage = 'Orders will reopen Monday at 6am';
-          } else if (currentDay === 1 && currentHour < 6) { // Monday before 6am
-            subMessage = 'Orders will open at 6am today';
+
+          if (!settings.orderWindowDays.includes(currentDay)) {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const nextOrderDay = settings.orderWindowDays.find((day: number) => day > currentDay) || settings.orderWindowDays[0];
+            const nextDayName = dayNames[nextOrderDay];
+            subMessage = `Orders will reopen ${nextDayName} at ${settings.orderWindowStart}`;
+          } else {
+            const [startHour, startMinute] = settings.orderWindowStart.split(':').map(Number);
+            const [endHour, endMinute] = settings.orderWindowEnd.split(':').map(Number);
+            const startTime = startHour * 60 + startMinute;
+            const endTime = endHour * 60 + endMinute;
+
+            if (currentTime < startTime) {
+              subMessage = `Orders will open at ${settings.orderWindowStart} today`;
+            } else if (currentTime > endTime) {
+              subMessage = `Orders will reopen tomorrow at ${settings.orderWindowStart}`;
+            }
           }
-          
+
           setStatus({
             message,
             subMessage,
