@@ -46,21 +46,25 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   // Debug Stripe key and promise
   useEffect(() => {
     const key = STRIPE_PUBLISHABLE_KEY;
-    console.log('Stripe key debug:', {
-      key: key ? 'Present' : 'Missing',
-      keyLength: key?.length || 0,
-      keyStart: key?.substring(0, 10) + '...' || 'N/A',
-      keyType: key?.startsWith('pk_test_') ? 'Test' : key?.startsWith('pk_live_') ? 'Live' : 'Invalid',
-      envVars: {
-        hasKey: !!STRIPE_PUBLISHABLE_KEY,
-        hasSecret: !!process.env.STRIPE_SECRET_KEY,
-        hasWebhook: !!process.env.STRIPE_WEBHOOK_SECRET
-      }
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Stripe key debug:', {
+        key: key ? 'Present' : 'Missing',
+        keyLength: key?.length || 0,
+        keyStart: key?.substring(0, 10) + '...' || 'N/A',
+        keyType: key?.startsWith('pk_test_') ? 'Test' : key?.startsWith('pk_live_') ? 'Live' : 'Invalid',
+        envVars: {
+          hasKey: !!STRIPE_PUBLISHABLE_KEY,
+          hasSecret: !!process.env.STRIPE_SECRET_KEY,
+          hasWebhook: !!process.env.STRIPE_WEBHOOK_SECRET
+        }
+      });
+    }
 
     // Test the stripe promise
     stripePromise.then((stripeInstance) => {
-      console.log('Stripe promise resolved:', !!stripeInstance);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Stripe promise resolved:', !!stripeInstance);
+      }
       setStripeLoadError(null);
     }).catch((error) => {
       console.error('Stripe promise failed:', error);
@@ -70,11 +74,13 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
 
   // Check if Stripe is ready
   useEffect(() => {
-    console.log('Stripe debug:', { 
-      stripe: !!stripe, 
-      elements: !!elements,
-      stripeLoadError: stripeLoadError 
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Stripe debug:', {
+        stripe: !!stripe,
+        elements: !!elements,
+        stripeLoadError: stripeLoadError
+      });
+    }
     
     if (stripe && elements) {
       setIsStripeReady(true);
@@ -94,10 +100,12 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   // Force show card element after 5 seconds if not ready
   useEffect(() => {
     if (!isStripeReady) {
-      const timer = setTimeout(() => {
-        console.log('Forcing CardElement to show after timeout');
-        setForceShowCard(true);
-      }, 5000);
+        const timer = setTimeout(() => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Forcing CardElement to show after timeout');
+          }
+          setForceShowCard(true);
+        }, 5000);
       
       return () => clearTimeout(timer);
     }
@@ -201,7 +209,9 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
             
             if (orderCheckResponse.ok) {
               const orderData = await orderCheckResponse.json();
-              console.log('Order verified:', orderData.orderId);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log('Order verified:', orderData.orderId);
+              }
             } else {
               console.warn('Order verification failed, but payment succeeded');
             }

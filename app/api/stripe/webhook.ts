@@ -28,13 +28,17 @@ export async function POST(req: NextRequest) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  console.log('Webhook received:', event.type);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Webhook received:', event.type);
+  }
 
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const metadata = paymentIntent.metadata || {};
     
-    console.log('Processing payment_intent.succeeded:', paymentIntent.id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Processing payment_intent.succeeded:', paymentIntent.id);
+    }
     
     try {
       // Validate required metadata
@@ -65,7 +69,9 @@ export async function POST(req: NextRequest) {
       };
       const orderId = await createOrder(orderData);
 
-      console.log('Order created successfully:', orderId);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Order created successfully:', orderId);
+      }
       
       // You could also send a confirmation email here
       // await sendOrderConfirmationEmail(paymentIntent.receipt_email, orderId);
@@ -85,7 +91,9 @@ export async function POST(req: NextRequest) {
   // Handle other webhook events if needed
   if (event.type === 'payment_intent.payment_failed') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    console.log('Payment failed:', paymentIntent.id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Payment failed:', paymentIntent.id);
+    }
     // You could send a failure notification here
   }
 
