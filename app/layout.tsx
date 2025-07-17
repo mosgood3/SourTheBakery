@@ -60,6 +60,27 @@ const lobster = Lobster({
 export const metadata: Metadata = {
   title: "Sour The Bakery",
   description: "Handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients.",
+  openGraph: {
+    images: [
+      {
+        url: "/logo2.PNG",
+        width: 800,
+        height: 800,
+        alt: "Sour The Bakery Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [
+      {
+        url: "/logo2.PNG",
+        width: 800,
+        height: 800,
+        alt: "Sour The Bakery Logo",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

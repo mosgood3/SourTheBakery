@@ -35,7 +35,7 @@ export default function HeroSection() {
           {/* Replace stats with a cool, non-numeric phrase */}
           <div className="mt-8 mb-8">
             <p className="text-2xl md:text-3xl font-serif text-accent-gold font-bold drop-shadow-lg">
-              Farm stand every Sunday 9am - 1pm
+              Bakery stand every Sunday 9am - 1pm
             </p>
             <p className="text-xl md:text-2xl font-serif text-accent-brown font-bold drop-shadow-lg">
               12 Gaylord Drive, Rocky Hill, CT 06067
@@ -92,8 +92,8 @@ export default function HeroSection() {
             >
               <FaTimes />
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-brown">Catering Coming Soon!</h2>
-            <p className="text-brown mb-6">We're working on something special for catering orders. Stay tuned!</p>
+            <h2 className="text-2xl font-bold mb-4 text-brown">Catering</h2>
+            <p className="text-brown mb-6">Please email <a href="mailto:sourthebakeryllc@gmail.com" className="underline text-accent-gold">sourthebakeryllc@gmail.com</a> for any catering requests.</p>
           </div>
         </div>
       )}
