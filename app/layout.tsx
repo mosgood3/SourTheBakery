@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   openGraph: {
     images: [
       {
-        url: "/logo2.PNG",
+        url: "/logo.jpg",
         width: 800,
         height: 800,
         alt: "Sour The Bakery Logo",
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     images: [
       {
-        url: "/logo2.PNG",
+        url: "/logo.jpg",
         width: 800,
         height: 800,
         alt: "Sour The Bakery Logo",
