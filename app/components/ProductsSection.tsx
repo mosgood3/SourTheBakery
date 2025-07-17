@@ -152,6 +152,8 @@ export default function ProductsSection() {
             <p className="mt-4 text-brown/70">Loading products...</p>
           </div>
         </div>
+        {/* Bakery Gallery Section */}
+        <BakeryGallery />
       </section>
     );
   }
@@ -179,6 +181,8 @@ export default function ProductsSection() {
             </button>
           </div>
         </div>
+        {/* Bakery Gallery Section */}
+        <BakeryGallery />
       </section>
     );
   }
@@ -201,6 +205,8 @@ export default function ProductsSection() {
             <p className="text-brown/50 mt-2">Check back soon for fresh baked goods!</p>
           </div>
         </div>
+        {/* Bakery Gallery Section */}
+        <BakeryGallery />
       </section>
     );
   }
@@ -428,26 +434,6 @@ export default function ProductsSection() {
             </a>
           </div>
         </div>
-
-        {/* Bakery Gallery Section */}
-        <div className="mt-20 text-center">
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-brown mb-8">
-            Bakery Gallery
-          </h3>
-          <div className="max-w-4xl mx-auto">
-            {/* Canva Moodboard Embed */}
-            <div style={{position: 'relative', width: '100%', height: 0, paddingTop: '177.7778%', paddingBottom: 0, boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)', marginTop: '1.6em', marginBottom: '0.9em', overflow: 'hidden', borderRadius: '8px', willChange: 'transform'}}>
-              <iframe
-                loading="lazy"
-                style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 'none', padding: 0, margin: 0}}
-                src="https://www.canva.com/design/DAGtL_JDERI/28XwgwUu8uvKiqy51eLDjA/view?embed"
-                allowFullScreen={true}
-                allow="fullscreen"
-                title=" "
-              ></iframe>
-            </div>
-          </div>
-        </div>
       </div>
       {showPreorderPopup && (
         <div
@@ -473,5 +459,29 @@ export default function ProductsSection() {
         </div>
       )}
     </section>
+  );
+} 
+
+// Bakery Gallery as a separate component
+function BakeryGallery() {
+  return (
+    <div className="mt-20 text-center">
+      <h3 className="text-3xl md:text-4xl font-serif font-bold text-brown mb-8">
+        Bakery Gallery
+      </h3>
+      <div className="max-w-4xl mx-auto">
+        {/* Canva Moodboard Embed */}
+        <div style={{position: 'relative', width: '100%', height: 0, paddingTop: '177.7778%', paddingBottom: 0, boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)', marginTop: '1.6em', marginBottom: '0.9em', overflow: 'hidden', borderRadius: '8px', willChange: 'transform'}}>
+          <iframe
+            loading="lazy"
+            style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 'none', padding: 0, margin: 0}}
+            src="https://www.canva.com/design/DAGtL_JDERI/28XwgwUu8uvKiqy51eLDjA/view?embed"
+            allowFullScreen={true}
+            allow="fullscreen"
+            title="Bakery Gallery Canva Moodboard"
+          ></iframe>
+        </div>
+      </div>
+    </div>
   );
 } 

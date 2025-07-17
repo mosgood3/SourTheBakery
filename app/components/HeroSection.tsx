@@ -56,7 +56,7 @@ export default function HeroSection() {
               className="vintage-btn menu-btn"
               onClick={() => setShowCateringPopup(true)}
             >
-              Catering
+              Pre Orders
             </button>
           </div>
         </div>
@@ -92,8 +92,9 @@ export default function HeroSection() {
             >
               <FaTimes />
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-brown">Catering</h2>
-            <p className="text-brown mb-6">Please email <a href="mailto:sourthebakeryllc@gmail.com" className="underline text-accent-gold">sourthebakeryllc@gmail.com</a> for any catering requests.</p>
+            <h2 className="text-2xl font-bold mb-4 text-brown">Pre Orders</h2>
+            <p className="text-brown mb-6">Pre-orders are coming soon! We are working on a workflow to make it easy for you to reserve your favorite bakes in advance.</p>
+            <p className="text-brown text-sm mt-8">For special event cookie inquiries please contact <a href="mailto:sourthebakeryllc@gmail.com" className="underline text-accent-gold">sourthebakeryllc@gmail.com</a></p>
           </div>
         </div>
       )}
