@@ -43,10 +43,18 @@ export default function AboutSection() {
               <h3 className="text-3xl font-bold text-brown mb-6">
                 From Family Kitchen to Community Favorite
               </h3>
-              <p className="text-lg text-brown/95 mb-6 leading-relaxed">
-              Founded in 2025, Sour The Bakery is the realization of years spent perfecting our signature sourdough recipe and cultivating an unwavering passion for baking. What began as a dedicated home pursuit has blossomed into a beloved local bakery, proudly serving our community fresh, handcrafted goods made with care and love.              </p>
-              <p className="text-lg text-brown/95 leading-relaxed">
-              We deeply believe in the art of slow fermentation, honoring traditional sourdough techniques. Each loaf, pastry, and cake is thoughtfully crafted, ensuring every bite reflects our commitment to quality and dedication to exceptional baking.              </p>
+              <p className="text-xl md:text-2xl font-serif text-brown mb-4">
+                Hi, we’re Isabela and Matt — the couple behind SOUR the bakery.
+              </p>
+              <p className="text-lg md:text-xl text-brown mb-2">
+                SOUR started in our home kitchen, inspired by a love for slow living and real food. What began as a sourdough hobby quickly became a passion for sharing fresh, homemade bakes with our community.
+              </p>
+              <p className="text-lg md:text-xl text-brown mb-2">
+                In June 2025, we set up a small bakery stand in our front yard, offering hand-shaped loaves and cookies made with care. SOUR is built on a belief in honest ingredients, quality, and community.
+              </p>
+              <p className="text-lg md:text-xl text-brown">
+                Together, we’re excited to grow SOUR and bring warmth and flavor to as many homes as possible. Thanks for being part of our journey!
+              </p>
             </div>
 
             {/* Statistics - removed */}
@@ -59,7 +67,7 @@ export default function AboutSection() {
               <div className="bg-gradient-to-br from-accent-gold/20 to-accent-pink/20 rounded-3xl p-4 shadow-2xl">
                 <div className="relative h-96 w-full rounded-2xl overflow-hidden">
                   <Image
-                    src="/me.jpg"
+                    src="/us.jpg"
                     alt="Baker at Sour The Bakery"
                     fill
                     className="object-cover"

@@ -2,12 +2,14 @@
 
 import { useCart } from '../contexts/CartContext';
 import { useEffect, useState } from 'react';
-import { PorchPickupSection } from './ProductsSection';
+// import { PorchPickupSection } from './ProductsSection';
 import CateringForm from './CateringForm';
+import { FaTimes } from 'react-icons/fa';
 
 export default function HeroSection() {
   const { toggleCart } = useCart();
   const [showCateringForm, setShowCateringForm] = useState(false);
+  const [showCateringPopup, setShowCateringPopup] = useState(false);
 
   return (
     <section
@@ -33,7 +35,10 @@ export default function HeroSection() {
           {/* Replace stats with a cool, non-numeric phrase */}
           <div className="mt-8 mb-8">
             <p className="text-2xl md:text-3xl font-serif text-accent-gold font-bold drop-shadow-lg">
-              Locally Loved • Handcrafted with Heart
+              Farm stand every Sunday 9am - 1pm
+            </p>
+            <p className="text-xl md:text-2xl font-serif text-accent-brown font-bold drop-shadow-lg">
+              12 Gaylord Drive, Rocky Hill, CT 06067
             </p>
           </div>
           <p className="text-xl md:text-2xl lg:text-3xl text-brown mb-4 max-w-2xl leading-relaxed">
@@ -44,22 +49,54 @@ export default function HeroSection() {
               href="#products"
               className="vintage-btn order-btn"
             >
-              Order Now
+              View Menu
             </a>
-            <a
-              href="/catering"
+            <button
+              type="button"
               className="vintage-btn menu-btn"
+              onClick={() => setShowCateringPopup(true)}
             >
               Catering
-            </a>
+            </button>
           </div>
         </div>
         {/* Porch Pickup Section - moved here */}
-        <PorchPickupSection/>
+        {/* <PorchPickupSection/> */}
       </div>
 
       {/* Catering Form Modal */}
       {showCateringForm && <CateringForm />}
+      {showCateringPopup && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
+            backgroundSize: '120px 120px',
+            backgroundBlendMode: 'multiply',
+            backgroundColor: 'var(--peach)',
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center relative"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
+              backgroundSize: '120px 120px',
+              backgroundBlendMode: 'multiply',
+              backgroundColor: 'var(--background)',
+            }}
+          >
+            <button
+              className="absolute top-3 right-3 text-brown hover:text-accent-gold text-2xl focus:outline-none"
+              onClick={() => setShowCateringPopup(false)}
+              aria-label="Close"
+            >
+              <FaTimes />
+            </button>
+            <h2 className="text-2xl font-bold mb-4 text-brown">Catering Coming Soon!</h2>
+            <p className="text-brown mb-6">We're working on something special for catering orders. Stay tuned!</p>
+          </div>
+        </div>
+      )}
 
       {/* Custom CSS for vintage effects */}
       <style jsx>{`

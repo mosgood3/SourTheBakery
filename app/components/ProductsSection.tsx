@@ -5,104 +5,105 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { getProducts, Product } from '../lib/products';
 import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings';
+import { FaTimes } from 'react-icons/fa';
 
-export function PorchPickupSection() {
-  const [pickupInfo, setPickupInfo] = useState<{ date: string; time: string; location: string } | null>(null);
-  const [orderWindowInfo, setOrderWindowInfo] = useState<{ start: string; end: string; days: string[] } | null>(null);
-  const [loading, setLoading] = useState(true);
+// export function PorchPickupSection() {
+//   const [pickupInfo, setPickupInfo] = useState<{ date: string; time: string; location: string } | null>(null);
+//   const [orderWindowInfo, setOrderWindowInfo] = useState<{ start: string; end: string; days: string[] } | null>(null);
+//   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchInfo = async () => {
-      try {
-        const [pickup, settings] = await Promise.all([
-          getPickupInfo(),
-          getSettings()
-        ]);
+//   useEffect(() => {
+//     const fetchInfo = async () => {
+//       try {
+//         const [pickup, settings] = await Promise.all([
+//           getPickupInfo(),
+//           getSettings()
+//         ]);
         
-        setPickupInfo(pickup);
+//         setPickupInfo(pickup);
         
-        // Format order window days
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const orderDays = settings.orderWindowDays.map((day: number) => dayNames[day]);
-        setOrderWindowInfo({
-          start: settings.orderWindowStart,
-          end: settings.orderWindowEnd,
-          days: orderDays
-        });
-      } catch (error) {
-        console.error('Failed to fetch info:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+//         // Format order window days
+//         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+//         const orderDays = settings.orderWindowDays.map((day: number) => dayNames[day]);
+//         setOrderWindowInfo({
+//           start: settings.orderWindowStart,
+//           end: settings.orderWindowEnd,
+//           days: orderDays
+//         });
+//       } catch (error) {
+//         console.error('Failed to fetch info:', error);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
 
-    fetchInfo();
-  }, []);
+//     fetchInfo();
+//   }, []);
 
-  if (loading) {
-    return (
-      <>
-        <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
-        <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 px-8 lg:px-16 max-w-xl mx-auto shadow-xl">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-gold"></div>
-            <p className="mt-2 text-brown/70">Loading schedule...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
+//   if (loading) {
+//     return (
+//       <>
+//         <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
+//         <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 px-8 lg:px-16 max-w-xl mx-auto shadow-xl">
+//           <div className="text-center">
+//             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-gold"></div>
+//             <p className="mt-2 text-brown/70">Loading schedule...</p>
+//           </div>
+//         </div>
+//       </>
+//     );
+//   }
 
-  const pickupDate = pickupInfo ? new Date(pickupInfo.date).toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
-  }) : 'TBD';
+//   const pickupDate = pickupInfo ? new Date(pickupInfo.date).toLocaleDateString('en-US', { 
+//     weekday: 'short', 
+//     month: 'short', 
+//     day: 'numeric' 
+//   }) : 'TBD';
 
-  return (
-    <>
-      <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
-      <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 py-10 px-8 lg:px-12 xl:px-16 max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mx-auto shadow-xl">
-        <div className="text-brown/90 text-lg font-bold text-center mb-4">
-          <span role="img" aria-label="door">🚪</span> <span className="font-bold">Farm Stand Pickup Only:</span> All online orders are for farm stand pickup at {pickupInfo?.location || '12 Gaylord Drive, Rocky Hill, CT'}.
-        </div>
-        {/* Responsive: vertical on small, horizontal on md+ */}
-        <div className="flex flex-col md:grid md:grid-cols-5 gap-y-2 md:gap-x-2 items-center justify-items-center w-full">
-          {/* Order Online */}
-          <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md w-40 h-32">
-            <span className="text-2xl">🛒</span>
-            <span className="font-semibold text-brown text-base mt-1">Order Online</span>
-            <span className="text-sm text-brown/70 mt-1 text-center">
-              {orderWindowInfo ? `${orderWindowInfo.days.join(', ')} ${orderWindowInfo.start}-${orderWindowInfo.end}` : 'Loading...'}
-            </span>
-          </div>
-          {/* Arrow */}
-          <div className="my-1 md:my-0 md:col-start-2 flex items-center justify-center">
-            <span className="text-2xl text-brown md:hidden">↓</span>
-            <span className="text-2xl text-brown hidden md:inline">→</span>
-          </div>
-          {/* Baker Prepares */}
-          <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-3 w-40 h-32">
-            <span className="text-2xl">👩‍🍳</span>
-            <span className="font-semibold text-brown text-base mt-1">Baker Prepares</span>
-            <span className="text-sm text-brown/70 mt-1">Fri & Sat</span>
-          </div>
-          {/* Arrow */}
-          <div className="my-1 md:my-0 md:col-start-4 flex items-center justify-center">
-            <span className="text-2xl text-brown md:hidden">↓</span>
-            <span className="text-2xl text-brown hidden md:inline">→</span>
-          </div>
-          {/* Porch Pickup */}
-          <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-5 w-40 h-32">
-            <span className="text-2xl">🏡</span>
-            <span className="font-semibold text-brown text-base mt-1">Porch Pickup</span>
-            <span className="text-sm text-brown/70 mt-1">{pickupDate} {pickupInfo?.time}</span>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+//   return (
+//     <>
+//       <h3 className="mt-16 text-3xl md:text-4xl font-serif font-bold text-brown mb-4 text-center tracking-tight">Our schedule</h3>
+//       <div className="mt-0 mb-12 bg-muted/30 rounded-3xl border-2 border-accent-gold/40 p-6 py-10 px-8 lg:px-12 xl:px-16 max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mx-auto shadow-xl">
+//         <div className="text-brown/90 text-lg font-bold text-center mb-4">
+//           <span role="img" aria-label="door">🚪</span> <span className="font-bold">Farm Stand Pickup Only:</span> All online orders are for farm stand pickup at {pickupInfo?.location || '12 Gaylord Drive, Rocky Hill, CT'}.
+//         </div>
+//         {/* Responsive: vertical on small, horizontal on md+ */}
+//         <div className="flex flex-col md:grid md:grid-cols-5 gap-y-2 md:gap-x-2 items-center justify-items-center w-full">
+//           {/* Order Online */}
+//           <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md w-40 h-32">
+//             <span className="text-2xl">🛒</span>
+//             <span className="font-semibold text-brown text-base mt-1">Order Online</span>
+//             <span className="text-sm text-brown/70 mt-1 text-center">
+//               {orderWindowInfo ? `${orderWindowInfo.days.join(', ')} ${orderWindowInfo.start}-${orderWindowInfo.end}` : 'Loading...'}
+//             </span>
+//           </div>
+//           {/* Arrow */}
+//           <div className="my-1 md:my-0 md:col-start-2 flex items-center justify-center">
+//             <span className="text-2xl text-brown md:hidden">↓</span>
+//             <span className="text-2xl text-brown hidden md:inline">→</span>
+//           </div>
+//           {/* Baker Prepares */}
+//           <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-3 w-40 h-32">
+//             <span className="text-2xl">👩‍🍳</span>
+//             <span className="font-semibold text-brown text-base mt-1">Baker Prepares</span>
+//             <span className="text-sm text-brown/70 mt-1">Fri & Sat</span>
+//           </div>
+//           {/* Arrow */}
+//           <div className="my-1 md:my-0 md:col-start-4 flex items-center justify-center">
+//             <span className="text-2xl text-brown md:hidden">↓</span>
+//             <span className="text-2xl text-brown hidden md:inline">→</span>
+//           </div>
+//           {/* Porch Pickup */}
+//           <div className="flex flex-col items-center bg-white/90 border-2 border-accent-gold rounded-2xl px-4 py-4 min-w-[110px] shadow-md md:col-start-5 w-40 h-32">
+//             <span className="text-2xl">🏡</span>
+//             <span className="font-semibold text-brown text-base mt-1">Porch Pickup</span>
+//             <span className="text-sm text-brown/70 mt-1">{pickupDate} {pickupInfo?.time}</span>
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// }
 
 export default function ProductsSection() {
   const { addItem } = useCart();
@@ -110,6 +111,7 @@ export default function ProductsSection() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPreorderPopup, setShowPreorderPopup] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -128,30 +130,8 @@ export default function ProductsSection() {
     fetchProducts();
   }, []);
 
-  const handleAddToCart = async (product: Product) => {
-    try {
-      const orderWindowOpen = await isOrderWindowOpen();
-      if (!orderWindowOpen) {
-        alert('Orders are not available at this time. Please check the order window settings.');
-        return;
-      }
-
-      // Check if product is sold out
-      if (product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0) {
-        alert(`${product.name} is sold out for this week.`);
-        return;
-      }
-      
-      addItem({
-        id: product.id || '',
-        name: product.name,
-        price: product.price,
-        description: product.description,
-      });
-    } catch (error) {
-      console.error('Error checking order window:', error);
-      alert('Unable to check order availability. Please try again.');
-    }
+  const handleAddToCart = () => {
+    setShowPreorderPopup(true);
   };
 
   // Show loading state
@@ -326,7 +306,7 @@ export default function ProductsSection() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleAddToCart(product);
+                                handleAddToCart();
                               }}
                               className="bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
                             >
@@ -367,7 +347,7 @@ export default function ProductsSection() {
                   key={product.id}
                   className="flex-shrink-0 w-80 bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-all duration-300 cursor-pointer relative"
                   style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}
-                  onClick={() => handleAddToCart(product)}
+                  onClick={() => handleAddToCart()}
                 >
                   {/* Retro Bestseller Badge */}
                   {product.id === products[0]?.id && (
@@ -408,7 +388,7 @@ export default function ProductsSection() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAddToCart(product);
+                          handleAddToCart();
                         }}
                         className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
                       >
@@ -469,6 +449,29 @@ export default function ProductsSection() {
           </div>
         </div>
       </div>
+      {showPreorderPopup && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
+            backgroundSize: '120px 120px',
+            backgroundBlendMode: 'multiply',
+            backgroundColor: 'var(--peach)',
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center relative">
+            <button
+              className="absolute top-3 right-3 text-brown hover:text-accent-gold text-2xl focus:outline-none"
+              onClick={() => setShowPreorderPopup(false)}
+              aria-label="Close"
+            >
+              <FaTimes />
+            </button>
+            <h2 className="text-2xl font-bold mb-4 text-brown">Pre-orders Coming Soon!</h2>
+            <p className="text-brown mb-6">We're getting ready to launch pre-orders for our products. Stay tuned!</p>
+          </div>
+        </div>
+      )}
     </section>
   );
 } 
