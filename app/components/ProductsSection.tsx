@@ -230,7 +230,7 @@ export default function ProductsSection() {
             {/* Navigation Arrows */}
             <button
               onClick={() => setCurrentProduct((prev) => (prev - 1 + products.length) % products.length)}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-accent-gold/20"
+              className="absolute left-4 top-1/3 md:top-1/2 transform -translate-y-1/2 z-30 bg-transparent md:bg-white/90 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-accent-gold/20"
               aria-label="Previous product"
             >
               <svg className="w-6 h-6 text-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +240,7 @@ export default function ProductsSection() {
             
             <button
               onClick={() => setCurrentProduct((prev) => (prev + 1) % products.length)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-accent-gold/20"
+              className="absolute right-4 top-1/3 md:top-1/2 transform -translate-y-1/2 z-30 bg-transparent md:bg-white/90 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-accent-gold/20"
               aria-label="Next product"
             >
               <svg className="w-6 h-6 text-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,14 +272,7 @@ export default function ProductsSection() {
                     <div className="relative w-full h-full flex items-center justify-center">
                       {/* Product Card */}
                       <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-transform duration-300" style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}>
-                        {/* Retro Bestseller Badge */}
-                        {index === 0 && (
-                          <div className="absolute -top-2 -right-2 transform rotate-12">
-                            <div className="bg-gradient-to-r from-accent-gold to-yellow-400 text-brown px-3 py-1 rounded-full text-sm font-bold shadow-lg border-2 border-brown/20">
-                              ★ Bestseller
-                            </div>
-                          </div>
-                        )}
+                        
                         <div className="text-center">
                           {/* Product Image */}
                           <div className="relative w-56 h-56 mx-auto mb-8">
@@ -347,7 +340,7 @@ export default function ProductsSection() {
         {/* Horizontal Scrollable Product List - Large Screens */}
         <div className="hidden md:block mb-16">
           <div className="flex justify-center">
-            <div className="flex gap-8 overflow-visible pb-8 scrollbar-hide max-w-6xl">
+            <div className="flex gap-8 overflow-x-auto pb-8 max-w-6xl">
               {products.map((product) => (
                 <div
                   key={product.id}
@@ -355,14 +348,7 @@ export default function ProductsSection() {
                   style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}
                   onClick={() => handleAddToCart()}
                 >
-                  {/* Retro Bestseller Badge */}
-                  {product.id === products[0]?.id && (
-                    <div className="absolute -top-2 -right-2 transform rotate-12">
-                      <div className="bg-gradient-to-r from-accent-gold to-yellow-400 text-brown px-3 py-1 rounded-full text-sm font-bold shadow-lg border-2 border-brown/20">
-                        ★ Bestseller
-                      </div>
-                    </div>
-                  )}
+                  
                   <div className="text-center">
                     {/* Product Image */}
                     <div className="relative w-48 h-48 mx-auto mb-6">
@@ -458,6 +444,7 @@ export default function ProductsSection() {
           </div>
         </div>
       )}
+      <BakeryGallery />
     </section>
   );
 } 
