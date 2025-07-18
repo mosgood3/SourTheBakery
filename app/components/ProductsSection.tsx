@@ -220,7 +220,7 @@ export default function ProductsSection() {
             Menu
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
+            Each item is carefully crafted using traditional techniques and the finest ingredients.
           </p>
         </div>
 
