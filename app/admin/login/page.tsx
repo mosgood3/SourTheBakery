@@ -31,7 +31,8 @@ export default function AdminLogin() {
 
     try {
       await login(email, password);
-      // Navigation will be handled by the useEffect above
+      // Direct navigation after successful login to prevent flashing
+      router.push('/admin');
     } catch (error: any) {
       setLocalError(error.message || 'Failed to login');
     } finally {

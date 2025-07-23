@@ -49,6 +49,13 @@ service cloud.firestore {
         request.auth.token.email in ['sourthebakeryllc@gmail.com'];
     }
     
+    // Allow read access to settings for everyone, write for admin only
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
     // Deny all other access
     match /{document=**} {
       allow read, write: if false;
@@ -178,6 +185,13 @@ service cloud.firestore {
         request.resource.data.items is list &&
         request.resource.data.total is number &&
         request.resource.data.status in ['pending', 'confirmed', 'completed', 'cancelled'];
+    }
+    
+    // Allow read access to settings for everyone, write for admin only
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
     }
     
     // Deny all other access

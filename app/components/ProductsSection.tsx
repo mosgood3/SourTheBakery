@@ -339,12 +339,18 @@ export default function ProductsSection() {
 
         {/* Horizontal Scrollable Product List - Large Screens */}
         <div className="hidden md:block mb-16">
-          <div className="flex justify-center">
-            <div className="flex gap-8 overflow-x-auto pb-8 max-w-6xl">
+          <div className="relative max-w-7xl mx-auto px-4">
+            <div 
+              className="flex gap-6 overflow-x-auto pb-6 pt-4"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#D19A6D #F7E1B5'
+              }}
+            >
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="flex-shrink-0 w-80 bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-all duration-300 cursor-pointer relative"
+                  className="flex-shrink-0 w-80 bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-accent-gold/20 transition-all duration-300 cursor-pointer relative hover:shadow-xl hover:border-accent-gold/60 hover:bg-white"
                   style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}
                   onClick={() => handleAddToCart()}
                 >
@@ -382,7 +388,7 @@ export default function ProductsSection() {
                           e.stopPropagation();
                           handleAddToCart();
                         }}
-                        className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
+                        className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown"
                       >
                         Add to Cart
                       </button>
@@ -391,13 +397,19 @@ export default function ProductsSection() {
                 </div>
               ))}
             </div>
-          </div>
-          
-          {/* Scroll Indicator */}
-          <div className="text-center mt-4">
-            <p className="text-brown/60 text-sm">
-              ← Scroll to see more products →
-            </p>
+            
+            {/* Scroll Indicators */}
+            <div className="flex justify-center mt-6 space-x-4">
+              <div className="flex items-center space-x-2 text-brown/70">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm font-medium">Scroll to explore</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 

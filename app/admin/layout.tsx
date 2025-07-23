@@ -11,11 +11,12 @@ function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !admin && pathname !== '/admin/login') {
-      router.push('/admin/login');
+      router.replace('/admin/login');
     }
   }, [admin, loading, router, pathname]);
 
-  if (loading) {
+  // Show loading only for initial page load, not after login
+  if (loading && !admin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cream via-peach to-beige flex items-center justify-center">
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">

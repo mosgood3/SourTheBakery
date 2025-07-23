@@ -5,11 +5,12 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ProductsPanel from './products/ProductsPanel';
 import OrdersPanel from './orders/OrdersPanel';
 import SettingsPanel from './settings/SettingsPanel';
+import NotificationsPanel from './notifications/NotificationsPanel';
 import { FiLogOut } from 'react-icons/fi';
 
 export default function AdminTabbedPanel() {
   const { admin, loading: authLoading, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings' | 'notifications'>('orders');
 
   const handleLogout = async () => {
     try {
@@ -80,6 +81,16 @@ export default function AdminTabbedPanel() {
         >
           Settings
         </button>
+        <button
+          className={`px-6 py-3 text-lg font-semibold border-b-4 transition-all duration-200 cursor-pointer ${
+            activeTab === "notifications"
+              ? "border-accent-gold text-brown"
+              : "border-transparent text-brown/50 hover:text-brown"
+          }`}
+          onClick={() => setActiveTab("notifications")}
+        >
+          Notifications
+        </button>
       </nav>
 
       {/* Tab Content */}
@@ -87,6 +98,7 @@ export default function AdminTabbedPanel() {
         {activeTab === "orders" && <OrdersPanel admin={admin} />}
         {activeTab === "products" && <ProductsPanel admin={admin} />}
         {activeTab === "settings" && <SettingsPanel admin={admin} />}
+        {activeTab === "notifications" && <NotificationsPanel />}
       </main>
     </div>
   );

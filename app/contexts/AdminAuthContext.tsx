@@ -74,7 +74,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      setLoading(true);
+      // Don't set loading to true here to prevent flash
       
       // Check if auth is available
       if (!auth) {
@@ -122,9 +122,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       
       setError(errorMessage);
       throw error;
-    } finally {
-      setLoading(false);
     }
+    // Don't set loading to false here to prevent flash
   };
 
   const logout = async () => {

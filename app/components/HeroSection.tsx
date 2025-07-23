@@ -14,7 +14,7 @@ export default function HeroSection() {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 sm:pt-36 md:pt-40 lg:pt-44"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
       /* Bakery SVG pattern background, matches admin login */
       style={{
         backgroundImage: "url('data:image/svg+xml;utf8,<svg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"40\" height=\"40\" fill=\"%23fff8e1\"/><ellipse cx=\"20\" cy=\"20\" rx=\"19\" ry=\"19\" fill=\"%23f7e1b5\" fill-opacity=\"0.13\"/><ellipse cx=\"10\" cy=\"10\" rx=\"6\" ry=\"6\" fill=\"%23d19a6d\" fill-opacity=\"0.07\"/><ellipse cx=\"30\" cy=\"30\" rx=\"7\" ry=\"7\" fill=\"%238b5b29\" fill-opacity=\"0.04\"/></svg>')",

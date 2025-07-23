@@ -6,11 +6,13 @@ import ProductsSection from './components/ProductsSection';
 import AboutSection from './components/AboutSection';
 import Footer from './components/Footer';
 import Cart from './components/Cart';
+import NotificationBanner from './components/NotificationBanner';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <NotificationBanner />
       <Cart />
       <HeroSection />
       <ProductsSection />
