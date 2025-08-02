@@ -143,9 +143,6 @@ export default function ProductsSection() {
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Menu
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
-            </p>
           </div>
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
@@ -167,9 +164,6 @@ export default function ProductsSection() {
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Menu
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
-            </p>
           </div>
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
@@ -196,9 +190,7 @@ export default function ProductsSection() {
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
               Menu
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Each item is carefully crafted using traditional techniques and the finest ingredients, just like Magnolia Bakery's approach to quality.
-            </p>
+          
           </div>
           <div className="text-center">
             <p className="text-brown/70 text-xl">No products available at the moment.</p>
@@ -212,38 +204,38 @@ export default function ProductsSection() {
   }
 
   return (
-    <section id="products" className="py-24 bg-background">
+    <section id="products" className="py-32 bg-gradient-to-b from-cream via-soft-peach to-warm-beige">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-            Menu
+        {/* Modern Section Header */}
+        <div className="text-center mb-24">
+          <h2 className="text-5xl md:text-6xl font-bold text-rich-brown mb-8 heading-shadow">
+            Our Menu
           </h2>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Each item is carefully crafted using traditional techniques and the finest ingredients.
+          <p className="text-xl md:text-2xl text-warm-brown opacity-90 max-w-3xl mx-auto leading-relaxed">
+            Discover our handcrafted selection of artisanal sourdough treats, baked fresh with love and traditional techniques
           </p>
         </div>
 
-        {/* 3D Rotating Product Showcase - Small/Medium Screens */}
-        <div className="md:hidden flex items-center justify-center relative w-full h-[500px] sm:h-[600px] mb-16">
-          <div className="relative w-full max-w-[600px] h-full perspective-1000">
-            {/* Navigation Arrows */}
+        {/* Modern Product Carousel - Small/Medium Screens */}
+        <div className="md:hidden flex items-center justify-center relative w-full h-[600px] sm:h-[700px] mb-20">
+          <div className="relative w-full max-w-[650px] h-full perspective-1000">
+            {/* Elegant Navigation Arrows */}
             <button
               onClick={() => setCurrentProduct((prev) => (prev - 1 + products.length) % products.length)}
-              className="absolute left-4 top-1/3 md:top-1/2 transform -translate-y-1/2 z-30 bg-transparent md:bg-white/90 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-accent-gold/20"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-110 border border-warm-beige text-rich-brown"
               aria-label="Previous product"
             >
-              <svg className="w-6 h-6 text-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             
             <button
               onClick={() => setCurrentProduct((prev) => (prev + 1) % products.length)}
-              className="absolute right-4 top-1/3 md:top-1/2 transform -translate-y-1/2 z-30 bg-transparent md:bg-white/90 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-accent-gold/20"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-110 border border-warm-beige text-rich-brown"
               aria-label="Next product"
             >
-              <svg className="w-6 h-6 text-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -270,35 +262,36 @@ export default function ProductsSection() {
                     onClick={() => setCurrentProduct(index)}
                   >
                     <div className="relative w-full h-full flex items-center justify-center">
-                      {/* Product Card */}
-                      <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-2xl border border-accent-gold/20 transform hover:scale-105 transition-transform duration-300" style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}>
+                      {/* Modern Product Card */}
+                      <div className="card-modern bg-white/95 backdrop-blur-md rounded-3xl p-12 shadow-2xl border border-warm-beige transform hover:scale-105 transition-all duration-500">
                         
                         <div className="text-center">
                           {/* Product Image */}
-                          <div className="relative w-56 h-56 mx-auto mb-8">
+                          <div className="relative w-64 h-64 mx-auto mb-8">
+                            <div className="absolute -inset-4 bg-gradient-to-r from-terracotta/10 to-cinnamon/10 rounded-3xl blur-lg"></div>
                             <Image
                               src={product.image}
                               alt={product.name}
                               fill
-                              className="object-contain rounded-2xl"
+                              className="object-contain rounded-3xl relative"
                               priority={isActive}
                             />
                           </div>
                           
                           {/* Product Info */}
-                          <h3 className="text-3xl font-bold text-brown mb-2">
+                          <h3 className="text-3xl font-bold text-rich-brown mb-3 heading-shadow">
                             {product.name}
                           </h3>
-                          <p className="text-xl text-cinnamon font-semibold mb-2">
+                          <p className="text-2xl text-terracotta font-semibold mb-3">
                             ${parseFloat(product.price).toFixed(2)}
                           </p>
-                          <p className="text-brown/80 text-xl mb-8">
+                          <p className="text-warm-brown opacity-90 text-xl mb-10 leading-relaxed">
                             {product.description}
                           </p>
                                                   
-                          {/* Add to Cart Button */}
+                          {/* Modern Add to Cart Button */}
                           {product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0 ? (
-                            <div className="bg-red-100 text-red-800 px-8 py-4 rounded-full text-lg font-semibold border-2 border-red-300">
+                            <div className="bg-red-50 text-red-700 px-10 py-5 rounded-2xl text-lg font-semibold border-2 border-red-200">
                               Sold Out
                             </div>
                           ) : (
@@ -307,7 +300,7 @@ export default function ProductsSection() {
                                 e.stopPropagation();
                                 handleAddToCart();
                               }}
-                              className="bg-accent-gold text-brown px-8 py-4 rounded-full text-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown transform hover:scale-105"
+                              className="bg-terracotta text-white px-10 py-5 rounded-2xl text-lg font-semibold hover:bg-warm-brown transition-all duration-500 cursor-pointer shadow-xl hover:shadow-2xl transform hover:scale-105"
                             >
                               Add to Cart
                             </button>
@@ -320,16 +313,16 @@ export default function ProductsSection() {
               })}
             </div>
             
-            {/* Navigation Dots */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
+            {/* Modern Navigation Dots */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 bg-white/20 backdrop-blur-lg rounded-2xl px-6 py-3 border border-white/30">
               {products.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentProduct(index)}
-                  className={`w-4 h-4 rounded-full transition-all duration-300 cursor-pointer ${
+                  className={`w-3 h-3 rounded-full transition-all duration-500 cursor-pointer ${
                     index === currentProduct 
-                      ? 'bg-accent-gold scale-125 shadow-lg' 
-                      : 'bg-brown/30 hover:bg-brown/50'
+                      ? 'bg-terracotta scale-150 shadow-lg' 
+                      : 'bg-warm-brown/40 hover:bg-warm-brown/70 hover:scale-125'
                   }`}
                 />
               ))}
@@ -337,11 +330,11 @@ export default function ProductsSection() {
           </div>
         </div>
 
-        {/* Horizontal Scrollable Product List - Large Screens */}
-        <div className="hidden md:block mb-16">
+        {/* Modern Horizontal Product Grid - Large Screens */}
+        <div className="hidden md:block mb-20">
           <div className="relative max-w-7xl mx-auto px-4">
             <div 
-              className="flex gap-6 overflow-x-auto pb-6 pt-4"
+              className="flex gap-8 overflow-x-auto pb-8 pt-6 scrollbar-hide"
               style={{
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#D19A6D #F7E1B5'
@@ -350,36 +343,36 @@ export default function ProductsSection() {
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="flex-shrink-0 w-80 bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-accent-gold/20 transition-all duration-300 cursor-pointer relative hover:shadow-xl hover:border-accent-gold/60 hover:bg-white"
-                  style={{backgroundColor: 'rgba(255, 248, 225, 0.95)'}}
+                  className="flex-shrink-0 w-96 card-modern bg-white/95 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-warm-beige transition-all duration-500 cursor-pointer relative group"
                   onClick={() => handleAddToCart()}
                 >
                   
                   <div className="text-center">
-                    {/* Product Image */}
-                    <div className="relative w-48 h-48 mx-auto mb-6">
+                    {/* Product Image with modern styling */}
+                    <div className="relative w-56 h-56 mx-auto mb-8">
+                      <div className="absolute -inset-3 bg-gradient-to-r from-terracotta/5 via-cinnamon/10 to-golden-sand/5 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                       <Image
                         src={product.image}
                         alt={product.name}
                         fill
-                        className="object-contain rounded-2xl"
+                        className="object-contain rounded-3xl relative transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                     
                     {/* Product Info */}
-                    <h3 className="text-2xl font-bold text-brown mb-1">
+                    <h3 className="text-2xl font-bold text-rich-brown mb-2 heading-shadow">
                       {product.name}
                     </h3>
-                    <p className="text-lg text-cinnamon font-semibold mb-1">
+                    <p className="text-xl text-terracotta font-semibold mb-2">
                       ${parseFloat(product.price).toFixed(2)}
                     </p>
-                    <p className="text-brown/80 text-lg mb-6">
+                    <p className="text-warm-brown opacity-90 text-lg mb-8 leading-relaxed">
                       {product.description}
                     </p>
                                         
-                    {/* Add to Cart Button */}
+                    {/* Modern Add to Cart Button */}
                     {product.weeklyAmountRemaining !== undefined && product.weeklyAmountRemaining <= 0 ? (
-                      <div className="bg-red-100 text-red-800 px-6 py-3 rounded-full text-base font-semibold border-2 border-red-300">
+                      <div className="bg-red-50 text-red-700 px-8 py-4 rounded-2xl text-base font-semibold border-2 border-red-200">
                         Sold Out
                       </div>
                     ) : (
@@ -388,7 +381,7 @@ export default function ProductsSection() {
                           e.stopPropagation();
                           handleAddToCart();
                         }}
-                        className="bg-accent-gold text-brown px-6 py-3 rounded-full text-base font-semibold hover:bg-accent-gold/90 transition-colors duration-300 cursor-pointer border-2 border-brown"
+                        className="bg-terracotta text-white px-8 py-4 rounded-2xl text-base font-semibold hover:bg-warm-brown transition-all duration-500 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
                       >
                         Add to Cart
                       </button>
@@ -398,13 +391,13 @@ export default function ProductsSection() {
               ))}
             </div>
             
-            {/* Scroll Indicators */}
-            <div className="flex justify-center mt-6 space-x-4">
-              <div className="flex items-center space-x-2 text-brown/70">
+            {/* Modern Scroll Indicators */}
+            <div className="flex justify-center mt-8">
+              <div className="flex items-center space-x-3 text-warm-brown/70 bg-white/30 backdrop-blur-sm rounded-2xl px-6 py-3 border border-warm-beige/50">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="text-sm font-medium">Scroll to explore</span>
+                <span className="text-sm font-medium">Scroll to explore our treats</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -413,22 +406,26 @@ export default function ProductsSection() {
           </div>
         </div>
 
-        {/* Call to Action */}
+        {/* Modern Call to Action */}
         <div className="text-center">
-          <div className="bg-muted/30 rounded-3xl p-12 max-w-4xl mx-auto">
-            <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <div className="card-modern bg-white/80 backdrop-blur-md rounded-3xl p-16 max-w-5xl mx-auto border border-warm-beige shadow-2xl">
+            <h3 className="text-4xl md:text-5xl font-bold text-rich-brown mb-6 heading-shadow">
               Visit Our Farm Stand
             </h3>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-warm-brown opacity-90 mb-10 max-w-3xl mx-auto leading-relaxed">
               Experience the warmth and aroma of our freshly baked goods in person. Come see where the magic happens!
             </p>
             <a
               href="https://maps.google.com/?q=12+Gaylord+Drive+Rocky+Hill+CT+06111"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block bg-primary text-primary-foreground px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 shadow-xl cursor-pointer"
+              className="group inline-flex items-center gap-3 bg-terracotta text-white px-12 py-6 rounded-2xl text-xl font-semibold hover:bg-warm-brown transition-all duration-500 transform hover:scale-105 shadow-2xl hover:shadow-3xl cursor-pointer"
             >
-              Get Directions
+              <span>Get Directions</span>
+              <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </a>
           </div>
         </div>
@@ -463,22 +460,182 @@ export default function ProductsSection() {
 
 // Bakery Gallery as a separate component
 function BakeryGallery() {
+  const images = [
+    { src: '/collage/sour1.jpg', alt: 'Sourdough Creation 1' },
+    { src: '/collage/sour2.jpg', alt: 'Sourdough Creation 2' },
+    { src: '/collage/sour3.jpg', alt: 'Sourdough Creation 3' },
+    { src: '/collage/sour4.jpg', alt: 'Sourdough Creation 4' },
+    { src: '/collage/sour5.jpg', alt: 'Sourdough Creation 5' },
+    { src: '/collage/sour6.jpg', alt: 'Sourdough Creation 6' },
+    { src: '/collage/sour7.jpg', alt: 'Sourdough Creation 7' },
+    { src: '/collage/sour8.jpg', alt: 'Sourdough Creation 8' },
+    { src: '/collage/sour9.jpg', alt: 'Sourdough Creation 9' },
+    { src: '/collage/sour10.jpg', alt: 'Sourdough Creation 10' },
+    { src: '/collage/sour11.jpg', alt: 'Sourdough Creation 11' },
+  ];
+
   return (
-    <div className="mt-20 text-center">
-      <h3 className="text-3xl md:text-4xl font-serif font-bold text-brown mb-8">
-        Bakery Gallery
-      </h3>
-      <div className="max-w-4xl mx-auto">
-        {/* Canva Moodboard Embed */}
-        <div style={{position: 'relative', width: '100%', height: 0, paddingTop: '177.7778%', paddingBottom: 0, boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)', marginTop: '1.6em', marginBottom: '0.9em', overflow: 'hidden', borderRadius: '8px', willChange: 'transform'}}>
-          <iframe
-            loading="lazy"
-            style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 'none', padding: 0, margin: 0}}
-            src="https://www.canva.com/design/DAGtL_JDERI/28XwgwUu8uvKiqy51eLDjA/view?embed"
-            allowFullScreen={true}
-            allow="fullscreen"
-            title="Bakery Gallery Canva Moodboard"
-          ></iframe>
+    <div className="mt-32 px-4 py-20 bg-gradient-to-t from-warm-beige to-soft-peach">
+      <div className="text-center mb-16">
+        <h3 className="text-4xl md:text-5xl font-bold text-rich-brown mb-6 heading-shadow">
+          Our Handcrafted Creations
+        </h3>
+        <p className="text-warm-brown/80 text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
+          A glimpse into our artisanal sourdough process and the beautiful breads we craft daily
+        </p>
+      </div>
+      
+      {/* Modern Photo Collage Grid */}
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          {/* Featured large image */}
+          <div className="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl shadow-2xl">
+            <Image
+              src={images[0].src}
+              alt={images[0].alt}
+              width={600}
+              height={600}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-rich-brown/20 via-transparent to-terracotta/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-500 rounded-3xl"></div>
+          </div>
+          
+          {/* Medium images */}
+          <div className="relative group overflow-hidden rounded-2xl shadow-xl">
+            <Image
+              src={images[1].src}
+              alt={images[1].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-warm-brown/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-500 rounded-2xl"></div>
+          </div>
+          
+          <div className="relative group overflow-hidden rounded-2xl shadow-xl">
+            <Image
+              src={images[2].src}
+              alt={images[2].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-warm-brown/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-500 rounded-2xl"></div>
+          </div>
+          
+          <div className="relative group overflow-hidden rounded-2xl shadow-xl">
+            <Image
+              src={images[3].src}
+              alt={images[3].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-warm-brown/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-500 rounded-2xl"></div>
+          </div>
+          
+          <div className="relative group overflow-hidden rounded-2xl shadow-xl">
+            <Image
+              src={images[4].src}
+              alt={images[4].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-warm-brown/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-500 rounded-2xl"></div>
+          </div>
+          
+          {/* Tall image */}
+          <div className="row-span-2 relative group overflow-hidden rounded-2xl shadow-xl">
+            <Image
+              src={images[5].src}
+              alt={images[5].alt}
+              width={300}
+              height={600}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-warm-brown/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-500 rounded-2xl"></div>
+          </div>
+          
+          <div className="relative group overflow-hidden rounded-xl shadow-md">
+            <Image
+              src={images[6].src}
+              alt={images[6].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-brown/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+          
+          <div className="relative group overflow-hidden rounded-xl shadow-md">
+            <Image
+              src={images[7].src}
+              alt={images[7].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-brown/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+          
+          <div className="relative group overflow-hidden rounded-xl shadow-md">
+            <Image
+              src={images[8].src}
+              alt={images[8].alt}
+              width={300}
+              height={300}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-brown/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+          
+        </div>
+        
+        {/* Bottom section - Images 9 and 11 side by side, Image 10 full width */}
+        <div className="mt-3 md:mt-4 space-y-3 md:space-y-4">
+          {/* Images 9 and 11 side by side */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="relative group overflow-hidden rounded-xl shadow-md">
+              <Image
+                src={images[8].src}
+                alt={images[8].alt}
+                width={300}
+                height={300}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-brown/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </div>
+            
+            <div className="relative group overflow-hidden rounded-xl shadow-md">
+              <Image
+                src={images[10].src}
+                alt={images[10].alt}
+                width={300}
+                height={300}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-brown/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </div>
+          </div>
+          
+          {/* Image 10 full width */}
+          <div className="relative group overflow-hidden rounded-xl shadow-md">
+            <Image
+              src={images[9].src}
+              alt={images[9].alt}
+              width={1200}
+              height={400}
+              className="w-full h-48 md:h-64 lg:h-80 object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-brown/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,22 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #FFF8E1;
-  --peach: #F7E1B5;
-  --beige: #EFD9B1;
-  --cinnamon: #D19A6D;
-  --brown: #8B5B29;
-  --accent-pink: #F8BFD8;
-  --accent-gold: #F9A800;
+  /* Modern warm color palette */
+  --cream: #FDF9F4;
+  --warm-white: #FEFCF9;
+  --soft-peach: #F7F0E8;
+  --warm-beige: #F0E6D6;
+  --golden-sand: #E8D5B7;
+  --terracotta: #D19A6D;
+  --cinnamon: #B8956A;
+  --warm-brown: #8B5A3C;
+  --rich-brown: #6B4226;
+  --forest-green: #4A6741;
+  --sage-green: #7A8471;
+  --mint-cream: #F5F7F4;
 
+  /* Semantic color assignments */
   --background: var(--cream);
-  --foreground: var(--brown);
-  --primary: var(--cinnamon);
-  --primary-foreground: var(--cream);
-  --secondary: var(--peach);
-  --accent: var(--accent-gold);
-  --muted: var(--beige);
-  --muted-foreground: var(--brown);
+  --foreground: var(--rich-brown);
+  --primary: var(--terracotta);
+  --primary-foreground: var(--warm-white);
+  --secondary: var(--golden-sand);
+  --secondary-foreground: var(--warm-brown);
+  --accent: var(--cinnamon);
+  --accent-foreground: var(--warm-white);
+  --muted: var(--soft-peach);
+  --muted-foreground: var(--warm-brown);
+  --border: var(--warm-beige);
+  --card: var(--warm-white);
+  --card-foreground: var(--rich-brown);
 }
 
 @theme inline {
@@ -25,9 +37,14 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
   --font-sans: var(--font-inter);
   --font-serif: var(--font-playfair);
   --font-vintage: var(--font-crimson);
@@ -35,21 +52,25 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    --background: #fffaf3; /* lighter cream */
-    --foreground: #7c5c3e; /* medium brown */
-    --muted: #f9f6f2;      /* very pale beige */
-    --muted-foreground: #bfa074; /* taupe */
+    --background: var(--cream);
+    --foreground: var(--rich-brown);
+    --muted: var(--soft-peach);
+    --muted-foreground: var(--warm-brown);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-crimson), Georgia, serif;
-  /* Subtle paper texture using SVG data URI */
-  background-image: url('data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" fill="%23fff8e1"/><ellipse cx="20" cy="20" rx="19" ry="19" fill="%23f7e1b5" fill-opacity="0.13"/><ellipse cx="10" cy="10" rx="6" ry="6" fill="%23d19a6d" fill-opacity="0.07"/><ellipse cx="30" cy="30" rx="7" ry="7" fill="%238b5b29" fill-opacity="0.04"/></svg>');
-  background-size: 120px 120px;
-  background-blend-mode: multiply;
+  font-family: var(--font-crimson), 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Modern subtle texture */
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(232, 213, 183, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(209, 154, 109, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, transparent 0%, rgba(247, 240, 232, 0.5) 100%);
 }
 
 .font-serif {
@@ -60,29 +81,70 @@ body {
   font-family: var(--font-vintage), Georgia, serif;
 }
 
-.bg-hero { background-color: var(--cream); }
-.bg-about { background-color: var(--peach); }
-.bg-products { background-color: var(--beige); }
-.bg-gallery { background-color: var(--accent-pink); }
-.bg-footer, .bg-nav { background-color: var(--brown); }
-.text-brown { color: var(--brown); }
-.text-cream { color: var(--cream); }
-.text-cinnamon { color: var(--cinnamon); }
-.text-peach { color: var(--peach); }
-.text-beige { color: var(--beige); }
-.text-accent-gold { color: var(--accent-gold); }
-.text-accent-pink { color: var(--accent-pink); }
+/* Modern color utilities */
+.bg-cream { background-color: var(--cream); }
+.bg-warm-white { background-color: var(--warm-white); }
+.bg-soft-peach { background-color: var(--soft-peach); }
+.bg-warm-beige { background-color: var(--warm-beige); }
+.bg-golden-sand { background-color: var(--golden-sand); }
+.bg-terracotta { background-color: var(--terracotta); }
+.bg-cinnamon { background-color: var(--cinnamon); }
+.bg-warm-brown { background-color: var(--warm-brown); }
+.bg-rich-brown { background-color: var(--rich-brown); }
+.bg-forest-green { background-color: var(--forest-green); }
+.bg-sage-green { background-color: var(--sage-green); }
+.bg-mint-cream { background-color: var(--mint-cream); }
 
-/* Use Lobster for all headings */
+.text-cream { color: var(--cream); }
+.text-warm-white { color: var(--warm-white); }
+.text-soft-peach { color: var(--soft-peach); }
+.text-warm-beige { color: var(--warm-beige); }
+.text-golden-sand { color: var(--golden-sand); }
+.text-terracotta { color: var(--terracotta); }
+.text-cinnamon { color: var(--cinnamon); }
+.text-warm-brown { color: var(--warm-brown); }
+.text-rich-brown { color: var(--rich-brown); }
+.text-forest-green { color: var(--forest-green); }
+.text-sage-green { color: var(--sage-green); }
+.text-mint-cream { color: var(--mint-cream); }
+
+/* Legacy support */
+.text-brown { color: var(--rich-brown); }
+.text-accent-gold { color: var(--golden-sand); }
+.text-accent-pink { color: var(--sage-green); }
+.text-peach { color: var(--soft-peach); }
+.text-beige { color: var(--warm-beige); }
+
+/* Modern typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-lobster), Georgia, serif !important;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  font-family: var(--font-vintage), 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--rich-brown);
 }
 
-/* Optional: minimal shadow utility for special headings */
-.lobster-heading {
-  text-shadow: 2px 2px 0px rgba(139, 91, 41, 0.10);
+h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+h2 { font-size: clamp(2rem, 4vw, 3rem); }
+h3 { font-size: clamp(1.75rem, 3vw, 2.25rem); }
+
+/* Beautiful text shadows for headings */
+.heading-shadow {
+  text-shadow: 0 2px 4px rgba(107, 66, 38, 0.1);
+}
+
+/* Soft background cards */
+.card-modern {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(107, 66, 38, 0.1), 0 2px 4px -1px rgba(107, 66, 38, 0.06);
+  transition: all 0.3s ease;
+}
+
+.card-modern:hover {
+  box-shadow: 0 10px 15px -3px rgba(107, 66, 38, 0.1), 0 4px 6px -2px rgba(107, 66, 38, 0.05);
+  transform: translateY(-2px);
 }
 
 /* Hide scrollbar for horizontal product list */
