@@ -18,9 +18,9 @@ import { isOrderWindowOpen as isOrderWindowOpenFromSettings } from './settings';
 export interface Product {
   id?: string;
   name: string;
-  description: string;
   price: string;
   image: string; // Now stores Firebase Storage URL
+  quantity?: string; // What comes in each order (e.g., "6 cookies", "1 loaf", "12 muffins")
   weeklyCap?: number; // Maximum number of items that can be sold per week
   weeklyAmountRemaining?: number; // Current amount remaining for this week
   createdAt?: any;

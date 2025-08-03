@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { isOrderWindowOpen, getSettings } from '../lib/settings';
+import { isOrderWindowOpen, getSettings, getPickupInfo } from '../lib/settings';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 
@@ -40,6 +40,13 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [forceShowCard, setForceShowCard] = useState(false);
   const [stripeLoadError, setStripeLoadError] = useState<string | null>(null);
+  const [orderStatus, setOrderStatus] = useState({
+    status: 'loading',
+    message: 'Checking order availability...',
+    color: 'text-gray-600'
+  });
+  const [currentStep, setCurrentStep] = useState<'form' | 'confirm'>('form');
+  const [pickupInfo, setPickupInfo] = useState<{date: string, time: string, location: string} | null>(null);
   const stripe = useStripe();
   const elements = useElements();
 
@@ -111,7 +118,6 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
     }
   }, [isStripeReady]);
 
-  if (!isOpen) return null;
 
   // Stripe input style to match theme
   const stripeInputStyle = {
@@ -131,28 +137,58 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
     },
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate name
+    if (!formData.customerName.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+    
+    // Validate email
+    if (!formData.customerEmail.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.customerEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    setError(null);
+    setCurrentStep('confirm');
+  };
+
+  const handleBackToForm = () => {
+    setCurrentStep('form');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       const orderWindowOpen = await isOrderWindowOpen();
       if (!orderWindowOpen) {
-        setError('Orders are not available at this time. Please check the order window settings.');
+        setError('Sorry, orders are currently closed. Please check back during our order window.');
         return;
       }
     } catch (error) {
       console.error('Error checking order window:', error);
-      setError('Unable to check order availability. Please try again.');
+      setError('Unable to verify order availability right now. Please try again in a moment.');
       return;
     }
     
     if (!isStripeReady) {
-      setError('Payment system is still loading. Please wait a moment and try again.');
+      setError('Payment system is loading. Please wait a moment and try again.');
       return;
     }
     
     if (!stripe || !elements) {
-      setError('Payment system is not ready. Please refresh the page and try again.');
+      setError('Payment system unavailable. Please refresh the page and try again.');
       return;
     }
 
@@ -172,12 +208,19 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
       });
       
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to create payment intent');
+      if (!response.ok) throw new Error(data.error || 'Unable to process payment. Please try again.');
       
-      // 2. Confirm card payment
+      // 2. Get card element and validate it exists
+      const cardElement = elements.getElement(CardNumberElement);
+      if (!cardElement) {
+        setError('Payment form not ready. Please refresh the page and try again.');
+        return;
+      }
+
+      // 3. Confirm card payment
       const result = await stripe.confirmCardPayment(data.clientSecret, {
         payment_method: {
-          card: elements.getElement(CardNumberElement)!,
+          card: cardElement,
           billing_details: {
             name: formData.customerName,
             email: formData.customerEmail,
@@ -186,7 +229,31 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
       });
       
       if (result.error) {
-        setError(result.error.message || 'Payment failed.');
+        // Map common Stripe errors to user-friendly messages
+        let errorMessage = 'Payment failed. Please try again.';
+        
+        if (result.error.code === 'card_declined') {
+          errorMessage = 'Your card was declined. Please try a different payment method.';
+        } else if (result.error.code === 'expired_card') {
+          errorMessage = 'Your card has expired. Please use a different card.';
+        } else if (result.error.code === 'incorrect_cvc') {
+          errorMessage = 'The security code (CVC) is incorrect. Please check and try again.';
+        } else if (result.error.code === 'processing_error') {
+          errorMessage = 'Payment processing error. Please try again in a moment.';
+        } else if (result.error.code === 'incorrect_number') {
+          errorMessage = 'The card number is incorrect. Please check and try again.';
+        } else if (result.error.message) {
+          // Use Stripe's message if it's user-friendly
+          if (result.error.message.includes('zip') || result.error.message.includes('postal')) {
+            errorMessage = 'Please check your billing zip code and try again.';
+          } else if (result.error.message.includes('funds')) {
+            errorMessage = 'Insufficient funds. Please try a different payment method.';
+          } else {
+            errorMessage = result.error.message;
+          }
+        }
+        
+        setError(errorMessage);
         return;
       }
       
@@ -194,7 +261,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         // 3. Verify payment status and wait for order creation
         setSuccess(true);
         
-        // Wait a moment for webhook to process, then verify order was created
+        // Send order confirmation email and verify order was created
         setTimeout(async () => {
           try {
             // Check if order was created via webhook
@@ -212,8 +279,64 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
               if (process.env.NODE_ENV !== 'production') {
                 console.log('Order verified:', orderData.orderId);
               }
+
+              // Send order confirmation email
+              try {
+                const emailResponse = await fetch('/api/orders/send-confirmation', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    customerName: formData.customerName,
+                    customerEmail: formData.customerEmail,
+                    items: state.items,
+                    total: getTotalPrice(),
+                    orderId: orderData.orderId || result.paymentIntent.id,
+                    pickupInfo: pickupInfo || {
+                      date: 'TBD',
+                      time: 'TBD', 
+                      location: 'Sour the Bakery'
+                    }
+                  }),
+                });
+
+                if (emailResponse.ok) {
+                  console.log('Order confirmation email sent successfully');
+                } else {
+                  console.warn('Failed to send order confirmation email');
+                }
+              } catch (emailError) {
+                console.warn('Order confirmation email error:', emailError);
+              }
             } else {
               console.warn('Order verification failed, but payment succeeded');
+              
+              // Still try to send confirmation email with payment intent ID
+              try {
+                const emailResponse = await fetch('/api/orders/send-confirmation', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    customerName: formData.customerName,
+                    customerEmail: formData.customerEmail,
+                    items: state.items,
+                    total: getTotalPrice(),
+                    orderId: result.paymentIntent.id,
+                    pickupInfo: pickupInfo || {
+                      date: 'TBD',
+                      time: 'TBD',
+                      location: 'Sour the Bakery'
+                    }
+                  }),
+                });
+
+                if (emailResponse.ok) {
+                  console.log('Order confirmation email sent successfully (fallback)');
+                } else {
+                  console.warn('Failed to send order confirmation email (fallback)');
+                }
+              } catch (emailError) {
+                console.warn('Order confirmation email error (fallback):', emailError);
+              }
             }
           } catch (verifyError) {
             console.warn('Order verification error:', verifyError);
@@ -228,17 +351,24 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         }, 5000); // Give more time for webhook processing
       }
     } catch (err: any) {
-      setError(err.message || 'Payment failed.');
+      // Handle general errors
+      let errorMessage = 'Something went wrong. Please try again.';
+      
+      if (err.message) {
+        if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (err.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please try again.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const [orderStatus, setOrderStatus] = useState({
-    status: 'loading',
-    message: 'Checking order availability...',
-    color: 'text-gray-600'
-  });
 
   useEffect(() => {
     const checkOrderWindow = async () => {
@@ -297,6 +427,22 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
     checkOrderWindow();
   }, []);
 
+  // Fetch pickup information
+  useEffect(() => {
+    const fetchPickupInfo = async () => {
+      try {
+        const info = await getPickupInfo();
+        setPickupInfo(info);
+      } catch (error) {
+        console.error('Error fetching pickup info:', error);
+      }
+    };
+    fetchPickupInfo();
+  }, []);
+
+  // Early return after all hooks have been called
+  if (!isOpen) return null;
+
   return (
     <>
       {/* Backdrop */}
@@ -353,116 +499,196 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
             </div>
           )}
 
-          {/* Checkout Form */}
+          {/* Checkout Content */}
           {!success && (
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
-              {/* Order Summary */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Order Summary</h3>
-                <div className="space-y-3">
-                  {state.items.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium text-foreground">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Step 1: Contact Information & Payment Form */}
+              <div style={{ display: currentStep === 'form' ? 'block' : 'none' }}>
+                <form id="checkout-form" onSubmit={handleFormSubmit}>
+                  {/* Order Summary */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">Order Summary</h3>
+                    <div className="space-y-3">
+                      {state.items.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-foreground">{item.name}</p>
+                            <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            ${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                      <div className="border-t border-muted pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-semibold text-foreground">Total:</span>
+                          <span className="text-xl font-bold text-primary">{getTotalPrice()}</span>
+                        </div>
                       </div>
-                      <p className="font-semibold text-foreground">
-                        ${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
-                  ))}
-                  <div className="border-t border-muted pt-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-foreground">Total:</span>
-                      <span className="text-xl font-bold text-primary">{getTotalPrice()}</span>
                     </div>
                   </div>
+
+                  {/* Customer Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
+                    
+                    <div className="grid grid-cols-1 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Full Name *</label>
+                        <input
+                          type="text"
+                          value={formData.customerName}
+                          onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white placeholder:font-serif"
+                          placeholder="Jane Doe"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Email Address *</label>
+                        <input
+                          type="email"
+                          value={formData.customerEmail}
+                          onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white placeholder:font-serif"
+                          placeholder="jane@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Payment Information */}
+                    <h3 className="text-xl font-serif font-bold text-brown mb-4 mt-8">Payment Information</h3>
+                    <div className="grid grid-cols-1 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Card Number *</label>
+                        <div className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
+                          <CardNumberElement options={stripeInputStyle} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-foreground mb-2">Expiry *</label>
+                          <div className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
+                            <CardExpiryElement options={stripeInputStyle} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-foreground mb-2">CVC *</label>
+                          <div className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white">
+                            <CardCvcElement options={stripeInputStyle} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </form>
+              </div>
+
+              {/* Step 2: Confirmation */}
+              <div style={{ display: currentStep === 'confirm' ? 'block' : 'none' }}>
+                <div>
+                  <h3 className="text-xl font-serif font-bold text-brown mb-6">Confirm Your Order</h3>
+                  
+                  {/* Order Summary */}
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-foreground mb-4">Order Summary</h4>
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                      {state.items.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-foreground">{item.name}</p>
+                            <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            ${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                      <div className="border-t border-gray-300 pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-semibold text-foreground">Total:</span>
+                          <span className="text-xl font-bold text-primary">{getTotalPrice()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Customer Information */}
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-foreground mb-4">Contact Information</h4>
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                      <p><span className="font-semibold">Name:</span> {formData.customerName}</p>
+                      <p><span className="font-semibold">Email:</span> {formData.customerEmail}</p>
+                    </div>
+                  </div>
+
+                  {/* Pickup Information */}
+                  {pickupInfo && (
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-foreground mb-4">Pickup Information</h4>
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
+                        <p><span className="font-semibold">Date:</span> {new Date(pickupInfo.date + 'T' + pickupInfo.time).toLocaleDateString()}</p>
+                        <p><span className="font-semibold">Time:</span> {pickupInfo.time}</p>
+                        <p><span className="font-semibold">Location:</span> {pickupInfo.location}</p>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
 
-              {/* Customer Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
-                
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">Full Name *</label>
-                    <input
-                      type="text"
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
-                      placeholder="Jane Doe"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">Email Address *</label>
-                    <input
-                      type="email"
-                      value={formData.customerEmail}
-                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white/50 placeholder:font-serif"
-                      placeholder="jane@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-                <h3 className="text-xl font-serif font-bold text-brown mb-4 mt-8">Payment Information</h3>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">Card Number *</label>
-                    <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white/50">
-                      <CardNumberElement options={stripeInputStyle} />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">Expiry *</label>
-                    <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white/50">
-                      <CardExpiryElement options={stripeInputStyle} />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-foreground mb-2">CVC *</label>
-                    <div className="w-full px-4 py-3 rounded-xl border border-muted focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 bg-white/50">
-                      <CardCvcElement options={stripeInputStyle} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Important Notes */}
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <h4 className="font-semibold text-yellow-800 mb-2">Important Information</h4>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Orders are only accepted during the configured order window</li>
-                  <li>• Pickup is available at the scheduled time and location</li>
-                  <li>• We'll contact you to confirm your order</li>
-                </ul>
-              </div>
-            </form>
+            </div>
           )}
 
           {/* Footer */}
           {!success && (
             <div className="border-t border-muted p-6 space-y-4">
               <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isSubmitting || isRedirecting}
-                  className="flex-1 px-4 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Back to Cart
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || isRedirecting || orderStatus.status === 'closed' || !isStripeReady}
-                  onClick={handleSubmit}
-                  className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isRedirecting ? 'Redirecting...' : isSubmitting ? 'Submitting...' : !isStripeReady ? 'Loading Payment...' : 'Pay with Card'}
-                </button>
+                {/* Step 1: Form (Contact Info & Payment) */}
+                {currentStep === 'form' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex-1 px-4 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                    >
+                      Back to Cart
+                    </button>
+                    <button
+                      type="submit"
+                      form="checkout-form"
+                      onClick={handleFormSubmit}
+                      disabled={orderStatus.status === 'closed'}
+                      className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Continue to Review
+                    </button>
+                  </>
+                )}
+
+                {/* Step 2: Confirmation */}
+                {currentStep === 'confirm' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleBackToForm}
+                      className="flex-1 px-4 py-3 border-2 border-primary text-primary font-semibold rounded-full hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                    >
+                      Back to Form
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={isSubmitting || isRedirecting || orderStatus.status === 'closed' || !isStripeReady}
+                      className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isRedirecting ? 'Redirecting...' : isSubmitting ? 'Submitting...' : !isStripeReady ? 'Loading Payment...' : 'Pay with Card'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}

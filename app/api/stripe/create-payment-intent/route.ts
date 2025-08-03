@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
       return sum + Math.round(parseFloat(item.price.replace('$', '')) * 100) * item.quantity;
     }, 0);
 
+    // Create simplified items for metadata (remove long URLs and descriptions)
+    const simplifiedItems = items.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity
+    }));
+
     // Send POST request to Stripe to create a PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
@@ -31,7 +39,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         customerName,
         customerPhone,
-        items: JSON.stringify(items),
+        items: JSON.stringify(simplifiedItems),
       },
     });
 

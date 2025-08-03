@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-export default function CateringForm() {
+interface CateringFormProps {
+  onClose: () => void;
+}
+
+export default function CateringForm({ onClose }: CateringFormProps) {
   const [formData, setFormData] = useState({
     email: '',
     date: '',
@@ -45,7 +49,16 @@ export default function CateringForm() {
         backgroundColor: 'var(--background)',
       }}
     >
-      <div className="bg-cream rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-cinnamon">
+      <div className="bg-cream rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-cinnamon relative">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-brown hover:text-cinnamon text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-brown/10 transition-colors duration-200"
+          aria-label="Close"
+        >
+          ×
+        </button>
+        
         <div className="text-center mb-6">
           <h2 className="text-3xl font-lobster text-brown mb-2 lobster-heading">
             Cookie Catering Request
@@ -128,12 +141,13 @@ export default function CateringForm() {
             )}
 
             <div className="flex gap-4">
-              <Link
-                href="/"
+              <button
+                type="button"
+                onClick={onClose}
                 className="flex-1 px-6 py-3 border-2 border-cinnamon text-cinnamon rounded-full font-semibold hover:bg-cinnamon hover:text-cream transition-colors duration-300 text-center flex items-center justify-center"
               >
                 Cancel
-              </Link>
+              </button>
               <button
                 type="submit"
                 disabled={isSubmitting}

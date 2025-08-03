@@ -9,6 +9,18 @@ export default function ProductsPanel({ admin }: { admin: any }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Input limits
+  const MAX_TITLE_WORDS = 4;
+  
+  // Validation functions
+  const getWordCount = (text: string): number => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  };
+  
+  const validateTitle = (title: string): boolean => {
+    return getWordCount(title) <= MAX_TITLE_WORDS;
+  };
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -16,9 +28,9 @@ export default function ProductsPanel({ admin }: { admin: any }) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     price: '',
     image: '',
+    quantity: '',
     weeklyCap: '',
     weeklyAmountRemaining: ''
   });
@@ -54,7 +66,15 @@ export default function ProductsPanel({ admin }: { admin: any }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setError(null); setUploading(true);
+      setError(null);
+      
+      // Validate title word count
+      if (!validateTitle(formData.name)) {
+        setError(`Product name must be ${MAX_TITLE_WORDS} words or less`);
+        return;
+      }
+      
+      setUploading(true);
       let imageUrl = formData.image;
       if (selectedFile) { imageUrl = await uploadImage(selectedFile); }
       const productData = {
@@ -63,8 +83,14 @@ export default function ProductsPanel({ admin }: { admin: any }) {
         weeklyCap: formData.weeklyCap ? parseInt(formData.weeklyCap) : undefined,
         weeklyAmountRemaining: formData.weeklyAmountRemaining ? parseInt(formData.weeklyAmountRemaining) : undefined
       };
-      if (editingId) { await updateProduct(editingId, productData); setEditingId(null); } else { await addProduct(productData); }
-      setFormData({ name: '', description: '', price: '', image: '', weeklyCap: '', weeklyAmountRemaining: '' }); setSelectedFile(null); setImagePreview(null); setIsAdding(false);
+      if (editingId) { 
+        await updateProduct(editingId, productData); 
+        setEditingId(null); 
+      } else { 
+        await addProduct(productData); 
+        setIsAdding(false);
+      }
+      setFormData({ name: '', price: '', image: '', quantity: '', weeklyCap: '', weeklyAmountRemaining: '' }); setSelectedFile(null); setImagePreview(null);
       if (fileInputRef.current) { fileInputRef.current.value = ''; }
       fetchProducts();
     } catch (err) { setError('Failed to save product'); } finally { setUploading(false); }
@@ -74,13 +100,13 @@ export default function ProductsPanel({ admin }: { admin: any }) {
     setEditingId(product.id || null);
     setFormData({
       name: product.name,
-      description: product.description,
       price: product.price,
       image: product.image,
+      quantity: product.quantity || '',
       weeklyCap: product.weeklyCap?.toString() || '',
       weeklyAmountRemaining: product.weeklyAmountRemaining?.toString() || ''
     });
-    setImagePreview(product.image); setSelectedFile(null); setIsAdding(true);
+    setImagePreview(product.image); setSelectedFile(null);
   };
 
   const handleDelete = async (id: string, imageUrl: string) => {
@@ -90,7 +116,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
   };
 
   const cancelEdit = () => {
-    setEditingId(null); setIsAdding(false); setFormData({ name: '', description: '', price: '', image: '', weeklyCap: '', weeklyAmountRemaining: '' }); setSelectedFile(null); setImagePreview(null); if (fileInputRef.current) { fileInputRef.current.value = ''; }
+    setEditingId(null); setFormData({ name: '', price: '', image: '', quantity: '', weeklyCap: '', weeklyAmountRemaining: '' }); setSelectedFile(null); setImagePreview(null); if (fileInputRef.current) { fileInputRef.current.value = ''; }
   };
 
   const triggerFileInput = () => { fileInputRef.current?.click(); };
@@ -149,7 +175,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
           )}
         </div>
       </div>
-      {isAdding && (
+      {isAdding && !editingId && (
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 mb-8">
           <h2 className="text-2xl font-serif font-bold text-brown mb-6">
             {editingId ? 'Edit Product' : 'Add New Product'}
@@ -158,12 +184,39 @@ export default function ProductsPanel({ admin }: { admin: any }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Product Name</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50" placeholder="Sourdough Bread" required />
+                <input 
+                  type="text" 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                  className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 bg-white/50 focus:outline-none focus:ring-2 focus:ring-accent-gold/20 ${
+                    validateTitle(formData.name) 
+                      ? 'border-brown/20 focus:border-accent-gold' 
+                      : 'border-red-300 focus:border-red-500'
+                  }`}
+                  placeholder="Sourdough Bread" 
+                  required 
+                />
+                <div className="flex justify-between items-center mt-1">
+                  <p className={`text-xs ${validateTitle(formData.name) ? 'text-brown/50' : 'text-red-500'}`}>
+                    {getWordCount(formData.name)} / {MAX_TITLE_WORDS} words
+                  </p>
+                  {!validateTitle(formData.name) && (
+                    <p className="text-xs text-red-500">Too many words!</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Price</label>
                 <input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50" placeholder="$6.50" required />
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-brown mb-2">Quantity per Order</label>
+                <input type="text" value={formData.quantity} onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50" placeholder="e.g., 6 cookies, 1 loaf, 12 muffins" />
+                <p className="text-xs text-brown/50 mt-1">What customers get in each order (optional but recommended)</p>
+              </div>
+              <div></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -183,12 +236,8 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                 {imagePreview && <Image src={imagePreview} alt="Preview" width={120} height={120} className="mt-2 rounded-xl border border-brown/20" />}
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-brown mb-2">Description</label>
-              <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50" placeholder="Product description..." rows={3} required />
-            </div>
             <div className="flex gap-4">
-              <button type="submit" className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer" disabled={uploading}>{uploading ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}</button>
+              <button type="submit" className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" disabled={uploading || !validateTitle(formData.name)}>{uploading ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}</button>
               <button type="button" onClick={cancelEdit} className="bg-brown text-white px-6 py-3 rounded-xl font-semibold hover:bg-brown/90 transition-colors duration-300 cursor-pointer">Cancel</button>
             </div>
             {error && <div className="text-red-600 mt-2">{error}</div>}
@@ -212,33 +261,127 @@ export default function ProductsPanel({ admin }: { admin: any }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product) => (
               <div key={product.id} className="bg-cream/80 rounded-2xl p-6 shadow border border-accent-gold/10 flex flex-col">
-                <div className="flex-1">
-                  <Image src={product.image} alt={product.name} width={200} height={200} className="rounded-xl mb-4 object-cover w-full h-40" />
-                  <h3 className="text-xl font-bold text-brown mb-2">{product.name}</h3>
-                  <p className="text-brown/70 mb-2">{product.description}</p>
-                  <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
-                  {product.weeklyCap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weeklyCap}</p>}
-                  {typeof product.weeklyAmountRemaining === 'number' && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm text-brown/50">Remaining:</span>
-                      {editingId === product.id ? (
-                        <input
-                          type="number"
-                          min={0}
-                          value={product.weeklyAmountRemaining}
-                          onChange={e => handleWeeklyAmountChange(product.id!, e.target.value)}
-                          className="w-20 px-2 py-1 rounded border border-brown/20 text-brown text-sm bg-white/70 focus:border-accent-gold focus:outline-none"
+                {editingId === product.id ? (
+                  // Inline Edit Form
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-brown mb-1">Product Name</label>
+                      <input 
+                        type="text" 
+                        value={formData.name} 
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                        className={`w-full px-3 py-2 rounded-lg border focus:outline-none text-sm bg-white/70 ${
+                          validateTitle(formData.name) 
+                            ? 'border-brown/20 focus:border-accent-gold' 
+                            : 'border-red-300 focus:border-red-500'
+                        }`}
+                        required 
+                      />
+                      <p className={`text-xs mt-1 ${validateTitle(formData.name) ? 'text-brown/50' : 'text-red-500'}`}>
+                        {getWordCount(formData.name)} / {MAX_TITLE_WORDS} words
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-brown mb-1">Price</label>
+                      <input 
+                        type="text" 
+                        value={formData.price} 
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })} 
+                        className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
+                        required 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-brown mb-1">Quantity per Order</label>
+                      <input 
+                        type="text" 
+                        value={formData.quantity} 
+                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} 
+                        className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
+                        placeholder="e.g., 6 cookies" 
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-semibold text-brown mb-1">Weekly Cap</label>
+                        <input 
+                          type="number" 
+                          value={formData.weeklyCap} 
+                          onChange={(e) => setFormData({ ...formData, weeklyCap: e.target.value })} 
+                          className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
+                          min={0} 
                         />
-                      ) : (
-                        <span className="text-brown font-semibold text-base">{product.weeklyAmountRemaining}</span>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-brown mb-1">Remaining</label>
+                        <input 
+                          type="number" 
+                          value={formData.weeklyAmountRemaining} 
+                          onChange={(e) => setFormData({ ...formData, weeklyAmountRemaining: e.target.value })} 
+                          className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
+                          min={0} 
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-brown mb-1">Image</label>
+                      <input 
+                        ref={fileInputRef} 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleFileSelect} 
+                        className="w-full px-3 py-2 rounded-lg border border-brown/20 bg-white/70 text-sm" 
+                      />
+                      {imagePreview && (
+                        <Image 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          width={80} 
+                          height={80} 
+                          className="mt-2 rounded-lg border border-brown/20" 
+                        />
                       )}
                     </div>
-                  )}
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <button onClick={() => handleEdit(product)} className="bg-accent-gold text-brown px-4 py-2 rounded-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 border-1 border-brown cursor-pointer">Edit</button>
-                  <button onClick={() => handleDelete(product.id!, product.image)} className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-300 cursor-pointer">Delete</button>
-                </div>
+                    <div className="flex gap-2 pt-2">
+                      <button 
+                        type="submit" 
+                        className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors duration-300 cursor-pointer text-sm flex-1 disabled:opacity-50 disabled:cursor-not-allowed" 
+                        disabled={uploading || !validateTitle(formData.name)}
+                      >
+                        {uploading ? 'Saving...' : 'Update'}
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={cancelEdit} 
+                        className="bg-brown text-white px-4 py-2 rounded-lg font-semibold hover:bg-brown/90 transition-colors duration-300 cursor-pointer text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+                  </form>
+                ) : (
+                  // Regular Product Display
+                  <>
+                    <div className="flex-1">
+                      <Image src={product.image} alt={product.name} width={200} height={200} className="rounded-xl mb-4 object-cover w-full h-40" />
+                      <h3 className="text-xl font-bold text-brown mb-2">{product.name}</h3>
+                      <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
+                      {product.quantity && <p className="text-sm text-brown/70 mb-2 font-medium">Quantity: {product.quantity}</p>}
+                      {product.weeklyCap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weeklyCap}</p>}
+                      {typeof product.weeklyAmountRemaining === 'number' && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm text-brown/50">Remaining:</span>
+                          <span className="text-brown font-semibold text-base">{product.weeklyAmountRemaining}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <button onClick={() => handleEdit(product)} className="bg-accent-gold text-brown px-4 py-2 rounded-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 border-1 border-brown cursor-pointer">Edit</button>
+                      <button onClick={() => handleDelete(product.id!, product.image)} className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-300 cursor-pointer">Delete</button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>

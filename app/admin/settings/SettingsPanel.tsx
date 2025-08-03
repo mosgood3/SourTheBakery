@@ -4,6 +4,7 @@ import { getSettings, updateSettings, Settings } from '../../lib/settings';
 
 export default function SettingsPanel({ admin }: { admin: any }) {
   const [settings, setSettings] = useState<Settings>({
+    ordersEnabled: true,
     orderWindowStart: '06:00',
     orderWindowEnd: '17:00',
     orderWindowDays: [1, 2, 3, 4], // Monday to Thursday
@@ -120,6 +121,37 @@ export default function SettingsPanel({ admin }: { admin: any }) {
       )}
 
       <div className="space-y-8">
+        {/* Master Order Toggle */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-serif font-bold text-brown mb-2">Order System</h2>
+              <p className="text-brown/70">Enable or disable all orders globally</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-sm font-semibold ${settings.ordersEnabled ? 'text-green-600' : 'text-red-600'}`}>
+                {settings.ordersEnabled ? 'Orders Enabled' : 'Orders Disabled'}
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.ordersEnabled}
+                  onChange={(e) => handleInputChange('ordersEnabled', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-gold/20 rounded-full peer peer-checked:after:translate-x-8 peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500"></div>
+              </label>
+            </div>
+          </div>
+          {!settings.ordersEnabled && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-red-700 text-sm font-medium">
+                ⚠️ Orders are currently disabled. Customers cannot place any orders regardless of time window settings.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Order Window Settings */}
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
           <div className="flex items-center gap-3 mb-6">

@@ -39,7 +39,7 @@ export default function NotificationBanner({ onVisibilityChange }: NotificationB
   }, []);
 
   useEffect(() => {
-    const visible = !isLoading && notification && !isDismissed;
+    const visible = !isLoading && !!notification && !isDismissed;
     onVisibilityChange?.(visible);
   }, [isLoading, notification, isDismissed, onVisibilityChange]);
 
@@ -49,23 +49,29 @@ export default function NotificationBanner({ onVisibilityChange }: NotificationB
 
   return (
     <div 
-      className={`fixed bottom-0 left-0 right-0 z-50 px-8 py-6 text-center shadow-2xl bg-gradient-to-r from-terracotta via-warm-brown to-terracotta text-warm-white border-t-4 border-golden-sand transition-transform duration-500 ease-out ${
+      className={`fixed inset-x-0 bottom-0 top-1/2 md:bottom-0 md:top-auto z-50 flex items-center justify-center transition-transform duration-500 ease-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
       style={{
-        background: 'linear-gradient(135deg, #D19A6D 0%, #8B5A3C 50%, #B8956A 100%)',
-        backdropFilter: 'blur(10px)',
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
+        backgroundSize: '120px 120px',
+        backgroundBlendMode: 'multiply',
+        backgroundColor: 'var(--light-cream)',
       }}
     >
-      <div className="max-w-5xl mx-auto relative">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full mx-4 text-center relative">
         <button
-          onClick={handleDismiss}
-          className="absolute -top-2 right-0 text-warm-white/80 hover:text-warm-white text-2xl transition-all duration-300 focus:outline-none hover:scale-110 hover:rotate-90 bg-white/10 rounded-full p-2 backdrop-blur-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDismiss();
+          }}
+          className="absolute top-3 right-3 text-moss-green hover:text-sage-green text-2xl md:text-xl transition-all duration-300 focus:outline-none hover:scale-110 hover:rotate-90 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Close notification"
+          type="button"
         >
           <FaTimes />
         </button>
-        <p className="text-lg font-semibold tracking-wide leading-relaxed break-words pr-12 opacity-95">
+        <p className="text-lg font-semibold text-deep-green leading-relaxed break-words">
           {notification.message}
         </p>
       </div>

@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to products for everyone
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
+    // Allow read/write access to orders for admin only
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
+    // Allow read access to settings for everyone, write for admin only
+    match /settings/{document=**} {
+      allow read: if true;  // This allows customers to read notifications
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
+    // Newsletter subscribers - allow anyone to subscribe, admin to manage
+    match /newsletter_subscribers/{subscriberId} {
+      allow create: if true;  // Anyone can subscribe
+      allow read: if true;    // Allow read for duplicate checking
+      allow update, delete: if request.auth != null &&
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
+    // Newsletter emails - admin only (for sending and viewing history)
+    match /newsletter_emails/{emailId} {
+      allow read, write: if request.auth != null &&
+        request.auth.token.email in ['sourthebakeryllc@gmail.com'];
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,12 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
+import { isOrderWindowOpen } from '../lib/settings';
 import Checkout from './Checkout';
 
 export default function Cart() {
   const { state, removeItem, updateQuantity, clearCart, closeCart, getTotalPrice } = useCart();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [orderWindowOpen, setOrderWindowOpen] = useState(false);
+  const [checkingOrderStatus, setCheckingOrderStatus] = useState(true);
+
+  useEffect(() => {
+    const checkOrderWindow = async () => {
+      try {
+        const isOpen = await isOrderWindowOpen();
+        setOrderWindowOpen(isOpen);
+      } catch (error) {
+        console.error('Error checking order window:', error);
+        setOrderWindowOpen(false);
+      } finally {
+        setCheckingOrderStatus(false);
+      }
+    };
+
+    if (state.isOpen) {
+      checkOrderWindow();
+    }
+  }, [state.isOpen]);
 
   if (!state.isOpen) return null;
 
@@ -96,6 +117,18 @@ export default function Cart() {
                 <span className="text-2xl font-bold text-primary">{getTotalPrice()}</span>
               </div>
               
+              {/* Order Status Warning */}
+              {!checkingOrderStatus && !orderWindowOpen && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <p className="text-red-700 text-sm font-medium">
+                      Orders are currently closed. You can't proceed to checkout.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex gap-3">
                 <button
                   onClick={clearCart}
@@ -105,9 +138,14 @@ export default function Cart() {
                 </button>
                 <button
                   onClick={() => setIsCheckoutOpen(true)}
-                  className="flex-1 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors cursor-pointer"
+                  disabled={checkingOrderStatus || !orderWindowOpen}
+                  className={`flex-1 px-4 py-3 font-semibold rounded-full transition-colors ${
+                    checkingOrderStatus || !orderWindowOpen
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
+                  }`}
                 >
-                  Checkout
+                  {checkingOrderStatus ? 'Checking...' : !orderWindowOpen ? 'Orders Closed' : 'Checkout'}
                 </button>
               </div>
             </div>

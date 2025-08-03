@@ -1,9 +1,10 @@
 'use client';
 
 import { useCart } from '../contexts/CartContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import CateringForm from './CateringForm';
 import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { subscribeToNewsletter } from '../lib/newsletter';
 
 interface Slide {
   id: number;
@@ -22,50 +23,48 @@ const slides: Slide[] = [
     title: "LET'S GET",
     subtitle: "SOUR",
     description: "Handcrafted sourdough treats made with love",
-    image: "/collage/sour1.jpg",
+    image: "/hero/muffins.png",
     bgColor: "from-cream via-soft-peach to-warm-beige",
-    textColor: "text-rich-brown",
-    accentColor: "text-terracotta"
+    textColor: "text-white",
+    accentColor: "text-soft-green"
   },
   {
     id: 2,
     title: "ARTISAN",
-    subtitle: "COOKIES",
+    subtitle: "TREATS",
     description: "Crispy, chewy perfection in every bite",
-    image: "/collage/sour3.jpg",
+    image: "/hero/brownies.png",
     bgColor: "from-warm-white via-golden-sand to-soft-peach",
-    textColor: "text-warm-brown",
-    accentColor: "text-cinnamon"
+    textColor: "text-white",
+    accentColor: "text-soft-green"
   },
   {
     id: 3,
     title: "FRESH",
     subtitle: "LOAVES",
     description: "Daily baked sourdough bread with that perfect crust",
-    image: "/collage/sour7.jpg", 
+    image: "/hero/loaf.jpg", 
     bgColor: "from-mint-cream via-soft-peach to-warm-beige",
-    textColor: "text-forest-green",
-    accentColor: "text-sage-green"
+    textColor: "text-white",
+    accentColor: "text-soft-green"
   },
   {
     id: 4,
     title: "GOLDEN",
     subtitle: "BAGELS",
     description: "New York style bagels with sourdough twist",
-    image: "/collage/sour5.jpg",
+    image: "/hero/bagels.png",
     bgColor: "from-golden-sand via-warm-beige to-soft-peach", 
-    textColor: "text-rich-brown",
-    accentColor: "text-terracotta"
+    textColor: "text-white",
+    accentColor: "text-soft-green"
   }
 ];
 
 const getButtonColors = (accentColor: string) => {
   const colorMap = {
-    'text-terracotta': { primary: 'bg-terracotta hover:bg-warm-brown', secondary: 'border-terracotta hover:border-warm-brown' },
-    'text-cinnamon': { primary: 'bg-cinnamon hover:bg-warm-brown', secondary: 'border-cinnamon hover:border-warm-brown' },
-    'text-sage-green': { primary: 'bg-sage-green hover:bg-forest-green', secondary: 'border-sage-green hover:border-forest-green' }
+    'text-soft-green': { primary: 'bg-soft-green hover:bg-nature-green', secondary: 'border-soft-green hover:border-nature-green' }
   };
-  return colorMap[accentColor as keyof typeof colorMap] || colorMap['text-terracotta'];
+  return colorMap[accentColor as keyof typeof colorMap] || colorMap['text-soft-green'];
 };
 
 export default function HeroSection() {
@@ -74,6 +73,9 @@ export default function HeroSection() {
   const [showCateringPopup, setShowCateringPopup] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [newsletterStatus, setNewsletterStatus] = useState<string | null>(null);
+  const [isSubmittingNewsletter, setIsSubmittingNewsletter] = useState(false);
+  const newsletterFormRef = useRef<HTMLFormElement>(null);
 
   const nextSlide = () => {
     if (isAnimating) return;
@@ -102,183 +104,199 @@ export default function HeroSection() {
     return () => clearInterval(interval);
   }, [isAnimating]);
 
+  // Handle newsletter subscription
+  const handleNewsletterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmittingNewsletter(true);
+    setNewsletterStatus(null);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      
+      if (!email) {
+        throw new Error('Email is required');
+      }
+
+      await subscribeToNewsletter(email);
+      setNewsletterStatus('success');
+      if (newsletterFormRef.current) {
+        newsletterFormRef.current.reset();
+      }
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setNewsletterStatus(null), 3000);
+    } catch (error: any) {
+      console.error('Newsletter subscription error:', error);
+      if (error.message.includes('already subscribed')) {
+        setNewsletterStatus('already_subscribed');
+      } else {
+        setNewsletterStatus('error');
+      }
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => setNewsletterStatus(null), 5000);
+    } finally {
+      setIsSubmittingNewsletter(false);
+    }
+  };
+
   const currentSlideData = slides[currentSlide];
   const buttonColors = getButtonColors(currentSlideData.accentColor);
 
   return (
     <section
       id="home"
-      className="relative min-h-screen overflow-hidden pt-20 md:pt-16 lg:pt-12"
+      className="relative min-h-screen overflow-hidden pt-24 sm:pt-42 md:pt-24 lg:pt-20"
     >
-      {/* Modern gradient background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${currentSlideData.bgColor} transition-all duration-1000 ease-out`}>
-        {/* Subtle overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/3 via-transparent to-white/5"></div>
-        
-        {/* Modern organic shapes */}
-        <div className="absolute inset-0 overflow-hidden">
-          {/* Large organic blob - top right */}
-          <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-8 transition-all duration-1000 ${currentSlideData.accentColor.replace('text-', 'bg-')} blur-3xl animate-pulse-slow`}></div>
-          
-          {/* Medium organic shape - bottom left */}
-          <div className={`absolute -bottom-32 -left-32 w-72 h-72 rounded-full opacity-6 transition-all duration-1000 ${currentSlideData.accentColor.replace('text-', 'bg-')} blur-2xl animate-float-gentle`}></div>
-          
-          {/* Small accent shapes */}
-          <div className={`absolute top-1/3 left-1/5 w-24 h-24 rounded-full opacity-4 transition-all duration-1000 ${currentSlideData.accentColor.replace('text-', 'bg-')} blur-xl animate-drift-1`}></div>
-          <div className={`absolute top-2/3 right-1/5 w-16 h-16 rounded-full opacity-5 transition-all duration-1000 ${currentSlideData.accentColor.replace('text-', 'bg-')} blur-lg animate-drift-2`}></div>
-        </div>
+      {/* Full background image */}
+      <div className="absolute inset-0">
+        <img 
+          src={currentSlideData.image}
+          alt={`${currentSlideData.subtitle} background`}
+          className="w-full h-full object-cover hero-bg-image transition-all duration-1000 ease-out"
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/40 transition-all duration-1000 ease-out"></div>
       </div>
 
       {/* Slider Container */}
-      <div className="relative z-10 h-screen flex items-center">
+      <div className="relative z-10 h-screen flex items-end pb-32">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Main Slide Content */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[80vh]">
+          {/* Main Slide Content - Mobile First Design */}
+          <div className="flex flex-col items-center text-center space-y-8 lg:grid lg:grid-cols-2 lg:gap-16 lg:text-left min-h-[80vh]">
             
-            {/* Text Content */}
-            <div className="text-center lg:text-left space-y-10 slide-text">
-              <div className="space-y-6">
-                <h1 className={`responsive-title font-bold leading-tight ${currentSlideData.textColor} transition-colors duration-700 heading-shadow`}>
-                  <span className={`block ${currentSlideData.accentColor} font-vintage tracking-wide`}>
+              {/* Hero Text - Always First */}
+              <div className="space-y-6 lg:order-1">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-white transition-colors duration-700 drop-shadow-2xl">
+                  <span className="block text-soft-green font-vintage tracking-wide drop-shadow-lg">
                     {currentSlideData.title}
                   </span>
-                  <span className="block font-vintage tracking-wide">
+                  <span className="block text-light-green font-vintage tracking-wide drop-shadow-lg">
                     {currentSlideData.subtitle}
                   </span>
                 </h1>
-                <p className={`text-xl lg:text-2xl ${currentSlideData.textColor} opacity-90 font-serif leading-relaxed max-w-lg mx-auto lg:mx-0`}>
+                <p className="text-lg sm:text-xl lg:text-2xl text-white font-serif leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-lg">
                   {currentSlideData.description}
                 </p>
               </div>
 
-              {/* Store Info - Only show on first slide */}
-              {currentSlide === 0 && (
-                <div className={`space-y-3 ${currentSlideData.textColor} opacity-90 card-modern p-6 bg-white/20 backdrop-blur-sm`}>
-                  <p className="text-lg lg:text-xl font-semibold leading-relaxed">
-                    Bakery stand every Sunday 9am - 1pm
-                  </p>
-                  <p className="text-base lg:text-lg leading-relaxed">
-                    12 Gaylord Drive, Rocky Hill, CT 06067
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
-                <a 
-                  href="#products"
-                  className={`group modern-btn px-10 py-5 rounded-2xl font-semibold text-lg transition-all duration-500 transform hover:scale-105 shadow-xl ${buttonColors.primary} text-white hover:shadow-2xl backdrop-blur-sm`}
-                >
-                  <span className="flex items-center gap-2">
+              {/* Buttons Only */}
+              <div className="w-full flex justify-center lg:justify-start lg:order-2">
+                <div className="flex gap-3 justify-center lg:justify-start">
+                  <a 
+                    href="#products"
+                    className="px-6 py-3 rounded-xl font-semibold text-center transition-all duration-300 bg-soft-green hover:bg-nature-green text-white shadow-lg hover:shadow-xl"
+                  >
                     View Menu
-                    <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </span>
-                </a>
-                <button
-                  onClick={() => setShowCateringPopup(true)}
-                  className={`group modern-btn px-10 py-5 rounded-2xl font-semibold text-lg border-2 transition-all duration-500 transform hover:scale-105 bg-white/80 hover:bg-white ${currentSlideData.textColor} ${buttonColors.secondary} shadow-xl hover:shadow-2xl backdrop-blur-sm`}
-                >
-                  <span className="flex items-center gap-2">
-                    Pre Orders
-                    <svg className="w-5 h-5 transform group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </span>
-                </button>
+                  </a>
+                  <button
+                    onClick={() => setShowCateringForm(true)}
+                    className="px-6 py-3 rounded-xl font-semibold text-center transition-all duration-300 bg-sage-green hover:bg-forest-green text-white shadow-lg hover:shadow-xl"
+                  >
+                    Catering
+                  </button>
+                </div>
               </div>
-            </div>
+          </div>
 
-            {/* Image Content */}
-            <div className="relative slide-image">
-              <div className="relative group float-animation">
-                {/* Modern backdrop with soft shadows */}
-                <div className="absolute -inset-8 bg-gradient-to-r from-white/10 via-white/20 to-white/10 rounded-3xl transform rotate-2 group-hover:rotate-3 transition-all duration-700 blur-sm"></div>
-                <div className="absolute -inset-4 bg-white/30 rounded-3xl transform -rotate-1 group-hover:rotate-1 transition-all duration-700"></div>
-                
-                <img 
-                  src={currentSlideData.image}
-                  alt={`${currentSlideData.subtitle} from Sour the Bakery`}
-                  className="relative w-full max-w-lg mx-auto rounded-3xl shadow-2xl transition-all duration-700 transform group-hover:scale-105 group-hover:shadow-3xl"
-                />
-                
-                {/* Modern floating accents */}
-                <div className={`absolute -top-6 -right-6 w-16 h-16 ${currentSlideData.accentColor.replace('text-', 'bg-')} opacity-20 rounded-full blur-xl animate-pulse-gentle`}></div>
-                <div className={`absolute -bottom-8 -left-8 w-20 h-20 ${currentSlideData.accentColor.replace('text-', 'bg-')} opacity-15 rounded-full blur-2xl animate-float-soft`}></div>
-                <div className={`absolute top-4 right-4 w-6 h-6 ${currentSlideData.accentColor.replace('text-', 'bg-')} opacity-30 rounded-full animate-drift-gentle`}></div>
+          {/* Email Newsletter Section - Positioned near bottom */}
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
+            <form ref={newsletterFormRef} className="relative" onSubmit={handleNewsletterSubmit}>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter email to join our newsletter"
+                required
+                disabled={isSubmittingNewsletter}
+                className="w-full px-4 py-3 pr-32 bg-white/95 border-2 border-white/50 rounded-xl text-deep-green placeholder-moss-green/70 focus:outline-none focus:border-sage-green backdrop-blur-sm shadow-lg disabled:opacity-70"
+              />
+              <button
+                type="submit"
+                disabled={isSubmittingNewsletter}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-sage-green text-white rounded-lg font-semibold hover:bg-forest-green transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSubmittingNewsletter ? 'Saving...' : 'Subscribe'}
+              </button>
+            </form>
+            
+            {/* Newsletter Status Messages */}
+            {newsletterStatus && (
+              <div className={`mt-2 p-2 rounded-lg text-sm text-center ${
+                newsletterStatus === 'success' 
+                  ? 'bg-green-100 text-green-800' 
+                  : newsletterStatus === 'already_subscribed'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {newsletterStatus === 'success' && '✅ Successfully subscribed to newsletter!'}
+                {newsletterStatus === 'already_subscribed' && '📧 Email already subscribed'}
+                {newsletterStatus === 'error' && '❌ Subscription failed. Please try again.'}
               </div>
+            )}
+          </div>
+
+          {/* Slide Indicators - Clean and Minimal */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+            <div className="flex space-x-3 bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                    index === currentSlide 
+                      ? 'bg-soft-green scale-125 shadow-lg'
+                      : 'bg-white/50 hover:bg-white/75'
+                  }`}
+                  disabled={isAnimating}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
 
-          {/* Modern Navigation Arrows */}
+          {/* Modern Navigation Arrows - Hidden on mobile */}
           <button
             onClick={prevSlide}
-            className={`nav-arrow absolute left-6 top-1/2 -translate-y-1/2 p-4 rounded-2xl bg-white/90 hover:bg-white ${currentSlideData.textColor} transition-all duration-500 backdrop-blur-md shadow-xl hover:shadow-2xl transform hover:scale-110 border border-white/20`}
+            className="nav-arrow hidden lg:block absolute left-4 lg:left-6 top-[60%] lg:top-1/2 -translate-y-1/2 p-3 lg:p-4 rounded-2xl bg-gray-900/20 hover:bg-gray-900/30 text-white transition-all duration-500 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-110 border border-white/10 z-20"
             disabled={isAnimating}
           >
-            <FaChevronLeft size={20} />
+            <FaChevronLeft size={16} className="lg:w-5 lg:h-5" />
           </button>
           
           <button
             onClick={nextSlide}
-            className={`nav-arrow absolute right-6 top-1/2 -translate-y-1/2 p-4 rounded-2xl bg-white/90 hover:bg-white ${currentSlideData.textColor} transition-all duration-500 backdrop-blur-md shadow-xl hover:shadow-2xl transform hover:scale-110 border border-white/20`}
+            className="nav-arrow hidden lg:block absolute right-4 lg:right-6 top-[60%] lg:top-1/2 -translate-y-1/2 p-3 lg:p-4 rounded-2xl bg-gray-900/20 hover:bg-gray-900/30 text-white transition-all duration-500 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-110 border border-white/10 z-20"
             disabled={isAnimating}
           >
-            <FaChevronRight size={20} />
+            <FaChevronRight size={16} className="lg:w-5 lg:h-5" />
           </button>
 
-          {/* Modern Slide Indicators */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex space-x-3 bg-white/20 backdrop-blur-lg rounded-2xl px-8 py-4 border border-white/30 shadow-xl">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-500 shadow-md ${
-                  index === currentSlide 
-                    ? `${currentSlideData.accentColor.replace('text-', 'bg-')} scale-150 shadow-lg`
-                    : 'bg-white/60 hover:bg-white/90 hover:scale-125'
-                }`}
-                disabled={isAnimating}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </div>
       </div>
 
       {/* Catering Form Modal */}
-      {showCateringForm && <CateringForm />}
+      {showCateringForm && <CateringForm onClose={() => setShowCateringForm(false)} />}
       {showCateringPopup && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{
-            backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
-            backgroundSize: '120px 120px',
-            backgroundBlendMode: 'multiply',
-            backgroundColor: 'var(--peach)',
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setShowCateringPopup(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center relative"
-            style={{
-              backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
-              backgroundSize: '120px 120px',
-              backgroundBlendMode: 'multiply',
-              backgroundColor: 'var(--background)',
-            }}
+            className="bg-white rounded-2xl shadow-xl p-8 max-w-sm mx-4 text-center relative"
+            onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-3 right-3 text-brown hover:text-accent-gold text-2xl focus:outline-none"
+              className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full"
               onClick={() => setShowCateringPopup(false)}
               aria-label="Close"
             >
-              <FaTimes />
+              ×
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-brown">Pre Orders</h2>
-            <p className="text-brown mb-6">Pre-orders are coming soon! We are working on a workflow to make it easy for you to reserve your favorite bakes in advance.</p>
-            <p className="text-brown text-sm mt-8">For special event cookie inquiries please contact <a href="mailto:sourthebakeryllc@gmail.com" className="underline text-accent-gold">sourthebakeryllc@gmail.com</a></p>
+            <h2 className="text-2xl font-bold mb-4 text-gray-600">Pre Orders</h2>
+            <p className="text-gray-600 mb-6">Pre-orders are coming soon! We are working on a workflow to make it easy for you to reserve your favorite bakes in advance.</p>
+            <p className="text-gray-600 text-sm mt-8">For special event cookie inquiries please contact <a href="mailto:sourthebakeryllc@gmail.com" className="underline text-terracotta">sourthebakeryllc@gmail.com</a></p>
           </div>
         </div>
       )}
@@ -513,6 +531,46 @@ export default function HeroSection() {
           animation: drift-gentle 8s ease-in-out infinite;
         }
         
+        /* Responsive background image scaling */
+        .hero-bg-image {
+          object-position: center center;
+        }
+        
+        /* Mobile and small screens - keep current behavior */
+        @media (max-width: 768px) {
+          .hero-bg-image {
+            object-fit: cover;
+            transform: scale(1);
+          }
+        }
+        
+        /* Large screens - reduce zoom/scale for better fit */
+        @media (min-width: 769px) {
+          .hero-bg-image {
+            object-fit: cover;
+            transform: scale(0.85);
+            object-position: center center;
+          }
+        }
+        
+        /* Extra large screens - even less zoom */
+        @media (min-width: 1200px) {
+          .hero-bg-image {
+            object-fit: cover;
+            transform: scale(0.75);
+            object-position: center center;
+          }
+        }
+        
+        /* Ultra wide screens */
+        @media (min-width: 1600px) {
+          .hero-bg-image {
+            object-fit: cover;
+            transform: scale(0.7);
+            object-position: center center;
+          }
+        }
+
         /* Responsive text scaling */
         @media (max-width: 640px) {
           .responsive-title {

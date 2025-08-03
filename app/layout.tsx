@@ -58,29 +58,78 @@ const lobster = Lobster({
 });
 
 export const metadata: Metadata = {
-  title: "Sour The Bakery",
-  description: "Handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients.",
+  title: "Sour The Bakery - Handcrafted Sourdough Treats",
+  description: "Handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients. Fresh baked daily in Rocky Hill, CT.",
+  keywords: ["sourdough", "bakery", "cookies", "brownies", "bread", "bagels", "handcrafted", "Rocky Hill", "Connecticut"],
+  authors: [{ name: "Sour The Bakery" }],
+  creator: "Sour The Bakery",
+  publisher: "Sour The Bakery",
+  metadataBase: new URL('https://sourthebakery.com'),
+  
+  // Favicon and icons
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.ico", sizes: "16x16" },
+      { url: "/logo2.PNG", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logo2.PNG", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
+  
+  // Open Graph for social media
   openGraph: {
+    title: "Sour The Bakery - Handcrafted Sourdough Treats",
+    description: "Handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients. Fresh baked daily in Rocky Hill, CT.",
+    url: "https://sourthebakery.com",
+    siteName: "Sour The Bakery",
+    type: "website",
+    locale: "en_US",
     images: [
       {
-        url: "/logo.jpg",
-        width: 800,
-        height: 800,
-        alt: "Sour The Bakery Logo",
+        url: "/logo2.PNG",
+        width: 1200,
+        height: 630,
+        alt: "Sour The Bakery Logo - Handcrafted Sourdough Treats",
       },
     ],
   },
+  
+  // Twitter Cards
   twitter: {
     card: "summary_large_image",
+    title: "Sour The Bakery - Handcrafted Sourdough Treats",
+    description: "Handcrafted sourdough cookies, brownies, loaves, and bagels made with the finest ingredients. Fresh baked daily in Rocky Hill, CT.",
+    creator: "@sourthebakery",
     images: [
       {
-        url: "/logo.jpg",
-        width: 800,
-        height: 800,
-        alt: "Sour The Bakery Logo",
+        url: "/logo2.PNG",
+        alt: "Sour The Bakery Logo - Handcrafted Sourdough Treats",
       },
     ],
   },
+  
+  // Additional metadata
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  
+  // Verification (add these when you have them)
+  // verification: {
+  //   google: 'your-google-site-verification',
+  //   yandex: 'your-yandex-verification',
+  //   yahoo: 'your-yahoo-site-verification',
+  // },
 };
 
 export default function RootLayout({

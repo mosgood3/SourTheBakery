@@ -7,6 +7,7 @@ import {
 import { db } from './firebase';
 
 export interface Settings {
+  ordersEnabled: boolean; // Master toggle for all orders
   orderWindowStart: string; // Format: "HH:MM"
   orderWindowEnd: string; // Format: "HH:MM"
   orderWindowDays: number[]; // 0 = Sunday, 1 = Monday, etc.
@@ -34,6 +35,7 @@ export const getSettings = async (): Promise<Settings> => {
     } else {
       // Return default settings if none exist
       const defaultSettings: Settings = {
+        ordersEnabled: true, // Orders enabled by default
         orderWindowStart: '06:00',
         orderWindowEnd: '17:00',
         orderWindowDays: [1, 2, 3, 4], // Monday to Thursday
@@ -79,13 +81,26 @@ export const updateSettings = async (settings: Settings): Promise<void> => {
 export const isOrderWindowOpen = async (): Promise<boolean> => {
   try {
     const settings = await getSettings();
-    const now = new Date();
+    console.log('Order window check - Settings:', settings);
     
-    // Check if current day is in the order window days
-    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    if (!settings.orderWindowDays.includes(currentDay)) {
+    // First check if orders are globally enabled
+    if (!settings.ordersEnabled) {
+      console.log('Orders globally disabled');
       return false;
     }
+    console.log('Orders globally enabled ✓');
+    
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    console.log('Current day:', currentDay, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentDay]);
+    console.log('Allowed days:', settings.orderWindowDays);
+    
+    // Check if current day is in the order window days
+    if (!settings.orderWindowDays.includes(currentDay)) {
+      console.log('Current day not in allowed days');
+      return false;
+    }
+    console.log('Current day is allowed ✓');
     
     // Check if current time is within the order window
     const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
@@ -96,8 +111,18 @@ export const isOrderWindowOpen = async (): Promise<boolean> => {
     const startTime = startHour * 60 + startMinute;
     const endTime = endHour * 60 + endMinute;
     
+    console.log('Time check:', {
+      currentTime: `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} (${currentTime} minutes)`,
+      startTime: `${startHour}:${startMinute.toString().padStart(2, '0')} (${startTime} minutes)`,
+      endTime: `${endHour}:${endMinute.toString().padStart(2, '0')} (${endTime} minutes)`,
+      withinWindow: currentTime >= startTime && currentTime <= endTime
+    });
+    
     // Check if current time is within the window
-    return currentTime >= startTime && currentTime <= endTime;
+    const isWithinTime = currentTime >= startTime && currentTime <= endTime;
+    console.log('Order window result:', isWithinTime);
+    
+    return isWithinTime;
   } catch (error) {
     console.error('Error checking order window:', error);
     return false; // Default to closed if there's an error

@@ -8,7 +8,9 @@
       "Bash(git reset)",
       "Bash(del nul)",
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(firebase deploy:*)"
     ],
     "deny": []
   }

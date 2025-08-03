@@ -72,10 +72,10 @@ export default function NotificationsPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
           <FaBell className="mr-3 text-blue-600" />
-          Permanent Notification Banner
+          Notification Banner
         </h2>
       </div>
 
@@ -94,14 +94,9 @@ export default function NotificationsPanel() {
         <div className="space-y-6">
           {/* Toggle Active */}
           <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Banner Status
-              </label>
-              <p className="text-sm text-gray-500">
-                Show or hide the permanent notification banner on your homepage
-              </p>
-            </div>
+            <label className="text-sm font-medium text-gray-700">
+              Banner Status
+            </label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -120,7 +115,7 @@ export default function NotificationsPanel() {
             </label>
             <textarea
               id="message"
-              rows={3}
+              rows={5}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               placeholder="Enter your permanent banner message..."
               value={settings.message}
@@ -137,13 +132,6 @@ export default function NotificationsPanel() {
             </div>
           </div>
 
-          {/* Color Info */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Permanent Notification</h3>
-            <p className="text-sm text-gray-600">
-              This notification will appear permanently between the navigation and hero section with brown background and cream text. Visitors cannot dismiss it, making it perfect for important announcements like special hours, seasonal items, or bakery updates.
-            </p>
-          </div>
 
           {/* Save Button */}
           <div className="flex justify-end pt-4">
