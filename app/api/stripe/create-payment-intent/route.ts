@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { checkWeeklyCap } from '../../../lib/products';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
@@ -16,7 +17,24 @@ export async function POST(req: NextRequest) {
     if (process.env.NODE_ENV !== 'production') {
       console.log('[DEBUG] Request body:', body);
     }
-    const { items, customerName, customerEmail, customerPhone } = body;
+    const { items, customerName, customerEmail, customerPhone, pickupInfo } = body;
+
+    // Check inventory availability for all items BEFORE processing payment
+    for (const item of items) {
+      try {
+        const capCheck = await checkWeeklyCap(item.id, item.quantity);
+        if (!capCheck.available) {
+          return NextResponse.json({ 
+            error: `${item.name} has reached its weekly limit. Only ${capCheck.remaining} available this week.` 
+          }, { status: 400 });
+        }
+      } catch (error) {
+        console.error('Error checking weekly cap for item:', item.id, error);
+        return NextResponse.json({ 
+          error: `Unable to verify availability for ${item.name}. Please try again.` 
+        }, { status: 500 });
+      }
+    }
 
     // Calculate total amount in cents
     const total = items.reduce((sum: number, item: any) => {
@@ -40,6 +58,7 @@ export async function POST(req: NextRequest) {
         customerName,
         customerPhone,
         items: JSON.stringify(simplifiedItems),
+        pickupInfo: JSON.stringify(pickupInfo),
       },
     });
 

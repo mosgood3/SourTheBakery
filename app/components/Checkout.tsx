@@ -5,6 +5,7 @@ import { useCart } from '../contexts/CartContext';
 import { isOrderWindowOpen, getSettings, getPickupInfo } from '../lib/settings';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
+import { FaCheckCircle, FaEnvelope, FaSpinner } from 'react-icons/fa';
 
 interface CheckoutProps {
   isOpen: boolean;
@@ -204,6 +205,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           customerName: formData.customerName,
           customerEmail: formData.customerEmail,
           items: state.items,
+          pickupInfo,
         }),
       });
       
@@ -478,15 +480,21 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
 
           {/* Success Message */}
           {success && (
-            <div className="p-4 bg-green-50 border border-green-200">
+            <div className="p-6 bg-green-50 border border-green-200 rounded-xl">
               <div className="text-center">
-                <div className="text-4xl mb-2">✅</div>
-                <h3 className="text-lg font-semibold text-green-800 mb-2">Payment Successful!</h3>
-                <p className="text-green-700 mb-2">Your payment has been processed successfully.</p>
-                <p className="text-green-700 text-sm">We're creating your order and will contact you soon with pickup details.</p>
-                <div className="mt-3 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
-                  <span className="text-green-700 text-sm">Processing order...</span>
+                <FaCheckCircle className="text-4xl text-green-600 mb-3 mx-auto" />
+                <h3 className="text-xl font-semibold text-green-800 mb-3">Order Placed Successfully!</h3>
+                <p className="text-green-700 mb-3">Your payment has been processed and your order is confirmed.</p>
+                <div className="bg-white/70 border border-green-300 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-center mb-2">
+                    <FaEnvelope className="text-green-800 mr-2" />
+                    <p className="text-green-800 font-medium">Confirmation Email</p>
+                  </div>
+                  <p className="text-green-700 text-sm">A confirmation email with your order details and pickup information will be sent to <strong>{formData.customerEmail}</strong> shortly.</p>
+                </div>
+                <div className="mt-4 flex items-center justify-center">
+                  <FaSpinner className="animate-spin text-green-600 mr-2" />
+                  <span className="text-green-700 text-sm">Sending confirmation email...</span>
                 </div>
               </div>
             </div>

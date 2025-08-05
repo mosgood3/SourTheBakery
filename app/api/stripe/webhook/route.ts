@@ -43,20 +43,24 @@ export async function POST(req: NextRequest) {
     
     try {
       // Validate required metadata
-      if (!metadata.customerName || !metadata.customerPhone || !metadata.items) {
+      if (!metadata.customerName || !metadata.customerPhone || !metadata.items || !metadata.pickupInfo) {
         console.error('Missing required metadata for payment intent:', paymentIntent.id);
         return new NextResponse('Missing required metadata', { status: 400 });
       }
 
-      // Parse items safely
-      let items;
+      // Parse items and pickup info safely
+      let items, pickupInfo;
       try {
         items = JSON.parse(metadata.items);
+        pickupInfo = JSON.parse(metadata.pickupInfo);
       } catch (parseError) {
-        console.error('Failed to parse items metadata:', parseError);
-        return new NextResponse('Invalid items metadata', { status: 400 });
+        console.error('Failed to parse metadata:', parseError);
+        return new NextResponse('Invalid metadata', { status: 400 });
       }
 
+      // Create pickup date from metadata
+      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.time}`);
+      
       // Create order with all required fields
       const orderData = {
         customerName: metadata.customerName,
@@ -66,7 +70,7 @@ export async function POST(req: NextRequest) {
         total: paymentIntent.amount / 100,
         status: 'open' as const,
         orderDate: serverTimestamp(),
-        pickupDate: Timestamp.fromDate(getNextSunday()),
+        pickupDate: Timestamp.fromDate(pickupDateTime),
       };
       const orderId = await createOrder(orderData);
 

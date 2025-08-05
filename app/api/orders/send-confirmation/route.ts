@@ -134,7 +134,8 @@ export async function POST(request: NextRequest) {
       from: 'Sour the Bakery <info@sourthebakery.com>',
       to: [orderData.customerEmail],
       subject: `Order Confirmation #${orderData.orderId} - Sour the Bakery`,
-      html: emailHtml
+      html: emailHtml,
+      replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
     return NextResponse.json({
