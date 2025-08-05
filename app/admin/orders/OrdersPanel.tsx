@@ -7,7 +7,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
+  const [activeTab, setActiveTab] = useState<'open' | 'completed'>('open');
 
   const fetchOrders = async () => {
     try {
@@ -37,8 +37,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'open': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'completed': return 'bg-green-100 text-green-800 border-green-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -74,13 +73,13 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       <div className="flex gap-4 mb-6">
         <button
           className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 focus:outline-none cursor-pointer 
-            ${activeTab === 'pending' 
+            ${activeTab === 'open' 
               ? 'text-2xl underline underline-offset-8 decoration-4 decoration-accent-gold text-brown' 
               : 'text-lg text-brown/60 hover:text-brown'}
           `}
-          onClick={() => setActiveTab('pending')}
+          onClick={() => setActiveTab('open')}
         >
-          Pending Orders
+          Open Orders
         </button>
         <button
           className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 focus:outline-none cursor-pointer 
@@ -123,18 +122,37 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                  <p className="text-sm font-semibold text-brown/70 mb-1">Customer</p>
-                  <p className="text-brown font-medium">{order.customerName}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold text-brown/70 mb-1">Customer</p>
+                    <p className="text-brown font-medium">{order.customerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-brown/70 mb-1">Email</p>
+                    <p className="text-brown font-medium">{order.customerEmail}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-brown/70 mb-1">Phone</p>
+                    <p className="text-brown font-medium">{order.customerPhone}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-brown/70 mb-1">Email</p>
-                  <p className="text-brown font-medium">{order.customerEmail}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-brown/70 mb-1">Phone</p>
-                  <p className="text-brown font-medium">{order.customerPhone}</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-brown/70 mb-2">📍 Pickup Information</h4>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs text-brown/60">Pickup Date</p>
+                      <p className="text-brown font-medium">{(order as any).pickupDate ? formatDate((order as any).pickupDate) : 'Next Sunday, 9:00 AM'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-brown/60">Location</p>
+                      <p className="text-brown font-medium">Sour The Bakery</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-brown/60">Hours</p>
+                      <p className="text-brown font-medium">Sunday 9:00 AM - 12:00 PM</p>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="mb-6">
@@ -151,7 +169,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   ))}
                 </div>
               </div>
-              {activeTab === 'pending' && (
+              {activeTab === 'open' && (
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleStatusUpdate(order.id!, 'completed')}

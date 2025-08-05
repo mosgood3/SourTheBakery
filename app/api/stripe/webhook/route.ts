@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createOrder } from '../../../lib/products';
+import { sendOrderConfirmationEmail } from '../../../lib/order-email-service';
 import { serverTimestamp, Timestamp } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
         customerPhone: metadata.customerPhone,
         items,
         total: paymentIntent.amount / 100,
-        status: 'pending' as const,
+        status: 'open' as const,
         orderDate: serverTimestamp(),
         pickupDate: Timestamp.fromDate(getNextSunday()),
       };
@@ -73,8 +74,19 @@ export async function POST(req: NextRequest) {
         console.log('Order created successfully:', orderId);
       }
       
-      // You could also send a confirmation email here
-      // await sendOrderConfirmationEmail(paymentIntent.receipt_email, orderId);
+      // Send order confirmation email
+      try {
+        await sendOrderConfirmationEmail({
+          ...orderData,
+          orderId
+        });
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Order confirmation email sent for order:', orderId);
+        }
+      } catch (emailError) {
+        console.error('Failed to send confirmation email for order', orderId, ':', emailError);
+        // Don't fail the webhook if email fails - order was still created successfully
+      }
       
     } catch (err: any) {
       console.error('Error creating order from webhook:', err);

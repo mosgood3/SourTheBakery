@@ -47,11 +47,11 @@ export async function POST(request: NextRequest) {
 
     // Send emails using Amazon SES
     await sendEmail({
-      from: `Sour the Bakery <${sentBy}>`,
+      from: process.env.SES_FROM_EMAIL || 'orders@sourthebakery.com',
       to: subscribers.map(s => s.email),
       subject: subject,
       html: htmlTemplate,
-      replyTo: process.env.NEXT_PUBLIC_CONTACT_EMAIL
+      replyTo: process.env.SES_REPLY_TO_EMAIL || 'orders@sourthebakery.com'
     });
 
     return NextResponse.json({

@@ -34,7 +34,7 @@ export interface Order {
   customerPhone: string;
   items: OrderItem[];
   total: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'open' | 'completed' | 'cancelled';
   createdAt?: any;
   updatedAt?: any;
 }
@@ -44,6 +44,17 @@ export interface OrderItem {
   productName: string;
   quantity: number;
   price: string;
+}
+
+export interface OrderData {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  items: OrderItem[];
+  total: number;
+  status: 'open' | 'completed' | 'cancelled';
+  orderDate: any;
+  pickupDate: any;
 }
 
 // Check if orders are currently available (Monday 6am to Thursday 5pm)
