@@ -204,7 +204,6 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         body: JSON.stringify({
           customerName: formData.customerName,
           customerEmail: formData.customerEmail,
-          customerPhone: formData.customerPhone,
           items: state.items,
           pickupInfo,
         }),

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (process.env.NODE_ENV !== 'production') {
       console.log('[DEBUG] Request body:', body);
     }
-    const { items, customerName, customerEmail, customerPhone, pickupInfo } = body;
+    const { items, customerName, customerEmail, pickupInfo } = body;
 
     // Check inventory availability for all items BEFORE processing payment
     for (const item of items) {
@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
       receipt_email: customerEmail,
       metadata: {
         customerName,
-        customerPhone,
         items: JSON.stringify(simplifiedItems),
         pickupInfo: JSON.stringify(pickupInfo),
       },

@@ -41,20 +41,24 @@ export async function POST(req: NextRequest) {
       console.log('Processing payment_intent.succeeded:', paymentIntent.id);
     }
     
+    // Declare variables outside try block for catch block access
+    let items, pickupInfo;
+    
     try {
       // Validate required metadata
-      if (!metadata.customerName || !metadata.customerPhone || !metadata.items || !metadata.pickupInfo) {
+      if (!metadata.customerName || !metadata.items || !metadata.pickupInfo) {
         console.error('Missing required metadata for payment intent:', paymentIntent.id);
         return new NextResponse('Missing required metadata', { status: 400 });
       }
 
       // Parse items and pickup info safely
-      let items, pickupInfo;
       try {
         items = JSON.parse(metadata.items);
         pickupInfo = JSON.parse(metadata.pickupInfo);
       } catch (parseError) {
         console.error('Failed to parse metadata:', parseError);
+        console.error('Raw metadata.items:', metadata.items);
+        console.error('Raw metadata.pickupInfo:', metadata.pickupInfo);
         return new NextResponse('Invalid metadata', { status: 400 });
       }
 
@@ -65,7 +69,6 @@ export async function POST(req: NextRequest) {
       const orderData = {
         customerName: metadata.customerName,
         customerEmail: paymentIntent.receipt_email || '',
-        customerPhone: metadata.customerPhone,
         items,
         total: paymentIntent.amount / 100,
         status: 'open' as const,
@@ -105,7 +108,6 @@ export async function POST(req: NextRequest) {
       console.error('Order data that failed:', {
         customerName: metadata.customerName,
         customerEmail: paymentIntent.receipt_email,
-        customerPhone: metadata.customerPhone,
         items,
         total: paymentIntent.amount / 100,
         status: 'open',

@@ -31,7 +31,6 @@ export interface Order {
   id?: string;
   customerName: string;
   customerEmail: string;
-  customerPhone: string;
   items: OrderItem[];
   total: number;
   status: 'open' | 'completed' | 'cancelled';
@@ -49,7 +48,6 @@ export interface OrderItem {
 export interface OrderData {
   customerName: string;
   customerEmail: string;
-  customerPhone: string;
   items: OrderItem[];
   total: number;
   status: 'open' | 'completed' | 'cancelled';

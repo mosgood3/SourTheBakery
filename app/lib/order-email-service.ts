@@ -66,10 +66,6 @@ export const generateOrderConfirmationHTML = (order: OrderConfirmationData): str
                 <td style="padding: 8px 0;">${order.customerName}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0; font-weight: 600; color: #8B4513;">Phone:</td>
-                <td style="padding: 8px 0;">${order.customerPhone}</td>
-              </tr>
-              <tr>
                 <td style="padding: 8px 0; font-weight: 600; color: #8B4513;">Total:</td>
                 <td style="padding: 8px 0; font-size: 18px; font-weight: 600; color: #D4AF37;">$${order.total.toFixed(2)}</td>
               </tr>

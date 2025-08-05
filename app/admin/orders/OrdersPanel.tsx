@@ -132,10 +132,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                     <p className="text-sm font-semibold text-brown/70 mb-1">Email</p>
                     <p className="text-brown font-medium">{order.customerEmail}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brown/70 mb-1">Phone</p>
-                    <p className="text-brown font-medium">{order.customerPhone}</p>
-                  </div>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-brown/70 mb-2">📍 Pickup Information</h4>
