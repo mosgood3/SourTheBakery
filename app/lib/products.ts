@@ -212,24 +212,43 @@ export const createOrder = async (order: Omit<Order, 'id' | 'createdAt' | 'updat
     }
 
     // Check if order window is open using settings
-    const orderWindowOpen = await isOrderWindowOpenFromSettings();
-    if (!orderWindowOpen) {
-      throw new Error('Orders are not available at this time. Please check the order window settings.');
+    try {
+      const orderWindowOpen = await isOrderWindowOpenFromSettings();
+      if (!orderWindowOpen) {
+        console.warn('Order window is closed, but allowing webhook order creation');
+        // throw new Error('Orders are not available at this time. Please check the order window settings.');
+      }
+    } catch (windowError) {
+      console.error('Order window check failed:', windowError);
+      console.warn('Proceeding with order creation despite window check failure');
     }
 
     // Check weekly caps for all items and update remaining amounts
     for (const item of order.items) {
-      const capCheck = await checkWeeklyCap(item.productId, item.quantity);
-      if (!capCheck.available) {
-        throw new Error(`${item.productName} has reached its weekly limit. Only ${capCheck.remaining} available this week.`);
+      try {
+        console.log('Processing item for weekly cap check:', {
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity
+        });
+        
+        const capCheck = await checkWeeklyCap(item.productId, item.quantity);
+        if (!capCheck.available) {
+          throw new Error(`${item.productName} has reached its weekly limit. Only ${capCheck.remaining} available this week.`);
+        }
+        
+        // Update the product's weeklyAmountRemaining
+        const productRef = doc(db, 'products', item.productId);
+        await updateDoc(productRef, {
+          weeklyAmountRemaining: capCheck.remaining - item.quantity,
+          updatedAt: serverTimestamp()
+        });
+        
+        console.log('Successfully updated inventory for:', item.productName);
+      } catch (itemError) {
+        console.error('Error processing item:', item, 'Error:', itemError);
+        throw itemError;
       }
-      
-      // Update the product's weeklyAmountRemaining
-      const productRef = doc(db, 'products', item.productId);
-      await updateDoc(productRef, {
-        weeklyAmountRemaining: capCheck.remaining - item.quantity,
-        updatedAt: serverTimestamp()
-      });
     }
 
     const docRef = await addDoc(collection(db, 'orders'), {

@@ -94,11 +94,23 @@ export async function POST(req: NextRequest) {
       
     } catch (err: any) {
       console.error('Error creating order from webhook:', err);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
       
       // Log detailed error for debugging
       console.error('Payment Intent ID:', paymentIntent.id);
       console.error('Customer Email:', paymentIntent.receipt_email);
       console.error('Metadata:', metadata);
+      console.error('Parsed pickup info:', pickupInfo);
+      console.error('Order data that failed:', {
+        customerName: metadata.customerName,
+        customerEmail: paymentIntent.receipt_email,
+        customerPhone: metadata.customerPhone,
+        items,
+        total: paymentIntent.amount / 100,
+        status: 'open',
+        pickupDateTime: pickupInfo ? new Date(`${pickupInfo.date}T${pickupInfo.time}`) : 'MISSING'
+      });
       
       return new NextResponse('Order creation failed', { status: 500 });
     }
