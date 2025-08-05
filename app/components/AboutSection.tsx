@@ -79,7 +79,7 @@ export default function AboutSection() {
               <div className="bg-gradient-to-br from-soft-green/20 to-accent-pink/20 rounded-3xl p-4 shadow-2xl">
                 <div className="relative h-96 w-full rounded-2xl overflow-hidden">
                   <Image
-                    src="/us.jpg"
+                    src="/me.jpg"
                     alt="Baker at Sour The Bakery"
                     fill
                     className="object-cover"

@@ -71,7 +71,7 @@ export default function NewsletterPanel() {
 
     try {
       console.log('Attempting to send newsletter...');
-      await sendNewsletterEmail(emailSubject, emailContent, 'sourthebakeryllc@gmail.com');
+      await sendNewsletterEmail(emailSubject, emailContent, process.env.NEXT_PUBLIC_ADMIN_EMAIL!);
       console.log('Newsletter sent successfully!');
       setMessage('Newsletter sent successfully!');
       setEmailSubject('');

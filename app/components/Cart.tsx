@@ -70,7 +70,14 @@ export default function Cart() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-foreground">{item.name}</h3>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
-                      <p className="text-primary font-semibold">{item.price}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-primary font-semibold">{item.price}</p>
+                        {item.maxQuantity && (
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                            Max: {item.maxQuantity}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -87,7 +94,12 @@ export default function Cart() {
                       
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer"
+                        disabled={item.maxQuantity !== undefined && item.quantity >= item.maxQuantity}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                          item.maxQuantity !== undefined && item.quantity >= item.maxQuantity
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
+                        }`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

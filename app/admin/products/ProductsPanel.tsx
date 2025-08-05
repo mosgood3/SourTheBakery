@@ -233,7 +233,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Image</label>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="w-full px-4 py-2 rounded-xl border border-brown/20 bg-white/50" />
-                {imagePreview && <Image src={imagePreview} alt="Preview" width={120} height={120} className="mt-2 rounded-xl border border-brown/20" />}
+                {imagePreview && imagePreview.trim() && <Image src={imagePreview} alt="Preview" width={120} height={120} className="mt-2 rounded-xl border border-brown/20" />}
               </div>
             </div>
             <div className="flex gap-4">
@@ -332,7 +332,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                         onChange={handleFileSelect} 
                         className="w-full px-3 py-2 rounded-lg border border-brown/20 bg-white/70 text-sm" 
                       />
-                      {imagePreview && (
+                      {imagePreview && imagePreview.trim() && (
                         <Image 
                           src={imagePreview} 
                           alt="Preview" 
@@ -364,7 +364,13 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                   // Regular Product Display
                   <>
                     <div className="flex-1">
-                      <Image src={product.image} alt={product.name} width={200} height={200} className="rounded-xl mb-4 object-cover w-full h-40" />
+                      {product.image ? (
+                        <Image src={product.image} alt={product.name} width={200} height={200} className="rounded-xl mb-4 object-cover w-full h-40" />
+                      ) : (
+                        <div className="w-full h-40 bg-gray-200 rounded-xl mb-4 flex items-center justify-center">
+                          <span className="text-gray-500 text-sm">No Image</span>
+                        </div>
+                      )}
                       <h3 className="text-xl font-bold text-brown mb-2">{product.name}</h3>
                       <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
                       {product.quantity && <p className="text-sm text-brown/70 mb-2 font-medium">Quantity: {product.quantity}</p>}

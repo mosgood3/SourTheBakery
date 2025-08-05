@@ -69,14 +69,14 @@ export const metadata: Metadata = {
   // Favicon and icons
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "32x32" },
-      { url: "/favicon.ico", sizes: "16x16" },
+      { url: "/logo2.PNG", sizes: "32x32", type: "image/png" },
+      { url: "/logo2.PNG", sizes: "16x16", type: "image/png" },
       { url: "/logo2.PNG", sizes: "192x192", type: "image/png" },
     ],
     apple: [
       { url: "/logo2.PNG", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/logo2.PNG",
   },
   
   // Open Graph for social media

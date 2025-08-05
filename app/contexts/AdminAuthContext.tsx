@@ -24,18 +24,18 @@ interface AdminAuthContextType {
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-// List of admin emails - only pre-created Firebase accounts can access admin
-// Add your specific admin email here after creating the account in Firebase Console
-const ADMIN_EMAILS: string[] = [
-  'sourthebakeryllc@gmail.com',
+// List of admin UIDs - only pre-created Firebase accounts can access admin
+// Add your specific admin UID here after creating the account in Firebase Console
+const ADMIN_UIDS: string[] = [
+  process.env.NEXT_PUBLIC_ADMIN_UID!,
 ];
 
-const isAdminEmail = (email: string): boolean => {
-  // Ensure email is valid and in the admin list
-  if (!email || typeof email !== 'string') {
+const isAdminUID = (uid: string): boolean => {
+  // Ensure UID is valid and in the admin list
+  if (!uid || typeof uid !== 'string') {
     return false;
   }
-  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+  return ADMIN_UIDS.includes(uid);
 };
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
@@ -55,7 +55,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         // Check if the user is an admin
         const adminUser: AdminUser = {
           ...user,
-          isAdmin: isAdminEmail(user.email || '')
+          isAdmin: isAdminUID(user.uid)
         };
         setAdmin(adminUser);
       } else {
@@ -81,20 +81,21 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Authentication service not available');
       }
       
-      // Validate email format and check if it's in admin list before attempting login
+      // Validate email format
       if (!email || !email.includes('@')) {
         throw new Error('Please enter a valid email address.');
-      }
-      
-      if (!isAdminEmail(email)) {
-        throw new Error('Access denied. This email is not authorized for admin access.');
       }
       
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
       // Double-check admin status after successful authentication
-      if (!isAdminEmail(user.email || '')) {
+      console.log('User UID:', user.uid);
+      console.log('Expected ADMIN_UID:', process.env.NEXT_PUBLIC_ADMIN_UID);
+      console.log('Admin UIDs array:', ADMIN_UIDS);
+      console.log('Is admin check result:', isAdminUID(user.uid));
+      
+      if (!isAdminUID(user.uid)) {
         await signOut(auth);
         throw new Error('Access denied. Admin privileges required.');
       }

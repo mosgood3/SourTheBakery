@@ -42,7 +42,7 @@ const slides: Slide[] = [
     id: 3,
     title: "FRESH",
     subtitle: "LOAVES",
-    description: "Daily baked sourdough bread with that perfect crust",
+    description: "Naturally leavened handcrafted sourdough",
     image: "/hero/loaf.jpg", 
     bgColor: "from-mint-cream via-soft-peach to-warm-beige",
     textColor: "text-white",
@@ -141,8 +141,13 @@ export default function HeroSection() {
     }
   };
 
-  const currentSlideData = slides[currentSlide];
+  const currentSlideData = slides[currentSlide] || slides[0];
   const buttonColors = getButtonColors(currentSlideData.accentColor);
+
+  // Don't render if no slide data is available
+  if (!currentSlideData || !currentSlideData.image) {
+    return null;
+  }
 
   return (
     <section
@@ -169,15 +174,15 @@ export default function HeroSection() {
             
               {/* Hero Text - Always First */}
               <div className="space-y-6 lg:order-1">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-white transition-colors duration-700 drop-shadow-2xl">
-                  <span className="block text-soft-green font-vintage tracking-wide drop-shadow-lg">
+                <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-8xl xl:text-9xl font-black leading-tight text-white transition-colors duration-700 drop-shadow-2xl">
+                  <span className="block text-soft-green font-vintage tracking-wide drop-shadow-lg font-black">
                     {currentSlideData.title}
                   </span>
-                  <span className="block text-light-green font-vintage tracking-wide drop-shadow-lg">
+                  <span className="block text-light-green font-vintage tracking-wide drop-shadow-lg font-black">
                     {currentSlideData.subtitle}
                   </span>
                 </h1>
-                <p className="text-lg sm:text-xl lg:text-2xl text-white font-serif leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-lg">
+                <p className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl text-white font-serif leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-lg font-semibold">
                   {currentSlideData.description}
                 </p>
               </div>
@@ -191,12 +196,6 @@ export default function HeroSection() {
                   >
                     View Menu
                   </a>
-                  <button
-                    onClick={() => setShowCateringForm(true)}
-                    className="px-6 py-3 rounded-xl font-semibold text-center transition-all duration-300 bg-sage-green hover:bg-forest-green text-white shadow-lg hover:shadow-xl"
-                  >
-                    Catering
-                  </button>
                 </div>
               </div>
           </div>
@@ -296,7 +295,7 @@ export default function HeroSection() {
             </button>
             <h2 className="text-2xl font-bold mb-4 text-gray-600">Pre Orders</h2>
             <p className="text-gray-600 mb-6">Pre-orders are coming soon! We are working on a workflow to make it easy for you to reserve your favorite bakes in advance.</p>
-            <p className="text-gray-600 text-sm mt-8">For special event cookie inquiries please contact <a href="mailto:sourthebakeryllc@gmail.com" className="underline text-terracotta">sourthebakeryllc@gmail.com</a></p>
+            <p className="text-gray-600 text-sm mt-8">For special event cookie inquiries please contact <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} className="underline text-terracotta">{process.env.NEXT_PUBLIC_CONTACT_EMAIL}</a></p>
           </div>
         </div>
       )}

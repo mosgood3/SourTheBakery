@@ -9,6 +9,7 @@ export interface CartItem {
   quantity: number;
   description: string;
   image: string;
+  maxQuantity?: number; // Maximum quantity available for this item
 }
 
 interface CartState {
@@ -34,11 +35,15 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'ADD_ITEM': {
       const existingItem = state.items.find(item => item.id === action.payload.id);
       if (existingItem) {
+        // Check if we can add more (respect maxQuantity)
+        const maxQuantity = action.payload.maxQuantity ?? Infinity;
+        const newQuantity = Math.min(existingItem.quantity + 1, maxQuantity);
+        
         return {
           ...state,
           items: state.items.map(item =>
             item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? { ...item, quantity: newQuantity, maxQuantity: action.payload.maxQuantity }
               : item
           ),
         };
@@ -58,7 +63,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
-            ? { ...item, quantity: Math.max(0, action.payload.quantity) }
+            ? { 
+                ...item, 
+                quantity: Math.max(0, Math.min(action.payload.quantity, item.maxQuantity ?? Infinity))
+              }
             : item
         ).filter(item => item.quantity > 0),
       };

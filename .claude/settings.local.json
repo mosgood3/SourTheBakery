@@ -10,7 +10,10 @@
       "Bash(rm:*)",
       "Bash(git add:*)",
       "Bash(timeout 10 npm run dev)",
-      "Bash(firebase deploy:*)"
+      "Bash(firebase deploy:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
