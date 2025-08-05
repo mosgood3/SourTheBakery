@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createOrder } from '../../../lib/products';
-import { sendOrderConfirmationEmail } from '../../../lib/order-email-service';
+import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
 import { serverTimestamp, Timestamp } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -65,11 +65,19 @@ export async function POST(req: NextRequest) {
       // Create pickup date from metadata
       const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.time}`);
       
+      // Map items to match expected format (id -> productId, name -> productName)
+      const mappedItems = items.map((item: any) => ({
+        productId: item.id,
+        productName: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
       // Create order with all required fields
       const orderData = {
         customerName: metadata.customerName,
         customerEmail: paymentIntent.receipt_email || '',
-        items,
+        items: mappedItems,
         total: paymentIntent.amount / 100,
         status: 'open' as const,
         orderDate: serverTimestamp(),
@@ -113,6 +121,19 @@ export async function POST(req: NextRequest) {
         status: 'open',
         pickupDateTime: pickupInfo ? new Date(`${pickupInfo.date}T${pickupInfo.time}`) : 'MISSING'
       });
+      
+      // Send failure email to customer
+      try {
+        await sendOrderFailureEmail(
+          metadata.customerName,
+          paymentIntent.receipt_email || '',
+          paymentIntent.id
+        );
+        console.log('Order failure email sent for payment:', paymentIntent.id);
+      } catch (emailError) {
+        console.error('Failed to send order failure email:', emailError);
+        // Don't fail the webhook if failure email fails
+      }
       
       return new NextResponse('Order creation failed', { status: 500 });
     }

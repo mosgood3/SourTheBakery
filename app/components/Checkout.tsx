@@ -263,87 +263,8 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
         // 3. Verify payment status and wait for order creation
         setSuccess(true);
         
-        // Send order confirmation email and verify order was created
-        setTimeout(async () => {
-          try {
-            // Check if order was created via webhook
-            const orderCheckResponse = await fetch('/api/orders/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                paymentIntentId: result.paymentIntent.id,
-                customerEmail: formData.customerEmail,
-              }),
-            });
-            
-            if (orderCheckResponse.ok) {
-              const orderData = await orderCheckResponse.json();
-              if (process.env.NODE_ENV !== 'production') {
-                console.log('Order verified:', orderData.orderId);
-              }
-
-              // Send order confirmation email
-              try {
-                const emailResponse = await fetch('/api/orders/send-confirmation', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    customerName: formData.customerName,
-                    customerEmail: formData.customerEmail,
-                    items: state.items,
-                    total: getTotalPrice(),
-                    orderId: orderData.orderId || result.paymentIntent.id,
-                    pickupInfo: pickupInfo || {
-                      date: 'TBD',
-                      time: 'TBD', 
-                      location: 'Sour the Bakery'
-                    }
-                  }),
-                });
-
-                if (emailResponse.ok) {
-                  console.log('Order confirmation email sent successfully');
-                } else {
-                  console.warn('Failed to send order confirmation email');
-                }
-              } catch (emailError) {
-                console.warn('Order confirmation email error:', emailError);
-              }
-            } else {
-              console.warn('Order verification failed, but payment succeeded');
-              
-              // Still try to send confirmation email with payment intent ID
-              try {
-                const emailResponse = await fetch('/api/orders/send-confirmation', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    customerName: formData.customerName,
-                    customerEmail: formData.customerEmail,
-                    items: state.items,
-                    total: getTotalPrice(),
-                    orderId: result.paymentIntent.id,
-                    pickupInfo: pickupInfo || {
-                      date: 'TBD',
-                      time: 'TBD',
-                      location: 'Sour the Bakery'
-                    }
-                  }),
-                });
-
-                if (emailResponse.ok) {
-                  console.log('Order confirmation email sent successfully (fallback)');
-                } else {
-                  console.warn('Failed to send order confirmation email (fallback)');
-                }
-              } catch (emailError) {
-                console.warn('Order confirmation email error (fallback):', emailError);
-              }
-            }
-          } catch (verifyError) {
-            console.warn('Order verification error:', verifyError);
-          }
-        }, 2000);
+        // Order processing will be handled by webhook
+        // Email confirmation will be sent after successful order creation
         
         clearCart();
         setFormData({ customerName: '', customerEmail: '' });
@@ -488,13 +409,13 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
                 <div className="bg-white/70 border border-green-300 rounded-lg p-4 mb-4">
                   <div className="flex items-center justify-center mb-2">
                     <FaEnvelope className="text-green-800 mr-2" />
-                    <p className="text-green-800 font-medium">Confirmation Email</p>
+                    <p className="text-green-800 font-medium">Email Notification</p>
                   </div>
-                  <p className="text-green-700 text-sm">A confirmation email with your order details and pickup information will be sent to <strong>{formData.customerEmail}</strong> shortly.</p>
+                  <p className="text-green-700 text-sm">You will receive an email at <strong>{formData.customerEmail}</strong> once your order is processed and confirmed in our system.</p>
                 </div>
                 <div className="mt-4 flex items-center justify-center">
                   <FaSpinner className="animate-spin text-green-600 mr-2" />
-                  <span className="text-green-700 text-sm">Sending confirmation email...</span>
+                  <span className="text-green-700 text-sm">Processing your order...</span>
                 </div>
               </div>
             </div>
