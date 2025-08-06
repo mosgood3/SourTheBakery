@@ -12,7 +12,8 @@ export interface Settings {
   orderWindowEnd: string; // Format: "HH:MM"
   orderWindowDays: number[]; // 0 = Sunday, 1 = Monday, etc.
   pickupDate: string; // Format: "YYYY-MM-DD"
-  pickupTime: string; // Format: "HH:MM"
+  pickupTimeStart: string; // Format: "HH:MM" - Pickup window start
+  pickupTimeEnd: string; // Format: "HH:MM" - Pickup window end
   pickupLocation: string;
   createdAt?: any;
   updatedAt?: any;
@@ -40,7 +41,8 @@ export const getSettings = async (): Promise<Settings> => {
         orderWindowEnd: '17:00',
         orderWindowDays: [1, 2, 3, 4], // Monday to Thursday
         pickupDate: new Date().toISOString().split('T')[0],
-        pickupTime: '09:00',
+        pickupTimeStart: '09:00',
+        pickupTimeEnd: '12:00',
         pickupLocation: 'Sour The Bakery - 123 Main St'
       };
       
@@ -130,19 +132,21 @@ export const isOrderWindowOpen = async (): Promise<boolean> => {
 };
 
 // Get pickup information
-export const getPickupInfo = async (): Promise<{ date: string; time: string; location: string }> => {
+export const getPickupInfo = async (): Promise<{ date: string; timeStart: string; timeEnd: string; location: string }> => {
   try {
     const settings = await getSettings();
     return {
       date: settings.pickupDate,
-      time: settings.pickupTime,
+      timeStart: settings.pickupTimeStart,
+      timeEnd: settings.pickupTimeEnd,
       location: settings.pickupLocation
     };
   } catch (error) {
     console.error('Error getting pickup info:', error);
     return {
       date: new Date().toISOString().split('T')[0],
-      time: '09:00',
+      timeStart: '09:00',
+      timeEnd: '12:00',
       location: 'Sour The Bakery'
     };
   }
@@ -154,8 +158,8 @@ export const isOrderDeadlinePassed = async (): Promise<boolean> => {
     const settings = await getSettings();
     const now = new Date();
     
-    // Calculate deadline time (default to 24 hours before pickup)
-    const pickupDateTime = new Date(`${settings.pickupDate}T${settings.pickupTime}`);
+    // Calculate deadline time (default to 24 hours before pickup start)
+    const pickupDateTime = new Date(`${settings.pickupDate}T${settings.pickupTimeStart}`);
     const deadlineTime = new Date(pickupDateTime.getTime() - (24 * 60 * 60 * 1000)); // 24 hours before pickup
     
     return now >= deadlineTime;

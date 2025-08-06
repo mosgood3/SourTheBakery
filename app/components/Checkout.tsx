@@ -49,7 +49,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
     color: 'text-gray-600'
   });
   const [currentStep, setCurrentStep] = useState<'form' | 'confirm'>('form');
-  const [pickupInfo, setPickupInfo] = useState<{date: string, time: string, location: string} | null>(null);
+  const [pickupInfo, setPickupInfo] = useState<{date: string, timeStart: string, timeEnd: string, location: string} | null>(null);
   const stripe = useStripe();
   const elements = useElements();
 
@@ -539,8 +539,8 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-foreground mb-4">Pickup Information</h4>
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
-                        <p><span className="font-semibold">Date:</span> {new Date(pickupInfo.date + 'T' + pickupInfo.time + '-05:00').toLocaleDateString('en-US', { timeZone: 'America/New_York' })}</p>
-                        <p><span className="font-semibold">Time:</span> {pickupInfo.time}</p>
+                        <p><span className="font-semibold">Date:</span> {new Date(pickupInfo.date + 'T' + pickupInfo.timeStart + '-05:00').toLocaleDateString('en-US', { timeZone: 'America/New_York' })}</p>
+                        <p><span className="font-semibold">Time:</span> {pickupInfo.timeStart} - {pickupInfo.timeEnd}</p>
                         <p><span className="font-semibold">Location:</span> {pickupInfo.location}</p>
                       </div>
                     </div>

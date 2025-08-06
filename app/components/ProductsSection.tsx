@@ -20,6 +20,15 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
   const [showPreorderPopup, setShowPreorderPopup] = useState(false);
   const [orderWindowOpen, setOrderWindowOpen] = useState(false);
   const [orderStatusLoading, setOrderStatusLoading] = useState(true);
+  const [pickupLocation, setPickupLocation] = useState<string>('12 Gaylord Drive, Rocky Hill, CT 06067');
+  const [orderSettings, setOrderSettings] = useState<{
+    orderWindowStart: string;
+    orderWindowEnd: string;
+    orderWindowDays: number[];
+    pickupDate: string;
+    pickupTimeStart: string;
+    pickupTimeEnd: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,14 +36,25 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
         setLoading(true);
         setOrderStatusLoading(true);
         
-        // Fetch both products and order window status
-        const [fetchedProducts, isOrderOpen] = await Promise.all([
+        // Fetch products, order window status, pickup info, and settings
+        const [fetchedProducts, isOrderOpen, pickupInfo, settings] = await Promise.all([
           getProducts(),
-          isOrderWindowOpen()
+          isOrderWindowOpen(),
+          getPickupInfo(),
+          getSettings()
         ]);
         
         setProducts(fetchedProducts);
         setOrderWindowOpen(isOrderOpen);
+        setPickupLocation(pickupInfo.location);
+        setOrderSettings({
+          orderWindowStart: settings.orderWindowStart,
+          orderWindowEnd: settings.orderWindowEnd,
+          orderWindowDays: settings.orderWindowDays,
+          pickupDate: settings.pickupDate,
+          pickupTimeStart: settings.pickupTimeStart,
+          pickupTimeEnd: settings.pickupTimeEnd
+        });
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load products');
@@ -67,6 +87,38 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
       fetchData();
     }
   }, [refreshTrigger]);
+
+  // Helper functions for formatting order information
+  const formatTime = (militaryTime: string) => {
+    try {
+      const [hours, minutes] = militaryTime.split(':');
+      const hour = parseInt(hours, 10);
+      const minute = minutes || '00';
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${standardHour}:${minute} ${period}`;
+    } catch (error) {
+      return militaryTime;
+    }
+  };
+
+  const formatOrderDays = (days: number[]) => {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days.map(day => dayNames[day]).join(', ');
+  };
+
+  const formatPickupDate = (date: string) => {
+    try {
+      const pickupDate = new Date(date + 'T12:00:00');
+      return pickupDate.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        month: 'long', 
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'TBD';
+    }
+  };
 
   const handleAddToCart = (product: Product) => {
     if (!orderWindowOpen) {
@@ -203,6 +255,32 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
             }`}>
               <div className={`w-2 h-2 rounded-full ${orderWindowOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
               {orderWindowOpen ? 'Orders Open' : 'Orders Closed'}
+            </div>
+          )}
+
+          {/* Order Information */}
+          {orderSettings && (
+            <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto shadow-lg border border-white/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center md:text-left">
+                <div>
+                  <h3 className="text-lg font-bold text-deep-green mb-2">Order Window</h3>
+                  <p className="text-moss-green font-medium">
+                    {formatTime(orderSettings.orderWindowStart)} - {formatTime(orderSettings.orderWindowEnd)}
+                  </p>
+                  <p className="text-moss-green/80 text-sm mt-1">
+                    {formatOrderDays(orderSettings.orderWindowDays)}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-deep-green mb-2">Next Pickup</h3>
+                  <p className="text-moss-green font-medium">
+                    {formatPickupDate(orderSettings.pickupDate)}
+                  </p>
+                  <p className="text-moss-green/80 text-sm mt-1">
+                    {formatTime(orderSettings.pickupTimeStart)} - {formatTime(orderSettings.pickupTimeEnd)}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -446,7 +524,7 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
               Experience the warmth and aroma of our freshly baked goods in person. Come see where the magic happens!
             </p>
             <a
-              href="https://maps.google.com/?q=12+Gaylord+Drive+Rocky+Hill+CT+06111"
+              href={`https://maps.google.com/?q=${encodeURIComponent(pickupLocation)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-3 bg-sage-green text-white px-12 py-6 rounded-2xl text-xl font-semibold hover:bg-forest-green transition-all duration-500 transform hover:scale-105 shadow-2xl hover:shadow-3xl cursor-pointer relative z-10"

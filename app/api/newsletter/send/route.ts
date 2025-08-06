@@ -4,6 +4,7 @@ import { sendEmail } from '../../../lib/ses-email-service';
 import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateNewsletterData, sanitizeHtml } from '../../../lib/input-validator';
+import { getPickupInfo } from '../../../lib/settings';
 
 async function handleNewsletterSend(request: AuthenticatedRequest): Promise<NextResponse> {
   try {
@@ -36,6 +37,9 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
       );
     }
 
+    // Get pickup location from settings
+    const pickupInfo = await getPickupInfo();
+
     // Prepare email template with sanitized content
     const htmlTemplate = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -48,7 +52,7 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
         </div>
         <div style="background-color: #228B22; color: white; padding: 20px 30px; text-align: center; font-size: 12px;">
           <p style="margin: 0 0 10px; opacity: 0.9;">You're receiving this because you subscribed to our newsletter.</p>
-          <p style="margin: 0; opacity: 0.7;">Sour the Bakery | 12 Gaylord Drive, Rocky Hill, CT 06111</p>
+          <p style="margin: 0; opacity: 0.7;">Sour the Bakery | ${pickupInfo.location}</p>
         </div>
       </div>
     `;

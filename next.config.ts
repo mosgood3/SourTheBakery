@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Experimental configuration for Turbopack
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+
   // Image optimization settings
   images: {
     // Allow images from external domains if needed
@@ -61,8 +73,8 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration for better bundle optimization
   webpack: (config, { dev, isServer }) => {
-    // Optimize bundle size
-    if (!dev && !isServer) {
+    // Only apply webpack optimizations in production and when not using Turbopack
+    if (!dev && !isServer && !process.env.TURBOPACK) {
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
@@ -72,6 +84,14 @@ const nextConfig: NextConfig = {
             chunks: 'all',
           },
         },
+      };
+    }
+
+    // Improve file system stability
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
       };
     }
 

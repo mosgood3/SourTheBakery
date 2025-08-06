@@ -9,7 +9,8 @@ export default function SettingsPanel({ admin }: { admin: any }) {
     orderWindowEnd: '17:00',
     orderWindowDays: [1, 2, 3, 4], // Monday to Thursday
     pickupDate: new Date().toISOString().split('T')[0],
-    pickupTime: '09:00',
+    pickupTimeStart: '09:00',
+    pickupTimeEnd: '12:00',
     pickupLocation: 'Sour The Bakery - 123 Main St'
   });
   const [loading, setLoading] = useState(true);
@@ -215,7 +216,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
             <h2 className="text-2xl font-serif font-bold text-brown">Pickup Settings</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Pickup Date
@@ -230,17 +231,29 @@ export default function SettingsPanel({ admin }: { admin: any }) {
 
             <div>
               <label className="block text-sm font-semibold text-brown/70 mb-2">
-                Pickup Time
+                Pickup Window Start
               </label>
               <input
                 type="time"
-                value={settings.pickupTime}
-                onChange={(e) => handleInputChange('pickupTime', e.target.value)}
+                value={settings.pickupTimeStart}
+                onChange={(e) => handleInputChange('pickupTimeStart', e.target.value)}
                 className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div>
+              <label className="block text-sm font-semibold text-brown/70 mb-2">
+                Pickup Window End
+              </label>
+              <input
+                type="time"
+                value={settings.pickupTimeEnd}
+                onChange={(e) => handleInputChange('pickupTimeEnd', e.target.value)}
+                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+              />
+            </div>
+
+            <div className="md:col-span-3">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Pickup Location
               </label>
@@ -271,7 +284,10 @@ export default function SettingsPanel({ admin }: { admin: any }) {
             <div className="p-4 bg-brown/5 rounded-xl">
               <p className="text-sm font-semibold text-brown/70 mb-1">Next Pickup</p>
               <p className="font-bold text-brown">
-                {new Date(settings.pickupDate + 'T' + settings.pickupTime + '-05:00').toLocaleDateString('en-US', { timeZone: 'America/New_York' })} at {settings.pickupTime}
+                {new Date(settings.pickupDate + 'T12:00:00').toLocaleDateString('en-US')}
+              </p>
+              <p className="text-sm text-brown/60">
+                Window: {settings.pickupTimeStart} - {settings.pickupTimeEnd}
               </p>
             </div>
           </div>

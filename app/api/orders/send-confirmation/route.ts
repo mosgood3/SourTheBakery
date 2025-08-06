@@ -3,6 +3,7 @@ import { sendEmail } from '../../../lib/ses-email-service';
 import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { escapeHtml, validateEmail } from '../../../lib/input-validator';
+import { getPickupInfo } from '../../../lib/settings';
 
 interface OrderItem {
   id: string;
@@ -19,7 +20,8 @@ interface OrderData {
   orderId: string;
   pickupInfo: {
     date: string;
-    time: string;
+    timeStart: string;
+    timeEnd: string;
     location: string;
   };
 }
@@ -62,6 +64,9 @@ async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<N
         { status: 400 }
       );
     }
+
+    // Get pickup location from settings
+    const settingsPickupInfo = await getPickupInfo();
     
     // Generate order items HTML with escaped content
     const orderItemsHtml = orderData.items.map(item => `
@@ -72,17 +77,32 @@ async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<N
       </tr>
     `).join('');
 
-    // Format pickup date
+    // Format pickup date (avoid timezone shifts by using noon)
     const pickupDate = orderData.pickupInfo ? 
-      new Date(orderData.pickupInfo.date + 'T' + orderData.pickupInfo.time + '-05:00').toLocaleDateString('en-US', {
+      new Date(orderData.pickupInfo.date + 'T12:00:00').toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric',
-        timeZone: 'America/New_York'
+        day: 'numeric'
       }) : 'TBD';
 
-    const pickupTime = escapeHtml(orderData.pickupInfo?.time || 'TBD');
+    // Helper function to format time to standard 12-hour format
+    const formatTime = (militaryTime: string): string => {
+      try {
+        const [hours, minutes] = militaryTime.split(':');
+        const hour = parseInt(hours, 10);
+        const minute = minutes || '00';
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        return `${standardHour}:${minute} ${period}`;
+      } catch (error) {
+        return militaryTime;
+      }
+    };
+
+    const pickupTimeStart = orderData.pickupInfo?.timeStart ? formatTime(orderData.pickupInfo.timeStart) : 'TBD';
+    const pickupTimeEnd = orderData.pickupInfo?.timeEnd ? formatTime(orderData.pickupInfo.timeEnd) : 'TBD';
+    const pickupTime = `${pickupTimeStart} - ${pickupTimeEnd}`;
     const pickupLocation = escapeHtml(orderData.pickupInfo?.location || 'Sour the Bakery');
 
     // Create email HTML template
@@ -147,7 +167,7 @@ async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<N
 
         <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666;">
           <p style="margin: 0;">Thank you for choosing Sour the Bakery!</p>
-          <p style="margin: 5px 0 0 0;">12 Gaylord Drive, Rocky Hill, CT 06111</p>
+          <p style="margin: 5px 0 0 0;">${escapeHtml(settingsPickupInfo.location)}</p>
         </div>
       </div>
     `;

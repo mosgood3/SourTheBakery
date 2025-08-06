@@ -1,25 +1,39 @@
 import { sendEmail } from './ses-email-service';
 import { OrderData } from './products';
 import { escapeHtml } from './input-validator';
+import { getPickupInfo } from './settings';
 
 export interface OrderConfirmationData extends OrderData {
   orderId: string;
 }
 
-export const generateOrderConfirmationHTML = (order: OrderConfirmationData): string => {
+export const generateOrderConfirmationHTML = async (order: OrderConfirmationData): Promise<string> => {
   const formatPickupDate = (pickupDate: any): string => {
     if (!pickupDate) return 'TBD';
     const date = pickupDate.toDate ? pickupDate.toDate() : new Date(pickupDate);
-    return date.toLocaleString('en-US', { 
+    return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short'
+      day: 'numeric'
     });
   };
+
+  const formatTime = (militaryTime: string): string => {
+    try {
+      const [hours, minutes] = militaryTime.split(':');
+      const hour = parseInt(hours, 10);
+      const minute = minutes || '00';
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${standardHour}:${minute} ${period}`;
+    } catch (error) {
+      return militaryTime;
+    }
+  };
+
+  // Get pickup location from settings
+  const pickupInfo = await getPickupInfo();
 
   const itemsHTML = order.items.map(item => `
     <tr style="border-bottom: 1px solid #eee;">
@@ -96,8 +110,9 @@ export const generateOrderConfirmationHTML = (order: OrderConfirmationData): str
             <h3 style="color: #228B22; margin: 0 0 15px; font-size: 20px;">📍 Pickup Information</h3>
             <div style="line-height: 1.6; color: #333;">
               <p style="margin: 0 0 10px;"><strong>Pickup Date:</strong> ${formatPickupDate(order.pickupDate)}</p>
-              <p style="margin: 0 0 10px;"><strong>Location:</strong> Sour The Bakery</p>
-              <p style="margin: 0 0 15px;"><strong>Address:</strong> 12 Gaylord Drive Rocky Hill, CT 06111</p>
+              <p style="margin: 0 0 10px;"><strong>Pickup Time:</strong> ${formatTime(pickupInfo.timeStart)} - ${formatTime(pickupInfo.timeEnd)}</p>
+              <p style="margin: 0 0 10px;"><strong>Location:</strong> ${escapeHtml(pickupInfo.location)}</p>
+              <p style="margin: 0 0 15px;"><strong>Address:</strong> ${escapeHtml(pickupInfo.location)}</p>
               <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 12px; margin-top: 15px;">
                 <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Please Note:</strong> Orders must be picked up during the scheduled time. If you cannot make your pickup time, please contact us as soon as possible.</p>
               </div>
@@ -233,7 +248,7 @@ export const sendOrderConfirmationEmail = async (order: OrderConfirmationData): 
       throw new Error('Customer email is required');
     }
 
-    const emailHTML = generateOrderConfirmationHTML(order);
+    const emailHTML = await generateOrderConfirmationHTML(order);
     
     await sendEmail({
       from: process.env.SES_FROM_EMAIL || 'info@sourthebakery.com',
