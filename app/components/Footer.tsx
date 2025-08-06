@@ -5,10 +5,10 @@ export default function Footer() {
     <footer id="contact" className="bg-deep-green text-white py-16 border-t border-beige">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <h3 className="text-3xl font-serif font-bold mb-6 text-white !text-white">Sour The Bakery</h3>
+            <h3 className="text-3xl font-serif font-bold mb-6 !text-white">Sour The Bakery</h3>
             <p className="text-white/70 text-lg mb-6 leading-relaxed">
               Crafting delicious memories, one bite at a time. We bring the warmth and tradition of artisanal baking to every creation.
             </p>
@@ -40,25 +40,11 @@ export default function Footer() {
               </div>
               <div>
                 <p className="text-white font-bold mb-1">Email</p>
-                <p className="text-white/70">{process.env.NEXT_PUBLIC_CONTACT_EMAIL}</p>
+                <p className="text-white/70">sourthebakeryllc@gmail.com</p>
               </div>
             </div>
           </div>
 
-          {/* Hours */}
-          <div>
-            <h4 className="text-xl font-semibold mb-6 text-white">Hours</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-white font-medium">Sunday</span>
-                <span className="text-white/70">9AM - 1PM</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white font-medium">Monday - Saturday</span>
-                <span className="text-white/70">Closed</span>
-              </div>
-            </div>
-          </div>
 
         </div>
 

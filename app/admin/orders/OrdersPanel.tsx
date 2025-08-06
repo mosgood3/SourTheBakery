@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getOrders, updateOrderStatus, Order } from '../../lib/products';
+import { getPickupInfo } from '../../lib/settings';
 import { FiRefreshCw } from 'react-icons/fi';
 
 export default function OrdersPanel({ admin }: { admin: any }) {
@@ -8,12 +9,33 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'open' | 'completed'>('open');
+  const [pickupTime, setPickupTime] = useState<string>('9:00 AM');
+  const [pickupDate, setPickupDate] = useState<string>('TBD');
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const fetchedOrders = await getOrders();
       setOrders(fetchedOrders);
+      
+      // Fetch pickup time and date from settings
+      const pickupInfo = await getPickupInfo();
+      const timeString = pickupInfo.time;
+      // Convert 24-hour format to 12-hour format
+      const [hours, minutes] = timeString.split(':');
+      const hour12 = parseInt(hours) === 0 ? 12 : parseInt(hours) > 12 ? parseInt(hours) - 12 : parseInt(hours);
+      const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+      setPickupTime(`${hour12}:${minutes} ${ampm}`);
+      
+      // Format pickup date from settings
+      const dateFromSettings = new Date(pickupInfo.date);
+      const formattedPickupDate = dateFromSettings.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long',
+        day: 'numeric'
+      });
+      setPickupDate(formattedPickupDate);
     } catch (err) {
       setError('Failed to load orders');
     } finally {
@@ -49,6 +71,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleString();
   };
+
 
   const filteredOrders = orders.filter(order => order.status === activeTab);
 
@@ -138,15 +161,15 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   <div className="space-y-2">
                     <div>
                       <p className="text-xs text-brown/60">Pickup Date</p>
-                      <p className="text-brown font-medium">{(order as any).pickupDate ? formatDate((order as any).pickupDate) : 'Next Sunday, 9:00 AM'}</p>
+                      <p className="text-brown font-medium">{pickupDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-brown/60">Pickup Time</p>
+                      <p className="text-brown font-medium">{pickupTime}</p>
                     </div>
                     <div>
                       <p className="text-xs text-brown/60">Location</p>
                       <p className="text-brown font-medium">Sour The Bakery</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-brown/60">Hours</p>
-                      <p className="text-brown font-medium">Sunday 9:00 AM - 12:00 PM</p>
                     </div>
                   </div>
                 </div>
