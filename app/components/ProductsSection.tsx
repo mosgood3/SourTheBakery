@@ -212,18 +212,20 @@ export default function ProductsSection() {
                     <h3 className="text-xl font-bold mb-2 drop-shadow-lg !text-white">
                       {product.name}
                     </h3>
+                    {product.quantity && (
+                      <div className="mb-3">
+                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+                          <p className="text-sm font-medium text-white">
+                            Comes with {product.quantity}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-2xl font-bold text-white drop-shadow-lg">
                         ${parseFloat(product.price).toFixed(2)}
                       </p>
                       <div className="flex flex-col items-end gap-1">
-                        {product.quantity && (
-                          <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                            <p className="text-sm font-medium text-white">
-                              {product.quantity}
-                            </p>
-                          </div>
-                        )}
                         <div className={`backdrop-blur-sm px-3 py-1 rounded-full ${
                           getRemainingStock(product) > 5 
                             ? 'bg-green-500/20 border border-green-400/30' 
@@ -323,18 +325,20 @@ export default function ProductsSection() {
                       <h3 className="text-2xl font-bold mb-3 drop-shadow-lg !text-white">
                         {product.name}
                       </h3>
+                      {product.quantity && (
+                        <div className="mb-4">
+                          <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30 inline-block">
+                            <p className="text-sm font-semibold text-white">
+                              Comes with {product.quantity}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mb-6">
                         <p className="text-3xl font-bold text-white drop-shadow-lg">
                           ${parseFloat(product.price).toFixed(2)}
                         </p>
                         <div className="flex flex-col items-end gap-2">
-                          {product.quantity && (
-                            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
-                              <p className="text-sm font-semibold text-white">
-                                {product.quantity}
-                              </p>
-                            </div>
-                          )}
                           <div className={`backdrop-blur-sm px-4 py-2 rounded-full border ${
                             getRemainingStock(product) > 5 
                               ? 'bg-green-500/20 border-green-400/30' 
@@ -461,19 +465,58 @@ export default function ProductsSection() {
 
 // Bakery Gallery as a separate component
 function BakeryGallery() {
-  const images = [
-    { src: '/collage/sour1.jpg', alt: 'Sourdough Creation 1' },
-    { src: '/collage/sour2.jpg', alt: 'Sourdough Creation 2' },
-    { src: '/collage/sour3.jpg', alt: 'Sourdough Creation 3' },
-    { src: '/collage/sour4.jpg', alt: 'Sourdough Creation 4' },
-    { src: '/collage/sour5.jpg', alt: 'Sourdough Creation 5' },
-    { src: '/collage/sour6.jpg', alt: 'Sourdough Creation 6' },
-    { src: '/collage/sour7.jpg', alt: 'Sourdough Creation 7' },
-    { src: '/collage/sour8.jpg', alt: 'Sourdough Creation 8' },
-    { src: '/collage/sour9.jpg', alt: 'Sourdough Creation 9' },
-    { src: '/collage/sour10.jpg', alt: 'Sourdough Creation 10' },
-    { src: '/collage/sour11.jpg', alt: 'Sourdough Creation 11' },
-  ];
+  const [images, setImages] = useState<{ src: string; alt: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGalleryImages = async () => {
+      try {
+        const { getGalleryImages } = await import('../lib/storage');
+        const imageUrls = await getGalleryImages();
+        
+        // Limit to 10 images and format them
+        const formattedImages = imageUrls.slice(0, 10).map((url, index) => ({
+          src: url,
+          alt: `Sourdough Creation ${index + 1}`
+        }));
+        
+        setImages(formattedImages);
+      } catch (error) {
+        console.error('Error fetching gallery images:', error);
+        // Fallback to static images if Firebase fails
+        setImages([
+          { src: '/collage/sour1.jpg', alt: 'Sourdough Creation 1' },
+          { src: '/collage/sour2.jpg', alt: 'Sourdough Creation 2' },
+          { src: '/collage/sour3.jpg', alt: 'Sourdough Creation 3' },
+          { src: '/collage/sour4.jpg', alt: 'Sourdough Creation 4' },
+          { src: '/collage/sour5.jpg', alt: 'Sourdough Creation 5' },
+          { src: '/collage/sour6.jpg', alt: 'Sourdough Creation 6' },
+          { src: '/collage/sour7.jpg', alt: 'Sourdough Creation 7' },
+          { src: '/collage/sour8.jpg', alt: 'Sourdough Creation 8' },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGalleryImages();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="mt-32 px-4 py-20 bg-gradient-to-t from-soft-cream to-light-cream">
+        <div className="text-center mb-16">
+          <h3 className="text-4xl md:text-5xl font-bold text-deep-green mb-6 heading-shadow">
+            Our Handcrafted Creations
+          </h3>
+        </div>
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
+          <p className="mt-4 text-brown/70">Loading gallery...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-32 px-4 py-20 bg-gradient-to-t from-soft-cream to-light-cream">

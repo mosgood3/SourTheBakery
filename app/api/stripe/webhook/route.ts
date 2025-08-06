@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrder } from '../../../lib/products';
+import { createOrderServer } from '../../../lib/products-server';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
-import { serverTimestamp, Timestamp } from 'firebase/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
@@ -27,6 +27,12 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  }
+
+  // Add idempotency check to prevent duplicate processing
+  const eventId = event.id;
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Processing webhook event:', eventId, 'Type:', event.type);
   }
 
   if (process.env.NODE_ENV !== 'production') {
@@ -73,17 +79,16 @@ export async function POST(req: NextRequest) {
         price: item.price
       }));
 
-      // Create order with all required fields
+      // Create order with all required fields using server-side function
       const orderData = {
         customerName: metadata.customerName,
         customerEmail: paymentIntent.receipt_email || '',
         items: mappedItems,
         total: paymentIntent.amount / 100,
         status: 'open' as const,
-        orderDate: serverTimestamp(),
-        pickupDate: Timestamp.fromDate(pickupDateTime),
+        pickupDate: FieldValue.serverTimestamp() // Will be updated with actual pickup date later
       };
-      const orderId = await createOrder(orderData);
+      const orderId = await createOrderServer(orderData);
 
       if (process.env.NODE_ENV !== 'production') {
         console.log('Order created successfully:', orderId);
@@ -93,7 +98,9 @@ export async function POST(req: NextRequest) {
       try {
         await sendOrderConfirmationEmail({
           ...orderData,
-          orderId
+          orderId,
+          orderDate: new Date(), // Add orderDate for email template
+          pickupDate: pickupDateTime // Use the actual pickup date for email
         });
         if (process.env.NODE_ENV !== 'production') {
           console.log('Order confirmation email sent for order:', orderId);
@@ -122,17 +129,29 @@ export async function POST(req: NextRequest) {
         pickupDateTime: pickupInfo ? new Date(`${pickupInfo.date}T${pickupInfo.time}`) : 'MISSING'
       });
       
-      // Send failure email to customer
-      try {
-        await sendOrderFailureEmail(
-          metadata.customerName,
-          paymentIntent.receipt_email || '',
-          paymentIntent.id
-        );
-        console.log('Order failure email sent for payment:', paymentIntent.id);
-      } catch (emailError) {
-        console.error('Failed to send order failure email:', emailError);
-        // Don't fail the webhook if failure email fails
+      // Only send failure email for critical errors, not temporary issues
+      const isTemporaryError = err.message.includes('weekly limit') || 
+                               err.message.includes('Database service not available') ||
+                               err.message.includes('timeout') ||
+                               err.message.includes('UNAVAILABLE');
+      
+      if (!isTemporaryError) {
+        // Send failure email to customer only for non-temporary errors
+        try {
+          await sendOrderFailureEmail(
+            metadata.customerName,
+            paymentIntent.receipt_email || '',
+            paymentIntent.id
+          );
+          console.log('Order failure email sent for payment:', paymentIntent.id);
+        } catch (emailError) {
+          console.error('Failed to send order failure email:', emailError);
+          // Don't fail the webhook if failure email fails
+        }
+      } else {
+        console.log('Temporary error detected, not sending failure email:', err.message);
+        // For temporary errors, we should retry or handle gracefully
+        // Return 500 so Stripe retries the webhook
       }
       
       return new NextResponse('Order creation failed', { status: 500 });

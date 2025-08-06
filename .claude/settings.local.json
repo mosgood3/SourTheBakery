@@ -13,7 +13,8 @@
       "Bash(firebase deploy:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm install:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(del \"C:\\Users\\matth\\Engineering\\sourthebakery\\public\\favicon.ico\")"
     ],
     "deny": []
   }

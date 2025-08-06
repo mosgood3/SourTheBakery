@@ -214,11 +214,11 @@ export const sendOrderFailureEmail = async (customerName: string, customerEmail:
     const emailHTML = generateOrderFailureHTML(customerName, customerEmail, paymentIntentId);
     
     await sendEmail({
-      from: process.env.SES_FROM_EMAIL || 'orders@sourthebakery.com',
+      from: process.env.SES_FROM_EMAIL || 'info@sourthebakery.com',
       to: [customerEmail],
       subject: `Order Processing Issue - Reference #${paymentIntentId.slice(-8)} - Sour The Bakery`,
       html: emailHTML,
-      replyTo: process.env.SES_REPLY_TO_EMAIL || 'orders@sourthebakery.com'
+      replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
     console.log(`Order failure email sent to ${customerEmail} for payment ${paymentIntentId}`);
@@ -237,11 +237,11 @@ export const sendOrderConfirmationEmail = async (order: OrderConfirmationData): 
     const emailHTML = generateOrderConfirmationHTML(order);
     
     await sendEmail({
-      from: process.env.SES_FROM_EMAIL || 'orders@sourthebakery.com',
+      from: process.env.SES_FROM_EMAIL || 'info@sourthebakery.com',
       to: [order.customerEmail],
       subject: `Order Confirmation #${order.orderId.slice(-8)} - Sour The Bakery`,
       html: emailHTML,
-      replyTo: process.env.SES_REPLY_TO_EMAIL || 'orders@sourthebakery.com'
+      replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
     console.log(`Order confirmation email sent to ${order.customerEmail} for order ${order.orderId}`);
