@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
         return new NextResponse('Invalid metadata', { status: 400 });
       }
 
-      // Create pickup date from metadata
-      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.time}`);
+      // Create pickup date from metadata (force EST timezone)
+      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.time}-05:00`);
       
       // Map items to match expected format (id -> productId, name -> productName)
       const mappedItems = items.map((item: any) => ({
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
         items,
         total: paymentIntent.amount / 100,
         status: 'open',
-        pickupDateTime: pickupInfo ? new Date(`${pickupInfo.date}T${pickupInfo.time}`) : 'MISSING'
+        pickupDateTime: pickupInfo ? new Date(`${pickupInfo.date}T${pickupInfo.time}-05:00`) : 'MISSING'
       });
       
       // Only send failure email for critical errors, not temporary issues

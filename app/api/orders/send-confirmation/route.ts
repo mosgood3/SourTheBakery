@@ -74,11 +74,12 @@ async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<N
 
     // Format pickup date
     const pickupDate = orderData.pickupInfo ? 
-      new Date(orderData.pickupInfo.date + 'T' + orderData.pickupInfo.time).toLocaleDateString('en-US', {
+      new Date(orderData.pickupInfo.date + 'T' + orderData.pickupInfo.time + '-05:00').toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'America/New_York'
       }) : 'TBD';
 
     const pickupTime = escapeHtml(orderData.pickupInfo?.time || 'TBD');

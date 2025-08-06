@@ -27,13 +27,14 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
       setPickupTime(`${hour12}:${minutes} ${ampm}`);
       
-      // Format pickup date from settings
-      const dateFromSettings = new Date(pickupInfo.date);
+      // Format pickup date from settings (force EST timezone)
+      const dateFromSettings = new Date(pickupInfo.date + 'T12:00:00-05:00'); // Force EST noon
       const formattedPickupDate = dateFromSettings.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric', 
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'America/New_York'
       });
       setPickupDate(formattedPickupDate);
     } catch (err) {

@@ -271,7 +271,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
             <div className="p-4 bg-brown/5 rounded-xl">
               <p className="text-sm font-semibold text-brown/70 mb-1">Next Pickup</p>
               <p className="font-bold text-brown">
-                {new Date(settings.pickupDate + 'T' + settings.pickupTime).toLocaleDateString()} at {settings.pickupTime}
+                {new Date(settings.pickupDate + 'T' + settings.pickupTime + '-05:00').toLocaleDateString('en-US', { timeZone: 'America/New_York' })} at {settings.pickupTime}
               </p>
             </div>
           </div>
