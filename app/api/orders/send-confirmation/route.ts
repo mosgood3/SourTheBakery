@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '../../../lib/ses-email-service';
+import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
+import { createRateLimitedHandler } from '../../../lib/rate-limiter';
+import { escapeHtml, validateEmail } from '../../../lib/input-validator';
 
 interface OrderItem {
   id: string;
@@ -21,7 +24,7 @@ interface OrderData {
   };
 }
 
-export async function POST(request: NextRequest) {
+async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<NextResponse> {
   try {
     console.log('API Route: Received order confirmation email request');
     
@@ -29,7 +32,8 @@ export async function POST(request: NextRequest) {
     console.log('Order data:', { 
       customerEmail: orderData.customerEmail, 
       orderId: orderData.orderId,
-      itemCount: orderData.items?.length 
+      itemCount: orderData.items?.length,
+      requestedBy: request.user?.email
     });
 
     // Validate required fields
@@ -40,12 +44,30 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Validate email format
+    if (!validateEmail(orderData.customerEmail)) {
+      console.error('Invalid customer email format');
+      return NextResponse.json(
+        { error: 'Invalid customer email format' },
+        { status: 400 }
+      );
+    }
+
+    // Validate order ID format (basic validation)
+    if (typeof orderData.orderId !== 'string' || orderData.orderId.length < 8) {
+      console.error('Invalid order ID format');
+      return NextResponse.json(
+        { error: 'Invalid order ID format' },
+        { status: 400 }
+      );
+    }
     
-    // Generate order items HTML
+    // Generate order items HTML with escaped content
     const orderItemsHtml = orderData.items.map(item => `
       <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 12px 0; color: #333;">${item.name}</td>
-        <td style="padding: 12px 0; text-align: center; color: #666;">${item.quantity}</td>
+        <td style="padding: 12px 0; color: #333;">${escapeHtml(item.name)}</td>
+        <td style="padding: 12px 0; text-align: center; color: #666;">${escapeHtml(item.quantity.toString())}</td>
         <td style="padding: 12px 0; text-align: right; color: #333; font-weight: 600;">$${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}</td>
       </tr>
     `).join('');
@@ -59,8 +81,8 @@ export async function POST(request: NextRequest) {
         day: 'numeric'
       }) : 'TBD';
 
-    const pickupTime = orderData.pickupInfo?.time || 'TBD';
-    const pickupLocation = orderData.pickupInfo?.location || 'Sour the Bakery';
+    const pickupTime = escapeHtml(orderData.pickupInfo?.time || 'TBD');
+    const pickupLocation = escapeHtml(orderData.pickupInfo?.location || 'Sour the Bakery');
 
     // Create email HTML template
     const emailHtml = `
@@ -71,11 +93,11 @@ export async function POST(request: NextRequest) {
         </div>
         
         <div style="padding: 30px;">
-          <h2 style="color: #8b5b29; margin-bottom: 20px;">Thank you for your order, ${orderData.customerName}!</h2>
+          <h2 style="color: #8b5b29; margin-bottom: 20px;">Thank you for your order, ${escapeHtml(orderData.customerName)}!</h2>
           
           <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
             <h3 style="color: #333; margin-top: 0;">Order Details</h3>
-            <p style="margin: 5px 0;"><strong>Order ID:</strong> #${orderData.orderId}</p>
+            <p style="margin: 5px 0;"><strong>Order ID:</strong> #${escapeHtml(orderData.orderId)}</p>
             <p style="margin: 5px 0;"><strong>Order Date:</strong> ${new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
@@ -100,7 +122,7 @@ export async function POST(request: NextRequest) {
             </table>
             <div style="text-align: right; margin-top: 15px; padding-top: 15px; border-top: 2px solid #8b5b29;">
               <p style="font-size: 18px; font-weight: bold; color: #333; margin: 0;">
-                Order Total: ${orderData.total}
+                Order Total: ${escapeHtml(orderData.total)}
               </p>
             </div>
           </div>
@@ -147,7 +169,8 @@ export async function POST(request: NextRequest) {
     console.error('Order confirmation email error:', {
       message: error.message,
       code: error.code,
-      stack: error.stack
+      stack: error.stack,
+      user: request.user?.email
     });
     return NextResponse.json(
       { error: error.message || 'Failed to send order confirmation email' },
@@ -155,3 +178,13 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply authentication and rate limiting
+export const POST = createRateLimitedHandler(
+  createAuthenticatedHandler(handleOrderConfirmation),
+  {
+    requests: 10, // Max 10 requests
+    window: 60000, // Per minute
+    blockDuration: 60000 // Block for 1 minute
+  }
+);

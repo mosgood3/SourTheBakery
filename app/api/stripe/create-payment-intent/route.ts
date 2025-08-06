@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { checkWeeklyCap } from '../../../lib/products';
+import { createRateLimitedHandler } from '../../../lib/rate-limiter';
+import { validateEmail } from '../../../lib/input-validator';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 // This endpoint is intended to handle POST requests from the frontend and send a POST to Stripe
-export async function POST(req: NextRequest) {
+async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse> {
   if (process.env.NODE_ENV !== 'production') {
     console.log('[DEBUG] POST handler called for /api/stripe/create-payment-intent');
   }
@@ -18,6 +20,19 @@ export async function POST(req: NextRequest) {
       console.log('[DEBUG] Request body:', body);
     }
     const { items, customerName, customerEmail, pickupInfo } = body;
+
+    // Validate required fields
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Items are required' }, { status: 400 });
+    }
+
+    if (!customerName || typeof customerName !== 'string' || customerName.trim().length === 0) {
+      return NextResponse.json({ error: 'Customer name is required' }, { status: 400 });
+    }
+
+    if (!validateEmail(customerEmail)) {
+      return NextResponse.json({ error: 'Valid customer email is required' }, { status: 400 });
+    }
 
     // Check inventory availability for all items BEFORE processing payment
     for (const item of items) {
@@ -70,3 +85,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+// Apply rate limiting
+export const POST = createRateLimitedHandler(handleCreatePaymentIntent, {
+  requests: 10, // Max 10 payment intent requests
+  window: 60000, // Per minute
+  blockDuration: 120000 // Block for 2 minutes
+});

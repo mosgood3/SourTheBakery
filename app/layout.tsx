@@ -68,15 +68,9 @@ export const metadata: Metadata = {
   
   // Favicon and icons
   icons: {
-    icon: [
-      { url: "/logo2.PNG", sizes: "32x32", type: "image/png" },
-      { url: "/logo2.PNG", sizes: "16x16", type: "image/png" },
-      { url: "/logo2.PNG", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [
-      { url: "/logo2.PNG", sizes: "180x180", type: "image/png" },
-    ],
-    shortcut: "/logo2.PNG",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
   
   // Open Graph for social media
@@ -89,10 +83,10 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/logo2.PNG",
-        width: 1200,
-        height: 630,
-        alt: "Sour The Bakery Logo - Handcrafted Sourdough Treats",
+        url: "/favicon.ico",
+        width: 32,
+        height: 32,
+        alt: "Sour The Bakery Favicon",
       },
     ],
   },
@@ -105,8 +99,8 @@ export const metadata: Metadata = {
     creator: "@sourthebakery",
     images: [
       {
-        url: "/logo2.PNG",
-        alt: "Sour The Bakery Logo - Handcrafted Sourdough Treats",
+        url: "/favicon.ico",
+        alt: "Sour The Bakery Favicon",
       },
     ],
   },

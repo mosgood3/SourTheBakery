@@ -1,21 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getNewsletterSubscribers } from '../../../lib/newsletter-server';
 import { sendEmail } from '../../../lib/ses-email-service';
+import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
+import { createRateLimitedHandler } from '../../../lib/rate-limiter';
+import { validateNewsletterData, sanitizeHtml } from '../../../lib/input-validator';
 
-export async function POST(request: NextRequest) {
+async function handleNewsletterSend(request: AuthenticatedRequest): Promise<NextResponse> {
   try {
     console.log('API Route: Received newsletter send request');
     
-    const { subject, content, sentBy } = await request.json();
-    console.log('Request data:', { subject: !!subject, content: !!content, sentBy });
+    const rawData = await request.json();
+    console.log('Request data from user:', request.user?.email);
 
-    if (!subject || !content || !sentBy) {
-      console.error('Missing required fields:', { subject: !!subject, content: !!content, sentBy: !!sentBy });
+    // Validate input data
+    const validation = validateNewsletterData(rawData);
+    if (!validation.valid) {
+      console.error('Validation errors:', validation.errors);
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Invalid input data', details: validation.errors },
         { status: 400 }
       );
     }
+
+    const { subject, content, sentBy } = validation.data;
 
     // Get all active subscribers
     console.log('Fetching subscribers...');
@@ -29,18 +36,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare email template
+    // Prepare email template with sanitized content
     const htmlTemplate = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #f7e1b5; padding: 20px; text-align: center;">
-          <h1 style="color: #8b5b29; margin: 0;">Sour the Bakery</h1>
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #228B22 0%, #32CD32 100%); color: white; padding: 40px 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;">SOUR THE BAKERY</h1>
+          <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.9;">Newsletter</p>
         </div>
-        <div style="padding: 30px; background-color: #fff; line-height: 1.6;">
-          ${content.replace(/\n/g, '<br>')}
+        <div style="padding: 40px 30px; background-color: #fff; line-height: 1.6; color: #333;">
+          ${content}
         </div>
-        <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #666;">
-          <p>You're receiving this because you subscribed to our newsletter.</p>
-          <p>Sour the Bakery | 12 Gaylord Drive, Rocky Hill, CT 06111</p>
+        <div style="background-color: #228B22; color: white; padding: 20px 30px; text-align: center; font-size: 12px;">
+          <p style="margin: 0 0 10px; opacity: 0.9;">You're receiving this because you subscribed to our newsletter.</p>
+          <p style="margin: 0; opacity: 0.7;">Sour the Bakery | 12 Gaylord Drive, Rocky Hill, CT 06111</p>
         </div>
       </div>
     `;
@@ -63,7 +71,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('API Route Error:', {
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      user: request.user?.email
     });
     return NextResponse.json(
       { error: error.message || 'Failed to send newsletter' },
@@ -71,3 +80,13 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply authentication and rate limiting
+export const POST = createRateLimitedHandler(
+  createAuthenticatedHandler(handleNewsletterSend),
+  {
+    requests: 5, // Max 5 requests
+    window: 60000, // Per minute
+    blockDuration: 300000 // Block for 5 minutes
+  }
+);

@@ -10,7 +10,7 @@ import {
   serverTimestamp,
   where
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 
 export interface NewsletterSubscriber {
   id?: string;
@@ -119,11 +119,19 @@ export const sendNewsletterEmail = async (
       throw new Error('Database service not available');
     }
 
-    // Call the API route to send emails
+    if (!auth.currentUser) {
+      throw new Error('Admin authentication required');
+    }
+
+    // Get authentication token
+    const token = await auth.currentUser.getIdToken();
+
+    // Call the API route to send emails with authentication
     const response = await fetch('/api/newsletter/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         subject,

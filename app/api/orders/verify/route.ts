@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrders } from '../../../lib/products';
+import { createRateLimitedHandler } from '../../../lib/rate-limiter';
+import { validateEmail } from '../../../lib/input-validator';
 
-export async function POST(req: NextRequest) {
+async function handleOrderVerification(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();
     const { paymentIntentId, customerEmail } = body;
 
     if (!paymentIntentId || !customerEmail) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Validate email format
+    if (!validateEmail(customerEmail)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
     // Get recent orders for this customer
@@ -37,4 +44,11 @@ export async function POST(req: NextRequest) {
     console.error('Order verification error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
-} 
+}
+
+// Apply rate limiting
+export const POST = createRateLimitedHandler(handleOrderVerification, {
+  requests: 5, // Max 5 requests
+  window: 60000, // Per minute
+  blockDuration: 60000 // Block for 1 minute
+}); 
