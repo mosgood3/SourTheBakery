@@ -279,7 +279,7 @@ export default function GalleryPanel() {
                     className={`absolute top-2 right-2 text-white p-2 rounded-full transition-all ${
                       deleting 
                         ? 'bg-gray-500 opacity-50 cursor-not-allowed' 
-                        : 'bg-red-600 opacity-0 group-hover:opacity-100 hover:bg-red-700'
+                        : 'bg-red-600 opacity-90 hover:opacity-100 hover:bg-red-700'
                     }`}
                     title={deleting ? "Deleting..." : "Delete image"}
                   >

@@ -97,8 +97,7 @@ export const generateOrderConfirmationHTML = (order: OrderConfirmationData): str
             <div style="line-height: 1.6; color: #333;">
               <p style="margin: 0 0 10px;"><strong>Pickup Date:</strong> ${formatPickupDate(order.pickupDate)}</p>
               <p style="margin: 0 0 10px;"><strong>Location:</strong> Sour The Bakery</p>
-              <p style="margin: 0 0 10px;"><strong>Address:</strong> 12 Gaylord Drive Rocky Hill, CT 06111</p>
-              <p style="margin: 0 0 15px;"><strong>Hours:</strong> Sunday 9:00 AM - 12:00 PM</p>
+              <p style="margin: 0 0 15px;"><strong>Address:</strong> 12 Gaylord Drive Rocky Hill, CT 06111</p>
               <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 12px; margin-top: 15px;">
                 <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Please Note:</strong> Orders must be picked up during the scheduled time. If you cannot make your pickup time, please contact us as soon as possible.</p>
               </div>

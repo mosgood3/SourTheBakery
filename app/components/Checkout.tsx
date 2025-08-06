@@ -10,6 +10,7 @@ import { FaCheckCircle, FaEnvelope, FaSpinner } from 'react-icons/fa';
 interface CheckoutProps {
   isOpen: boolean;
   onClose: () => void;
+  onOrderSuccess?: () => void;
 }
 
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -27,7 +28,7 @@ const stripePromise = (() => {
   return loadStripe(key);
 })();
 
-function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
+function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
   const { state, getTotalPrice, clearCart } = useCart();
   const [formData, setFormData] = useState({
     customerName: '',
@@ -37,6 +38,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [isStripeReady, setIsStripeReady] = useState(false);
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [forceShowCard, setForceShowCard] = useState(false);
@@ -260,18 +262,17 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
       }
       
       if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-        // 3. Verify payment status and wait for order creation
-        setSuccess(true);
-        
-        // Order processing will be handled by webhook
-        // Email confirmation will be sent after successful order creation
-        
+        // Clear cart and form
         clearCart();
         setFormData({ customerName: '', customerEmail: '' });
-        setTimeout(() => {
-          setSuccess(false);
-          onClose();
-        }, 5000); // Give more time for webhook processing
+        
+        // Trigger product refresh
+        if (onOrderSuccess) {
+          onOrderSuccess();
+        }
+        
+        // Show email confirmation popup
+        setShowEmailConfirmation(true);
       }
     } catch (err: any) {
       // Handle general errors
@@ -399,27 +400,6 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
             </div>
           </div>
 
-          {/* Success Message */}
-          {success && (
-            <div className="p-6 bg-green-50 border border-green-200 rounded-xl">
-              <div className="text-center">
-                <FaCheckCircle className="text-4xl text-green-600 mb-3 mx-auto" />
-                <h3 className="text-xl font-semibold text-green-800 mb-3">Order Placed Successfully!</h3>
-                <p className="text-green-700 mb-3">Your payment has been processed and your order is confirmed.</p>
-                <div className="bg-white/70 border border-green-300 rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <FaEnvelope className="text-green-800 mr-2" />
-                    <p className="text-green-800 font-medium">Email Notification</p>
-                  </div>
-                  <p className="text-green-700 text-sm">You will receive an email at <strong>{formData.customerEmail}</strong> once your order is processed and confirmed in our system.</p>
-                </div>
-                <div className="mt-4 flex items-center justify-center">
-                  <FaSpinner className="animate-spin text-green-600 mr-2" />
-                  <span className="text-green-700 text-sm">Processing your order...</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (
@@ -429,7 +409,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           )}
 
           {/* Checkout Content */}
-          {!success && (
+          {!showEmailConfirmation && (
             <div className="flex-1 overflow-y-auto p-6">
               {/* Step 1: Contact Information & Payment Form */}
               <div style={{ display: currentStep === 'form' ? 'block' : 'none' }}>
@@ -573,7 +553,7 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           )}
 
           {/* Footer */}
-          {!success && (
+          {!showEmailConfirmation && (
             <div className="border-t border-muted p-6 space-y-4">
               <div className="flex gap-3">
                 {/* Step 1: Form (Contact Info & Payment) */}
@@ -623,6 +603,36 @@ function CheckoutForm({ isOpen, onClose }: CheckoutProps) {
           )}
         </div>
       </div>
+
+      {/* Email Confirmation Popup */}
+      {showEmailConfirmation && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/50 z-60" />
+          
+          {/* Popup */}
+          <div className="fixed inset-0 flex items-center justify-center z-60 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+              <div className="text-center">
+                <FaEnvelope className="text-4xl text-green-600 mb-4 mx-auto" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Order Placed Successfully!</h3>
+                <p className="text-gray-600 mb-6">
+                  Please check your email for your order confirmation and pickup details.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowEmailConfirmation(false);
+                    onClose();
+                  }}
+                  className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-colors"
+                >
+                  Got it!
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

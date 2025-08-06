@@ -5,7 +5,11 @@ import { useCart } from '../contexts/CartContext';
 import { isOrderWindowOpen } from '../lib/settings';
 import Checkout from './Checkout';
 
-export default function Cart() {
+interface CartProps {
+  onOrderSuccess?: () => void;
+}
+
+export default function Cart({ onOrderSuccess }: CartProps) {
   const { state, removeItem, updateQuantity, clearCart, closeCart, getTotalPrice } = useCart();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [orderWindowOpen, setOrderWindowOpen] = useState(false);
@@ -171,7 +175,8 @@ export default function Cart() {
         onClose={() => {
           setIsCheckoutOpen(false);
           closeCart();
-        }} 
+        }}
+        onOrderSuccess={onOrderSuccess}
       />
     </>
   );

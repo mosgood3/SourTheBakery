@@ -7,7 +7,11 @@ import { getProducts, Product } from '../lib/products';
 import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings';
 import { FaTimes } from 'react-icons/fa';
 
-export default function ProductsSection() {
+interface ProductsSectionProps {
+  refreshTrigger?: number;
+}
+
+export default function ProductsSection({ refreshTrigger }: ProductsSectionProps = {}) {
   const { addItem, state } = useCart();
   const [currentProduct, setCurrentProduct] = useState(0);
   const [products, setProducts] = useState<Product[]>([]);
@@ -42,6 +46,27 @@ export default function ProductsSection() {
 
     fetchData();
   }, []);
+
+  // Refresh products when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      const fetchData = async () => {
+        try {
+          const [fetchedProducts, isOrderOpen] = await Promise.all([
+            getProducts(),
+            isOrderWindowOpen()
+          ]);
+          
+          setProducts(fetchedProducts);
+          setOrderWindowOpen(isOrderOpen);
+        } catch (err) {
+          console.error('Error refreshing products:', err);
+        }
+      };
+      
+      fetchData();
+    }
+  }, [refreshTrigger]);
 
   const handleAddToCart = (product: Product) => {
     if (!orderWindowOpen) {
