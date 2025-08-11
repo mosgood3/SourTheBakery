@@ -88,21 +88,6 @@ export default function AboutSection() {
                 </div>
               </div>
 
-              {/* Floating Quote Card */}
-              <div className="absolute -bottom-8 -right-8 bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-soft-green/20 max-w-xs transform rotate-3">
-                <p className="text-deep-green italic text-lg">
-                  "Every bite tells a story of tradition, passion, and love for baking."
-                </p>
-                <div className="text-soft-green text-2xl mt-2">✨</div>
-              </div>
-
-              {/* Decorative Elements */}
-              <div className="absolute -top-6 -left-6 bg-soft-green/20 backdrop-blur-sm rounded-full p-4 shadow-xl">
-                <span className="text-3xl">🍞</span>
-              </div>
-              <div className="absolute top-1/2 -right-8 bg-accent-pink/20 backdrop-blur-sm rounded-full p-4 shadow-xl">
-                <span className="text-3xl">🥖</span>
-              </div>
             </div>
           </div>
         </div>
