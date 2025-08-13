@@ -17,7 +17,13 @@ export function sanitizeHtml(dirty: string): string {
   if (!dirty || typeof dirty !== 'string') return '';
   
   return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a'],
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'blockquote', 'pre', 'code',
+      'a', 'span', 'div'
+    ],
     ALLOWED_ATTR: ['href', 'target'],
     ALLOW_DATA_ATTR: false
   });

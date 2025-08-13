@@ -10,6 +10,7 @@ import {
   NewsletterSubscriber,
   NewsletterEmail 
 } from '../../lib/newsletter';
+import RichTextEditor from '../../components/RichTextEditor';
 
 export default function NewsletterPanel() {
   const [activeTab, setActiveTab] = useState<'compose' | 'subscribers' | 'history'>('compose');
@@ -186,16 +187,13 @@ export default function NewsletterPanel() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Email Content</label>
-                <textarea
-                  value={emailContent}
-                  onChange={(e) => setEmailContent(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50"
+                <RichTextEditor
+                  content={emailContent}
+                  onChange={setEmailContent}
                   placeholder="Enter your newsletter content..."
-                  rows={12}
-                  required
                 />
                 <p className="text-sm text-brown/50 mt-2">
-                  This will be sent to all {subscribers.length} active subscribers
+                  This will be sent to all {subscribers.length} active subscribers. Use the toolbar above to format your content.
                 </p>
               </div>
               <div className="flex gap-4">
