@@ -147,6 +147,12 @@ export function validateNewsletterData(data: any): { valid: boolean; data?: any;
     errors.push('Sender is required');
   }
 
+  // Validate recipient type
+  const validRecipientTypes = ['newsletter', 'orders'];
+  if (!data.recipientType || !validRecipientTypes.includes(data.recipientType)) {
+    errors.push('Valid recipient type is required (newsletter or orders)');
+  }
+
   if (errors.length > 0) {
     return { valid: false, errors };
   }
@@ -156,7 +162,8 @@ export function validateNewsletterData(data: any): { valid: boolean; data?: any;
     data: {
       subject: data.subject.trim(),
       content: sanitizeHtml(data.content),
-      sentBy: data.sentBy.trim()
+      sentBy: data.sentBy.trim(),
+      recipientType: data.recipientType
     },
     errors: []
   };

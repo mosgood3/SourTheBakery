@@ -112,7 +112,8 @@ export const unsubscribeFromNewsletter = async (subscriberId: string): Promise<v
 export const sendNewsletterEmail = async (
   subject: string, 
   content: string, 
-  sentBy: string
+  sentBy: string,
+  recipientType: 'newsletter' | 'orders' = 'newsletter'
 ): Promise<string> => {
   try {
     if (!db) {
@@ -136,7 +137,8 @@ export const sendNewsletterEmail = async (
       body: JSON.stringify({
         subject,
         content,
-        sentBy
+        sentBy,
+        recipientType
       })
     });
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNewsletterSubscribers } from '../../../lib/newsletter-server';
-import { sendEmail } from '../../../lib/ses-email-service';
+import { getNewsletterSubscribers, getOpenOrderCustomers } from '../../../lib/newsletter-server';
+import { sendBulkEmails } from '../../../lib/ses-email-service';
 import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateNewsletterData, sanitizeHtml } from '../../../lib/input-validator';
@@ -23,16 +23,29 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
       );
     }
 
-    const { subject, content, sentBy } = validation.data;
+    const { subject, content, sentBy, recipientType } = validation.data;
 
-    // Get all active subscribers
-    console.log('Fetching subscribers...');
-    const subscribers = await getNewsletterSubscribers();
-    console.log(`Found ${subscribers.length} subscribers`);
+    // Get recipients based on type
+    let recipients: Array<{email: string, name?: string}> = [];
+    let recipientTypeLabel = '';
+
+    if (recipientType === 'newsletter') {
+      console.log('Fetching newsletter subscribers...');
+      const subscribers = await getNewsletterSubscribers();
+      recipients = subscribers.map(s => ({ email: s.email }));
+      recipientTypeLabel = 'newsletter subscribers';
+    } else if (recipientType === 'orders') {
+      console.log('Fetching customers with open orders...');
+      const customers = await getOpenOrderCustomers();
+      recipients = customers.map(c => ({ email: c.email, name: c.name }));
+      recipientTypeLabel = 'customers with open orders';
+    }
+
+    console.log(`Found ${recipients.length} ${recipientTypeLabel}`);
     
-    if (subscribers.length === 0) {
+    if (recipients.length === 0) {
       return NextResponse.json(
-        { error: 'No active subscribers found' },
+        { error: `No active ${recipientTypeLabel} found` },
         { status: 400 }
       );
     }
@@ -57,19 +70,28 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
       </div>
     `;
 
-    // Send emails using Amazon SES
-    await sendEmail({
+    // Send individual emails using Amazon SES
+    const emailResult = await sendBulkEmails({
       from: process.env.SES_FROM_EMAIL || 'info@sourthebakery.com',
-      to: subscribers.map(s => s.email),
+      to: recipients.map(r => r.email),
       subject: subject,
       html: htmlTemplate,
       replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
+    console.log(`Email sending completed: ${emailResult.totalSent} sent, ${emailResult.totalFailed} failed`);
+    
+    if (emailResult.errors.length > 0) {
+      console.error('Failed to send to some recipients:', emailResult.errors);
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Newsletter sent to ${subscribers.length} subscribers`,
-      recipientCount: subscribers.length
+      message: `Email sent to ${emailResult.totalSent} ${recipientTypeLabel}`,
+      recipientCount: emailResult.totalSent,
+      failedCount: emailResult.totalFailed,
+      recipientType: recipientType,
+      ...(emailResult.totalFailed > 0 && { failedEmails: emailResult.errors })
     });
 
   } catch (error: any) {

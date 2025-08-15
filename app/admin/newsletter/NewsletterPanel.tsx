@@ -23,6 +23,7 @@ export default function NewsletterPanel() {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailContent, setEmailContent] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [recipientType, setRecipientType] = useState<'newsletter' | 'orders'>('newsletter');
 
   // Load data when component mounts or tab changes
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function NewsletterPanel() {
 
     try {
       console.log('Attempting to send newsletter...');
-      await sendNewsletterEmail(emailSubject, emailContent, process.env.NEXT_PUBLIC_ADMIN_EMAIL!);
+      await sendNewsletterEmail(emailSubject, emailContent, process.env.NEXT_PUBLIC_ADMIN_EMAIL!, recipientType);
       console.log('Newsletter sent successfully!');
       setMessage('Newsletter sent successfully!');
       setEmailSubject('');
@@ -172,8 +173,41 @@ export default function NewsletterPanel() {
       <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">
         {activeTab === 'compose' && (
           <div>
-            <h2 className="text-2xl font-serif font-bold text-brown mb-6">Compose Newsletter</h2>
+            <h2 className="text-2xl font-serif font-bold text-brown mb-6">Compose Email</h2>
             <form onSubmit={handleSendEmail} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-brown mb-2">Send To</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="recipientType"
+                      value="newsletter"
+                      checked={recipientType === 'newsletter'}
+                      onChange={(e) => setRecipientType(e.target.value as 'newsletter' | 'orders')}
+                      className="text-accent-gold focus:ring-accent-gold"
+                    />
+                    <span className="text-brown font-medium">Newsletter Subscribers</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="recipientType"
+                      value="orders"
+                      checked={recipientType === 'orders'}
+                      onChange={(e) => setRecipientType(e.target.value as 'newsletter' | 'orders')}
+                      className="text-accent-gold focus:ring-accent-gold"
+                    />
+                    <span className="text-brown font-medium">Customers with Open Orders</span>
+                  </label>
+                </div>
+                <p className="text-sm text-brown/50 mt-1">
+                  {recipientType === 'newsletter' 
+                    ? 'Send to all newsletter subscribers'
+                    : 'Send to customers who have open orders pending pickup'
+                  }
+                </p>
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Email Subject</label>
                 <input
@@ -193,7 +227,7 @@ export default function NewsletterPanel() {
                   placeholder="Enter your newsletter content..."
                 />
                 <p className="text-sm text-brown/50 mt-2">
-                  This will be sent to all {subscribers.length} active subscribers. Use the toolbar above to format your content.
+                  This will be sent to all {recipientType === 'newsletter' ? 'newsletter subscribers' : 'customers with open orders'}. Use the toolbar above to format your content.
                 </p>
               </div>
               <div className="flex gap-4">
@@ -203,7 +237,7 @@ export default function NewsletterPanel() {
                   className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border-2 border-forest-green"
                 >
                   <FaPaperPlane />
-                  {isSending ? 'Sending...' : 'Send Newsletter'}
+                  {isSending ? 'Sending...' : `Send to ${recipientType === 'newsletter' ? 'Newsletter Subscribers' : 'Order Customers'}`}
                 </button>
               </div>
             </form>
