@@ -1,13 +1,6 @@
 // Server-side newsletter functions (for API routes)
-import { 
-  collection, 
-  getDocs,
-  addDoc,
-  query,
-  serverTimestamp,
-  where
-} from 'firebase/firestore';
-import { db } from './firebase';
+import { adminDb } from './firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export interface NewsletterSubscriber {
   id?: string;
@@ -26,15 +19,15 @@ export interface OrderCustomer {
 // Get all active newsletter subscribers (server-side)
 export const getNewsletterSubscribers = async (): Promise<NewsletterSubscriber[]> => {
   try {
-    if (!db) {
+    if (!adminDb) {
       throw new Error('Database service not available');
     }
 
-    const q = query(
-      collection(db, 'newsletter_subscribers'),
-      where('isActive', '==', true)
-    );
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await adminDb
+      .collection('newsletter_subscribers')
+      .where('isActive', '==', true)
+      .get();
+    
     const subscribers: NewsletterSubscriber[] = [];
     
     querySnapshot.forEach((doc) => {
@@ -60,15 +53,15 @@ export const getNewsletterSubscribers = async (): Promise<NewsletterSubscriber[]
 // Get all customers with open orders (server-side)
 export const getOpenOrderCustomers = async (): Promise<OrderCustomer[]> => {
   try {
-    if (!db) {
+    if (!adminDb) {
       throw new Error('Database service not available');
     }
 
-    const q = query(
-      collection(db, 'orders'),
-      where('status', '==', 'open')
-    );
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await adminDb
+      .collection('orders')
+      .where('status', '==', 'open')
+      .get();
+    
     const customers: OrderCustomer[] = [];
     const emailMap = new Map<string, OrderCustomer>(); // To deduplicate by email
     
@@ -96,5 +89,5 @@ export const getOpenOrderCustomers = async (): Promise<OrderCustomer[]> => {
   }
 };
 
-// Export other functions that might be needed
-export { addDoc, collection, serverTimestamp };
+// Export admin serverTimestamp
+export { FieldValue };
