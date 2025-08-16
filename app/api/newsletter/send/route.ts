@@ -79,19 +79,36 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
       replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
-    console.log(`Email sending completed: ${emailResult.totalSent} sent, ${emailResult.totalFailed} failed`);
+    // Handle different return types from sendBulkEmails
+    let totalSent: number;
+    let totalFailed: number;
+    let errors: Array<{email: string, error: string}> = [];
+
+    if ('totalSent' in emailResult) {
+      // Bulk email result with multiple recipients
+      totalSent = emailResult.totalSent;
+      totalFailed = emailResult.totalFailed;
+      errors = emailResult.errors;
+    } else {
+      // Single email result
+      totalSent = 1;
+      totalFailed = 0;
+      errors = [];
+    }
+
+    console.log(`Email sending completed: ${totalSent} sent, ${totalFailed} failed`);
     
-    if (emailResult.errors.length > 0) {
-      console.error('Failed to send to some recipients:', emailResult.errors);
+    if (errors.length > 0) {
+      console.error('Failed to send to some recipients:', errors);
     }
 
     return NextResponse.json({
       success: true,
-      message: `Email sent to ${emailResult.totalSent} ${recipientTypeLabel}`,
-      recipientCount: emailResult.totalSent,
-      failedCount: emailResult.totalFailed,
+      message: `Email sent to ${totalSent} ${recipientTypeLabel}`,
+      recipientCount: totalSent,
+      failedCount: totalFailed,
       recipientType: recipientType,
-      ...(emailResult.totalFailed > 0 && { failedEmails: emailResult.errors })
+      ...(totalFailed > 0 && { failedEmails: errors })
     });
 
   } catch (error: any) {
