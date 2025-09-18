@@ -1,21 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FaEnvelope, FaUsers, FaTrash, FaPaperPlane, FaHistory } from 'react-icons/fa';
-import { 
-  getNewsletterSubscribers, 
-  sendNewsletterEmail, 
-  getNewsletterHistory,
+import { FaEnvelope, FaUsers, FaTrash, FaPaperPlane } from 'react-icons/fa';
+import {
+  getNewsletterSubscribers,
+  sendNewsletterEmail,
   unsubscribeFromNewsletter,
-  NewsletterSubscriber,
-  NewsletterEmail 
+  NewsletterSubscriber
 } from '../../lib/newsletter';
 import RichTextEditor from '../../components/RichTextEditor';
 
 export default function NewsletterPanel() {
-  const [activeTab, setActiveTab] = useState<'compose' | 'subscribers' | 'history'>('compose');
+  const [activeTab, setActiveTab] = useState<'compose' | 'subscribers'>('compose');
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
-  const [emailHistory, setEmailHistory] = useState<NewsletterEmail[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   
@@ -29,8 +26,6 @@ export default function NewsletterPanel() {
   useEffect(() => {
     if (activeTab === 'subscribers') {
       fetchSubscribers();
-    } else if (activeTab === 'history') {
-      fetchEmailHistory();
     }
   }, [activeTab]);
 
@@ -47,18 +42,6 @@ export default function NewsletterPanel() {
     }
   };
 
-  const fetchEmailHistory = async () => {
-    try {
-      setLoading(true);
-      const history = await getNewsletterHistory();
-      setEmailHistory(history);
-    } catch (error) {
-      console.error('Error fetching email history:', error);
-      setMessage('Failed to load email history');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,11 +61,6 @@ export default function NewsletterPanel() {
       setMessage('Newsletter sent successfully!');
       setEmailSubject('');
       setEmailContent('');
-      
-      // Refresh data if on relevant tabs
-      if (activeTab === 'history') {
-        fetchEmailHistory();
-      }
     } catch (error: any) {
       console.error('Detailed error sending newsletter:', error);
       setMessage(`Error: ${error.message || 'Failed to send newsletter'}`);
@@ -144,17 +122,6 @@ export default function NewsletterPanel() {
         >
           <FaUsers className="inline mr-2" />
           Subs ({subscribers.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`px-6 py-3 text-lg font-semibold border-b-4 transition-all duration-200 ${
-            activeTab === 'history'
-              ? 'border-accent-gold text-brown'
-              : 'border-transparent text-brown/50 hover:text-brown'
-          }`}
-        >
-          <FaHistory className="inline mr-2" />
-          History
         </button>
       </div>
 
@@ -282,38 +249,6 @@ export default function NewsletterPanel() {
           </div>
         )}
 
-        {activeTab === 'history' && (
-          <div>
-            <h2 className="text-2xl font-serif font-bold text-brown mb-6">Email History</h2>
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
-                <p className="mt-4 text-brown/70">Loading email history...</p>
-              </div>
-            ) : emailHistory.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-brown/70 text-xl">No emails sent yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {emailHistory.map((email) => (
-                  <div key={email.id} className="bg-cream/50 rounded-xl p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-lg font-semibold text-brown">{email.subject}</h3>
-                      <div className="text-right text-sm text-brown/50">
-                        <p>Sent: {formatDate(email.sentAt)}</p>
-                        <p>Recipients: {email.recipientCount}</p>
-                      </div>
-                    </div>
-                    <div className="bg-white/50 rounded-lg p-4">
-                      <p className="text-brown whitespace-pre-wrap">{email.content}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

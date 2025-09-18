@@ -9,7 +9,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'open' | 'completed'>('open');
+  const [showOnlyOpen, setShowOnlyOpen] = useState(true);
   const [pickupTime, setPickupTime] = useState<string>('9:00 AM');
   const [pickupDate, setPickupDate] = useState<string>('TBD');
   const [pickupLocation, setPickupLocation] = useState<string>('Sour The Bakery');
@@ -89,15 +89,15 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     return date.toLocaleString();
   };
 
-  const getExportData = () => {
-    const openOrders = orders.filter(order => order.status === 'open');
-    
-    if (openOrders.length === 0) {
-      alert('No open orders to export');
+  const getExportData = (filterType: 'open' | 'completed') => {
+    const filteredOrders = orders.filter(order => order.status === filterType);
+
+    if (filteredOrders.length === 0) {
+      alert(`No ${filterType} orders to export`);
       return null;
     }
 
-    return openOrders.map(order => ({
+    return filteredOrders.map(order => ({
       'Order ID': order.id?.slice(-8) || 'N/A',
       'Customer Name': order.customerName,
       'Customer Email': order.customerEmail,
@@ -111,26 +111,26 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     }));
   };
 
-  const exportToExcel = () => {
-    const exportData = getExportData();
+  const exportToExcel = (filterType: 'open' | 'completed') => {
+    const exportData = getExportData(filterType);
     if (!exportData) return;
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Open Orders');
-    
-    const fileName = `open-orders-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.utils.book_append_sheet(workbook, worksheet, `${filterType.charAt(0).toUpperCase() + filterType.slice(1)} Orders`);
+
+    const fileName = `${filterType}-orders-${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
-  const exportToCSV = () => {
-    const exportData = getExportData();
+  const exportToCSV = (filterType: 'open' | 'completed') => {
+    const exportData = getExportData(filterType);
     if (!exportData) return;
 
     const headers = Object.keys(exportData[0]);
     const csvContent = [
       headers.join(','),
-      ...exportData.map(row => 
+      ...exportData.map(row =>
         headers.map(header => {
           const value = row[header as keyof typeof row];
           // Escape quotes and wrap in quotes if contains comma, quote, or newline
@@ -147,7 +147,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `open-orders-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `${filterType}-orders-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -155,7 +155,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   };
 
 
-  const filteredOrders = orders.filter(order => order.status === activeTab);
+  const filteredOrders = showOnlyOpen ? orders.filter(order => order.status === 'open') : orders;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -172,69 +172,72 @@ export default function OrdersPanel({ admin }: { admin: any }) {
             <FiRefreshCw size={18} />
             Refresh Orders
           </button>
-          {activeTab === 'open' && (
-            <div className="relative w-full sm:w-auto">
-              <button
-                onClick={() => setShowExportDropdown(!showExportDropdown)}
-                className="flex items-center justify-center gap-2 bg-green-600 border-1 border-green-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md cursor-pointer w-full sm:w-auto"
-              >
-                <FiDownload size={18} />
-                Export Orders
-                <FiChevronDown size={16} className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {showExportDropdown && (
-                <div className="absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 w-full sm:w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
-                  <button
-                    onClick={() => {
-                      exportToCSV();
-                      setShowExportDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors rounded-t-xl flex items-center gap-2"
-                  >
-                    <FiDownload size={16} />
-                    <span>Export as CSV</span>
-                    <span className="ml-auto text-xs text-gray-500">Mobile friendly</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      exportToExcel();
-                      setShowExportDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors rounded-b-xl flex items-center gap-2 border-t border-gray-100"
-                  >
-                    <FiDownload size={16} />
-                    <span>Export as Excel</span>
-                    <span className="ml-auto text-xs text-gray-500">Desktop</span>
-                  </button>
+          <div className="relative w-full sm:w-auto">
+            <button
+              onClick={() => setShowExportDropdown(!showExportDropdown)}
+              className="flex items-center justify-center gap-2 bg-green-600 border-1 border-green-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md cursor-pointer w-full sm:w-auto"
+            >
+              <FiDownload size={18} />
+              Export Orders
+              <FiChevronDown size={16} className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showExportDropdown && (
+              <div className="absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 w-full sm:w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Open Orders</p>
                 </div>
-              )}
-            </div>
-          )}
+                <button
+                  onClick={() => {
+                    exportToCSV('open');
+                    setShowExportDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                  <FiDownload size={16} />
+                  <span>Export Open Orders (CSV)</span>
+                </button>
+                <button
+                  onClick={() => {
+                    exportToExcel('open');
+                    setShowExportDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center gap-2 border-b border-gray-100"
+                >
+                  <FiDownload size={16} />
+                  <span>Export Open Orders (Excel)</span>
+                </button>
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Completed Orders</p>
+                </div>
+                <button
+                  onClick={() => {
+                    exportToCSV('completed');
+                    setShowExportDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                  <FiDownload size={16} />
+                  <span>Export Completed Orders (CSV)</span>
+                </button>
+                <button
+                  onClick={() => {
+                    exportToExcel('completed');
+                    setShowExportDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors rounded-b-xl flex items-center gap-2"
+                >
+                  <FiDownload size={16} />
+                  <span>Export Completed Orders (Excel)</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      {/* Tabs */}
-      <div className="flex gap-4 mb-6">
-        <button
-          className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 focus:outline-none cursor-pointer 
-            ${activeTab === 'open' 
-              ? 'text-2xl underline underline-offset-8 decoration-4 decoration-accent-gold text-brown' 
-              : 'text-lg text-brown/60 hover:text-brown'}
-          `}
-          onClick={() => setActiveTab('open')}
-        >
-          Open Orders
-        </button>
-        <button
-          className={`px-6 py-2 rounded-xl font-semibold transition-colors duration-300 focus:outline-none cursor-pointer 
-            ${activeTab === 'completed' 
-              ? 'text-2xl underline underline-offset-8 decoration-4 decoration-accent-gold text-brown' 
-              : 'text-lg text-brown/60 hover:text-brown'}
-          `}
-          onClick={() => setActiveTab('completed')}
-        >
-          Completed Orders
-        </button>
+      <div className="mb-6">
+        <h2 className="text-2xl font-serif font-bold text-brown">Open Orders</h2>
+        <p className="text-brown/70 mt-1">Currently active orders awaiting pickup</p>
       </div>
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
@@ -248,7 +251,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-brown/70 text-xl">No {activeTab} orders.</p>
+          <p className="text-brown/70 text-xl">No open orders found.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -309,12 +312,12 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   ))}
                 </div>
               </div>
-              {activeTab === 'open' && (
+              {order.status === 'open' && (
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleStatusUpdate(order.id!, 'completed')}
-                    disabled={updatingStatus === order.id || order.status === 'completed'}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 cursor-pointer ${order.status === 'completed' ? 'bg-green-100 text-green-600 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                    disabled={updatingStatus === order.id}
+                    className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 cursor-pointer bg-green-500 text-white hover:bg-green-600"
                   >
                     {updatingStatus === order.id ? 'Updating...' : 'Mark Complete'}
                   </button>

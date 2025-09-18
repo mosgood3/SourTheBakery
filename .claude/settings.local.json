@@ -17,7 +17,8 @@
       "Bash(del \"C:\\Users\\matth\\Engineering\\sourthebakery\\public\\favicon.ico\")",
       "Bash(timeout 5 npm run dev)",
       "Bash(timeout 15 npm run dev)",
-      "Bash(timeout 60 npm run build)"
+      "Bash(timeout 60 npm run build)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
