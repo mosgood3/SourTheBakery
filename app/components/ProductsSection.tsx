@@ -20,7 +20,7 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
   const [showPreorderPopup, setShowPreorderPopup] = useState(false);
   const [orderWindowOpen, setOrderWindowOpen] = useState(false);
   const [orderStatusLoading, setOrderStatusLoading] = useState(true);
-  const [pickupLocation, setPickupLocation] = useState<string>('12 Gaylord Drive, Rocky Hill, CT 06067');
+  const [pickupLocation, setPickupLocation] = useState<string>('Rocky Hill, CT');
   const [orderSettings, setOrderSettings] = useState<{
     orderWindowStart: string;
     orderWindowEnd: string;

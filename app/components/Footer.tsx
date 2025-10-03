@@ -3,7 +3,7 @@ import { FaTiktok, FaInstagram, FaFacebook } from 'react-icons/fa';
 import { getPickupInfo } from '../lib/settings';
 
 export default function Footer() {
-  const [pickupLocation, setPickupLocation] = useState<string>('12 Gaylord Drive, Rocky Hill, CT 06067');
+  const [pickupLocation, setPickupLocation] = useState<string>('Rocky Hill, CT');
 
   useEffect(() => {
     const fetchPickupLocation = async () => {
