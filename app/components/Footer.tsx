@@ -1,21 +1,6 @@
-import { useState, useEffect } from 'react';
 import { FaTiktok, FaInstagram, FaFacebook } from 'react-icons/fa';
-import { getPickupInfo } from '../lib/settings';
 
 export default function Footer() {
-  const [pickupLocation, setPickupLocation] = useState<string>('Rocky Hill, CT');
-
-  useEffect(() => {
-    const fetchPickupLocation = async () => {
-      try {
-        const info = await getPickupInfo();
-        setPickupLocation(info.location);
-      } catch (error) {
-        console.error('Error fetching pickup location:', error);
-      }
-    };
-    fetchPickupLocation();
-  }, []);
 
   return (
     <footer id="contact" className="bg-deep-green text-white py-16 border-t border-beige">
@@ -46,8 +31,8 @@ export default function Footer() {
             <h4 className="text-xl font-semibold mb-6 text-white">Contact</h4>
             <div className="space-y-4">
               <div>
-                <p className="text-white font-bold mb-1">Address</p>
-                <p className="text-white/70">{pickupLocation}</p>
+                <p className="text-white font-bold mb-1">Location</p>
+                <p className="text-white/70">Rocky Hill, CT 06067</p>
               </div>
               <div>
                 <p className="text-white font-bold mb-1">Phone</p>
