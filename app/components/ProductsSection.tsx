@@ -506,37 +506,6 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
           </div>
         </div>
 
-        {/* Modern Call to Action */}
-        <div className="text-center">
-          <div 
-            className="card-modern bg-white/80 backdrop-blur-md rounded-3xl p-16 max-w-5xl mx-auto border border-warm-beige shadow-2xl relative overflow-hidden"
-            style={{
-              backgroundImage: `url("data:image/svg+xml;utf8,<svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='40' height='40' fill='%23fff8e1'/><ellipse cx='20' cy='20' rx='19' ry='19' fill='%23f7e1b5' fill-opacity='0.13'/><ellipse cx='10' cy='10' rx='6' ry='6' fill='%23d19a6d' fill-opacity='0.07'/><ellipse cx='30' cy='30' rx='7' ry='7' fill='%238b5b29' fill-opacity='0.04'/></svg>")`,
-              backgroundSize: '120px 120px',
-              backgroundBlendMode: 'multiply',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            }}
-          >
-            <h3 className="text-4xl md:text-5xl font-bold text-deep-green mb-6 heading-shadow relative z-10">
-              Visit Our Farm Stand
-            </h3>
-            <p className="text-xl md:text-2xl text-moss-green opacity-90 mb-10 max-w-3xl mx-auto leading-relaxed relative z-10">
-              Experience the warmth and aroma of our freshly baked goods in person. Come see where the magic happens!
-            </p>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(pickupLocation)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-3 bg-sage-green text-white px-12 py-6 rounded-2xl text-xl font-semibold hover:bg-forest-green transition-all duration-500 transform hover:scale-105 shadow-2xl hover:shadow-3xl cursor-pointer relative z-10"
-            >
-              <span>Get Directions</span>
-              <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 616 0z" />
-              </svg>
-            </a>
-          </div>
-        </div>
       </div>
       {showPreorderPopup && (
         <div
