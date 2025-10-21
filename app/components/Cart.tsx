@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { isOrderWindowOpen } from '../lib/settings';
+import { isOrderWindowOpen } from '../lib/settings-supabase';
 import Checkout from './Checkout';
 
 interface CartProps {

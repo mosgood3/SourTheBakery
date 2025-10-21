@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiSave, FiClock, FiCalendar } from 'react-icons/fi';
-import { getSettings, updateSettings, Settings } from '../../lib/settings';
+import { getSettings, updateSettings, Settings } from '../../lib/settings-supabase';
 
 export default function SettingsPanel({ admin }: { admin: any }) {
   const [settings, setSettings] = useState<Settings>({

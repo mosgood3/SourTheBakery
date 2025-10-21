@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getOrders, updateOrderStatus, Order } from '../../lib/products';
-import { getPickupInfo } from '../../lib/settings';
+import { getOrders, updateOrderStatus, Order } from '../../lib/products-supabase';
+import { getPickupInfo } from '../../lib/settings-supabase';
 import { FiRefreshCw, FiDownload, FiChevronDown } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 

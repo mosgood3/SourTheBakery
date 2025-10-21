@@ -3,8 +3,8 @@
 import { useCart } from '../contexts/CartContext';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { getProducts, Product } from '../lib/products';
-import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings';
+import { getProducts, Product } from '../lib/products-supabase';
+import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings-supabase';
 import { FaTimes } from 'react-icons/fa';
 
 interface ProductsSectionProps {

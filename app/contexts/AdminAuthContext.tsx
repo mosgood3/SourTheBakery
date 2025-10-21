@@ -1,13 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged, 
-  User 
-} from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { signIn, signOut, onAuthStateChange, checkIsAdmin } from '../lib/auth-supabase';
+import type { User } from '@supabase/supabase-js';
 
 interface AdminUser extends User {
   isAdmin?: boolean;
@@ -24,18 +19,14 @@ interface AdminAuthContextType {
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-// List of admin UIDs - only pre-created Firebase accounts can access admin
-// Add your specific admin UID here after creating the account in Firebase Console
-const ADMIN_UIDS: string[] = [
-  process.env.NEXT_PUBLIC_ADMIN_UID!,
-];
+// Admin email from environment
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL!;
 
-const isAdminUID = (uid: string): boolean => {
-  // Ensure UID is valid and in the admin list
-  if (!uid || typeof uid !== 'string') {
+const isAdminEmail = (email: string | undefined): boolean => {
+  if (!email || typeof email !== 'string') {
     return false;
   }
-  return ADMIN_UIDS.includes(uid);
+  return email === ADMIN_EMAIL;
 };
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
@@ -44,62 +35,56 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only run auth state listener on client side and when auth is available
-    if (typeof window === 'undefined' || !auth) {
+    // Only run auth state listener on client side
+    if (typeof window === 'undefined') {
       setLoading(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+    // Subscribe to auth state changes
+    const { data: { subscription } } = onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event);
+
+      if (session?.user) {
         // Check if the user is an admin
+        const isAdmin = isAdminEmail(session.user.email);
         const adminUser: AdminUser = {
-          ...user,
-          isAdmin: isAdminUID(user.uid)
+          ...session.user,
+          isAdmin
         };
         setAdmin(adminUser);
       } else {
         setAdmin(null);
       }
       setLoading(false);
-    }, (error) => {
-      console.error('Auth state change error:', error);
-      setError('Authentication error occurred');
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      // Don't set loading to true here to prevent flash
-      
-      // Check if auth is available
-      if (!auth) {
-        throw new Error('Authentication service not available');
-      }
-      
+
       // Validate email format
       if (!email || !email.includes('@')) {
         throw new Error('Please enter a valid email address.');
       }
-      
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      // Double-check admin status after successful authentication
-      console.log('User UID:', user.uid);
-      console.log('Expected ADMIN_UID:', process.env.NEXT_PUBLIC_ADMIN_UID);
-      console.log('Admin UIDs array:', ADMIN_UIDS);
-      console.log('Is admin check result:', isAdminUID(user.uid));
-      
-      if (!isAdminUID(user.uid)) {
-        await signOut(auth);
+
+      const { user } = await signIn(email, password);
+
+      // Check admin status after successful authentication
+      console.log('User email:', user.email);
+      console.log('Expected ADMIN_EMAIL:', ADMIN_EMAIL);
+      console.log('Is admin check result:', isAdminEmail(user.email));
+
+      if (!isAdminEmail(user.email)) {
+        await signOut();
         throw new Error('Access denied. Admin privileges required.');
       }
-      
+
       const adminUser: AdminUser = {
         ...user,
         isAdmin: true
@@ -107,33 +92,29 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setAdmin(adminUser);
     } catch (error: any) {
       console.error('Login error:', error);
-      
+
       // Provide user-friendly error messages
       let errorMessage = 'Login failed. Please try again.';
-      
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No account found with this email address.';
-      } else if (error.code === 'auth/wrong-password') {
-        errorMessage = 'Incorrect password. Please try again.';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many failed attempts. Please try again later.';
-      } else if (error.message && error.message.includes('Access denied')) {
+
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please confirm your email address before logging in.';
+      } else if (error.message?.includes('Access denied')) {
+        errorMessage = error.message;
+      } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       setError(errorMessage);
       throw error;
     }
-    // Don't set loading to false here to prevent flash
   };
 
   const logout = async () => {
     try {
       setError(null);
-      if (!auth) {
-        throw new Error('Authentication service not available');
-      }
-      await signOut(auth);
+      await signOut();
       setAdmin(null);
     } catch (error: any) {
       console.error('Logout error:', error);
@@ -159,4 +140,4 @@ export function useAdminAuth() {
     throw new Error('useAdminAuth must be used within an AdminAuthProvider');
   }
   return context;
-} 
+}

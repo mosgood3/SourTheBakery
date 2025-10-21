@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNewsletterSubscribers, getOpenOrderCustomers } from '../../../lib/newsletter-server';
+import { getNewsletterSubscribers, getOpenOrderCustomers } from '../../../lib/newsletter-server-supabase';
 import { sendBulkEmails } from '../../../lib/ses-email-service';
 import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateNewsletterData, sanitizeHtml } from '../../../lib/input-validator';
-import { getPickupInfo } from '../../../lib/settings';
+import { getPickupInfo } from '../../../lib/settings-supabase';
 
 async function handleNewsletterSend(request: AuthenticatedRequest): Promise<NextResponse> {
   try {

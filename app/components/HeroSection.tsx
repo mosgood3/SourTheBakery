@@ -4,7 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useEffect, useState, useRef } from 'react';
 import CateringForm from './CateringForm';
 import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { subscribeToNewsletter } from '../lib/newsletter';
+import { subscribeToNewsletter } from '../lib/newsletter-supabase';
 
 interface Slide {
   id: number;

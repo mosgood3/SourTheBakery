@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
+import SocialMediaPopup from './SocialMediaPopup';
 
 export default function AboutSection() {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   return (
     <section 
       id="about" 
@@ -69,7 +72,20 @@ export default function AboutSection() {
               </p>
             </div>
 
-            {/* Statistics - removed */}
+            {/* Social Media CTA Button */}
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setIsPopupOpen(true)}
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform"
+              >
+                <span className="text-2xl">✨</span>
+                <span>Follow Our Journey</span>
+                <span className="text-2xl">✨</span>
+              </button>
+              <p className="text-sm text-deep-green/70 mt-3 font-medium">
+                Join us on social media for daily updates & behind-the-scenes
+              </p>
+            </div>
           </div>
 
           {/* Right: Baker Image & Quote */}
@@ -92,6 +108,9 @@ export default function AboutSection() {
           </div>
         </div>
       </div>
+
+      {/* Social Media Popup */}
+      <SocialMediaPopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
     </section>
   );
 } 

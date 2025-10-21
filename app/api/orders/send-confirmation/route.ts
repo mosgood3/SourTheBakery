@@ -3,7 +3,7 @@ import { sendEmail } from '../../../lib/ses-email-service';
 import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { escapeHtml, validateEmail } from '../../../lib/input-validator';
-import { getPickupInfo } from '../../../lib/settings';
+import { getPickupInfo } from '../../../lib/settings-supabase';
 
 interface OrderItem {
   id: string;

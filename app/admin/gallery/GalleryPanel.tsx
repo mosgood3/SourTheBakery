@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { 
-  getGalleryImages, 
-  uploadGalleryImage, 
+import {
+  getGalleryImages,
+  uploadGalleryImage,
   deleteGalleryImage,
   isValidImageFile,
-  isValidFileSize 
-} from '../../lib/storage';
+  isValidFileSize
+} from '../../lib/storage-supabase';
 import { FaPlus, FaTrash, FaUpload } from 'react-icons/fa';
 
 export default function GalleryPanel() {

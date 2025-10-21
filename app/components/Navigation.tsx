@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { GiShoppingCart } from "react-icons/gi";
-import { FaTiktok, FaInstagram, FaFacebook } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function Navigation() {
@@ -43,20 +42,7 @@ export default function Navigation() {
             <a href="#products" className="text-deep-green hover:text-sage-green transition-colors">Menu</a>
             <a href="#about" className="text-deep-green hover:text-sage-green transition-colors">About</a>
             <a href="#contact" className="text-deep-green hover:text-sage-green transition-colors">Contact</a>
-            
-            {/* Social Media Icons */}
-            <div className="flex items-center space-x-4">
-              <a href="https://www.tiktok.com/@sourthebakery" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
-                <FaTiktok size={20} />
-              </a>
-              <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
-                <FaInstagram size={20} />
-              </a>
-              <a href="https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-blue-600 hover:scale-110 transition-all duration-300">
-                <FaFacebook size={20} />
-              </a>
-            </div>
-            
+
             {/* Cart Icon */}
             <button
               onClick={toggleCart}
@@ -131,26 +117,13 @@ export default function Navigation() {
               >
                 About
               </a>
-              <a 
-                href="#contact" 
+              <a
+                href="#contact"
                 className="block px-3 py-2 text-deep-green hover:text-sage-green transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
               </a>
-              
-              {/* Social Media Icons for Mobile */}
-              <div className="flex items-center space-x-6 px-3 py-4 border-t border-muted mt-4">
-                <a href="https://www.tiktok.com/@sourthebakery" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-black hover:scale-110 transition-all duration-300">
-                  <FaTiktok size={24} />
-                </a>
-                <a href="https://www.instagram.com/sourthebakery/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-pink-600 hover:scale-110 transition-all duration-300">
-                  <FaInstagram size={24} />
-                </a>
-                <a href="https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-blue-600 hover:scale-110 transition-all duration-300">
-                  <FaFacebook size={24} />
-                </a>
-              </div>
             </div>
           </div>
         </>

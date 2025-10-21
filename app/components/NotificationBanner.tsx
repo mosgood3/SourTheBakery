@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaInfoCircle } from 'react-icons/fa';
-import { getNotificationSettings, NotificationSettings } from '../lib/notifications';
+import { getNotificationSettings, NotificationSettings } from '../lib/notifications-supabase';
 
 interface NotificationBannerProps {
   onVisibilityChange?: (visible: boolean) => void;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { isOrderWindowOpen, getSettings } from '../lib/settings';
+import { isOrderWindowOpen, getSettings } from '../lib/settings-supabase';
 
 export default function OrderStatusBanner() {
   const [status, setStatus] = useState({

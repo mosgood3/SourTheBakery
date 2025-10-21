@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaHome, FaInstagram, FaTiktok, FaFacebook } from 'react-icons/fa';
+import { FaHome, FaInstagram, FaTiktok, FaFacebook, FaYoutube } from 'react-icons/fa';
 
 export default function SocialsPage() {
   const socialLinks = [
@@ -31,6 +31,13 @@ export default function SocialsPage() {
       icon: FaFacebook,
       color: 'bg-blue-600 hover:bg-blue-700',
       description: 'Like us on Facebook'
+    },
+    {
+      name: 'YouTube',
+      url: 'https://www.youtube.com/@SOURTheBakery',
+      icon: FaYoutube,
+      color: 'bg-red-600 hover:bg-red-700',
+      description: 'Subscribe to our channel'
     }
   ];
 

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrderServer } from '../../../lib/products-server';
+import { createOrderServer } from '../../../lib/products-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
-import { FieldValue } from 'firebase-admin/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
@@ -77,7 +76,7 @@ export async function POST(req: NextRequest) {
         items: mappedItems,
         total: paymentIntent.amount / 100,
         status: 'open' as const,
-        pickupDate: FieldValue.serverTimestamp() // Will be updated with actual pickup date later
+        pickupDate: pickupDateTime.toISOString()
       };
       const orderId = await createOrderServer(orderData);
 

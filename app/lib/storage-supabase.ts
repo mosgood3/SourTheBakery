@@ -1,0 +1,153 @@
+import { supabase } from './supabase';
+
+// Upload an image file to Supabase Storage
+export const uploadImage = async (file: File, folder: string = 'products'): Promise<string> => {
+  try {
+    // Create a unique filename
+    const timestamp = Date.now();
+    const fileName = `${timestamp}_${file.name}`;
+    const filePath = `${folder}/${fileName}`;
+
+    // Upload the file to the 'images' bucket
+    const { data, error } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw new Error('Failed to upload image');
+  }
+};
+
+// Delete an image from Supabase Storage
+export const deleteImage = async (imageUrl: string): Promise<void> => {
+  try {
+    console.log('Deleting image URL:', imageUrl);
+
+    // Extract the file path from the URL
+    // Supabase URLs format: https://{project}.supabase.co/storage/v1/object/public/images/{path}
+    const url = new URL(imageUrl);
+    const pathParts = url.pathname.split('/images/');
+    const filePath = pathParts[1];
+
+    console.log('Extracted path:', filePath);
+
+    if (!filePath) {
+      throw new Error('Invalid image URL - could not extract path');
+    }
+
+    console.log('Attempting to delete file at path:', filePath);
+
+    // Delete the file from the 'images' bucket
+    const { error } = await supabase.storage
+      .from('images')
+      .remove([filePath]);
+
+    if (error) throw error;
+
+    console.log('Successfully deleted file');
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to delete image');
+  }
+};
+
+// Get file extension from filename
+export const getFileExtension = (filename: string): string => {
+  return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
+};
+
+// Validate file type
+export const isValidImageFile = (file: File): boolean => {
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  return validTypes.includes(file.type);
+};
+
+// Validate file size (max 5MB)
+export const isValidFileSize = (file: File, maxSizeMB: number = 5): boolean => {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  return file.size <= maxSizeBytes;
+};
+
+// Gallery-specific functions
+
+// Get all gallery images from Supabase Storage
+export const getGalleryImages = async (): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from('images')
+      .list('gallery', {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'created_at', order: 'desc' }
+      });
+
+    if (error) throw error;
+
+    if (!data) return [];
+
+    // Get public URLs for all files
+    const urls = data.map((file) => {
+      const { data: publicUrlData } = supabase.storage
+        .from('images')
+        .getPublicUrl(`gallery/${file.name}`);
+      return publicUrlData.publicUrl;
+    });
+
+    return urls;
+  } catch (error) {
+    console.error('Error fetching gallery images:', error);
+    return [];
+  }
+};
+
+// Upload gallery image
+export const uploadGalleryImage = async (file: File): Promise<string> => {
+  return uploadImage(file, 'gallery');
+};
+
+// Delete gallery image by URL
+export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
+  try {
+    console.log('deleteGalleryImage called with URL:', imageUrl);
+    await deleteImage(imageUrl);
+  } catch (error) {
+    console.log('Delete failed, trying alternative approach...');
+
+    // Alternative approach: try to extract filename and construct path manually
+    try {
+      // Extract filename from URL
+      const urlParts = imageUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+
+      // Try direct path construction
+      const alternativePath = `gallery/${fileName}`;
+      console.log('Trying alternative path:', alternativePath);
+
+      const { error: deleteError } = await supabase.storage
+        .from('images')
+        .remove([alternativePath]);
+
+      if (deleteError) throw deleteError;
+
+      console.log('Alternative delete approach succeeded');
+    } catch (altError) {
+      console.error('Alternative delete approach also failed:', altError);
+      throw error; // Throw the original error
+    }
+  }
+};

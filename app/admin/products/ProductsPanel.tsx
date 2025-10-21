@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { getProducts, addProduct, updateProduct, deleteProduct, Product, resetWeeklyAmounts, updateProductWeeklyAmount } from '../../lib/products';
-import { uploadImage, isValidImageFile, isValidFileSize } from '../../lib/storage';
+import { getProducts, addProduct, updateProduct, deleteProduct, Product, resetWeeklyAmounts, updateProductWeeklyAmount } from '../../lib/products-supabase';
+import { uploadImage, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
 import { FiPlus, FiRefreshCw } from 'react-icons/fi';
 

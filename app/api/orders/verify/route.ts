@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrders } from '../../../lib/products';
+import { getOrders } from '../../../lib/products-supabase';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateEmail } from '../../../lib/input-validator';
 

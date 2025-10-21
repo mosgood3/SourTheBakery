@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSettings, isOrderWindowOpen, isOrderDeadlinePassed, getPickupInfo } from '../../lib/settings';
+import { getSettings, isOrderWindowOpen, isOrderDeadlinePassed, getPickupInfo } from '../../lib/settings-supabase';
 
 export async function GET() {
   try {

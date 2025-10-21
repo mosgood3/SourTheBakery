@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { isOrderWindowOpen, getSettings, getPickupInfo } from '../lib/settings';
+import { isOrderWindowOpen, getSettings, getPickupInfo } from '../lib/settings-supabase';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 import { FaCheckCircle, FaEnvelope, FaSpinner } from 'react-icons/fa';

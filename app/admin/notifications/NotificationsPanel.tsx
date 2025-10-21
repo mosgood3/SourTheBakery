@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaBell } from 'react-icons/fa';
-import { getNotificationSettings, updateNotificationSettings, NotificationSettings, MAX_MESSAGE_LENGTH } from '../../lib/notifications';
+import { getNotificationSettings, updateNotificationSettings, NotificationSettings, MAX_MESSAGE_LENGTH } from '../../lib/notifications-supabase';
 
 export default function NotificationsPanel() {
   const [settings, setSettings] = useState<NotificationSettings>({
