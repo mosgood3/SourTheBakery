@@ -83,10 +83,9 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: string | undefined) => {
     if (!timestamp) return 'N/A';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString();
+    return new Date(timestamp).toLocaleString();
   };
 
   const getExportData = (filterType: 'open' | 'completed') => {
@@ -234,10 +233,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
             )}
           </div>
         </div>
-      </div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-serif font-bold text-brown">Open Orders</h2>
-        <p className="text-brown/70 mt-1">Currently active orders awaiting pickup</p>
       </div>
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">

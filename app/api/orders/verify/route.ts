@@ -19,13 +19,13 @@ async function handleOrderVerification(req: NextRequest): Promise<NextResponse> 
 
     // Get recent orders for this customer
     const orders = await getOrders();
-    
+
     // Look for an order created in the last 5 minutes for this customer
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    
+
     const recentOrder = orders.find(order => {
-      const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-      return order.customerEmail === customerEmail && orderDate > fiveMinutesAgo;
+      const orderDate = new Date(order.created_at || '');
+      return order.customer_email === customerEmail && orderDate > fiveMinutesAgo;
     });
 
     if (recentOrder) {

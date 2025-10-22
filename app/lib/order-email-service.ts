@@ -1,20 +1,30 @@
 import { sendEmail } from './ses-email-service';
-import { OrderData } from './products';
 import { escapeHtml } from './input-validator';
-import { getPickupInfo } from './settings';
+import { getPickupInfo } from './settings-supabase';
 
-export interface OrderConfirmationData extends OrderData {
+export interface OrderConfirmationData {
   orderId: string;
+  customerName: string;
+  customerEmail: string;
+  items: {
+    productId: string;
+    productName: string;
+    quantity: number;
+    price: string;
+  }[];
+  total: number;
+  orderDate?: Date;
+  pickupDate?: string | Date;
 }
 
 export const generateOrderConfirmationHTML = async (order: OrderConfirmationData): Promise<string> => {
-  const formatPickupDate = (pickupDate: any): string => {
+  const formatPickupDate = (pickupDate: string | Date | undefined): string => {
     if (!pickupDate) return 'TBD';
-    const date = pickupDate.toDate ? pickupDate.toDate() : new Date(pickupDate);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
+    const date = new Date(pickupDate);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
       day: 'numeric'
     });
   };

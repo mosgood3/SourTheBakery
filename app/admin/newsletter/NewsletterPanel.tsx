@@ -7,7 +7,7 @@ import {
   sendNewsletterEmail,
   unsubscribeFromNewsletter,
   NewsletterSubscriber
-} from '../../lib/newsletter';
+} from '../../lib/newsletter-supabase';
 import RichTextEditor from '../../components/RichTextEditor';
 
 export default function NewsletterPanel() {
@@ -84,9 +84,9 @@ export default function NewsletterPanel() {
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: string | undefined) => {
     if (!timestamp) return 'Unknown';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const date = new Date(timestamp);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 

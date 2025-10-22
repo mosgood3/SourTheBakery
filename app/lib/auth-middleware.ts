@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from './firebase-admin';
+import { supabaseServer } from './supabase-server';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -12,30 +12,35 @@ export interface AuthenticatedRequest extends NextRequest {
 export async function verifyAdminAuth(request: NextRequest): Promise<{ success: boolean; user?: any; error?: string }> {
   try {
     const authHeader = request.headers.get('authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return { success: false, error: 'Authentication required' };
     }
 
     const token = authHeader.split('Bearer ')[1];
-    
+
     if (!token) {
       return { success: false, error: 'Invalid authentication token' };
     }
 
-    // Verify the Firebase ID token
-    const decodedToken = await auth.verifyIdToken(token);
-    
+    // Verify the Supabase JWT token
+    const { data: { user }, error } = await supabaseServer.auth.getUser(token);
+
+    if (error || !user) {
+      return { success: false, error: 'Invalid authentication token' };
+    }
+
     // Check if user is admin
-    if (decodedToken.email !== 'sourthebakeryllc@gmail.com') {
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    if (user.email !== adminEmail) {
       return { success: false, error: 'Admin access required' };
     }
 
     return {
       success: true,
       user: {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
+        uid: user.id,
+        email: user.email,
         isAdmin: true
       }
     };
