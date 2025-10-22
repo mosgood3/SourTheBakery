@@ -5,14 +5,13 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ProductsPanel from './products/ProductsPanel';
 import OrdersPanel from './orders/OrdersPanel';
 import SettingsPanel from './settings/SettingsPanel';
-import NotificationsPanel from './notifications/NotificationsPanel';
 import NewsletterPanel from './newsletter/NewsletterPanel';
 import GalleryPanel from './gallery/GalleryPanel';
-import { FiLogOut, FiMenu, FiX, FiShoppingBag, FiPackage, FiSettings, FiBell, FiMail, FiImage } from 'react-icons/fi';
+import { FiLogOut, FiMenu, FiX, FiShoppingBag, FiPackage, FiSettings, FiMail, FiImage } from 'react-icons/fi';
 
 export default function AdminTabbedPanel() {
   const { admin, loading: authLoading, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings' | 'notifications' | 'newsletter' | 'gallery'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings' | 'newsletter' | 'gallery'>('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -44,10 +43,9 @@ export default function AdminTabbedPanel() {
     { key: 'gallery', label: 'Gallery', icon: FiImage },
     { key: 'newsletter', label: 'Newsletter', icon: FiMail },
     { key: 'settings', label: 'Settings', icon: FiSettings },
-    { key: 'notifications', label: 'Notifications', icon: FiBell },
   ];
 
-  const handleTabChange = (tab: 'products' | 'orders' | 'settings' | 'notifications' | 'newsletter' | 'gallery') => {
+  const handleTabChange = (tab: 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery') => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
   };
@@ -106,7 +104,7 @@ export default function AdminTabbedPanel() {
             return (
               <button
                 key={item.key}
-                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'settings' | 'notifications' | 'newsletter' | 'gallery')}
+                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery')}
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-200 mb-2 ${
                   activeTab === item.key
                     ? "bg-accent-gold/20 text-brown border-l-4 border-accent-gold"
@@ -147,7 +145,7 @@ export default function AdminTabbedPanel() {
                   ? "border-accent-gold text-brown"
                   : "border-transparent text-brown/50 hover:text-brown"
               }`}
-              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'settings' | 'notifications' | 'newsletter' | 'gallery')}
+              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery')}
             >
               <IconComponent size={18} />
               {item.label}
@@ -163,7 +161,6 @@ export default function AdminTabbedPanel() {
         {activeTab === "gallery" && <GalleryPanel />}
         {activeTab === "newsletter" && <NewsletterPanel />}
         {activeTab === "settings" && <SettingsPanel admin={admin} />}
-        {activeTab === "notifications" && <NotificationsPanel />}
       </main>
     </div>
   );

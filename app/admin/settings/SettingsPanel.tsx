@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiSave, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiSave, FiClock, FiCalendar, FiBell } from 'react-icons/fi';
 import { getSettings, updateSettings, Settings } from '../../lib/settings-supabase';
+import { getNotificationSettings, updateNotificationSettings, NotificationSettings, MAX_MESSAGE_LENGTH } from '../../lib/notifications-supabase';
 
 export default function SettingsPanel({ admin }: { admin: any }) {
   const [settings, setSettings] = useState<Settings>({
@@ -17,6 +18,13 @@ export default function SettingsPanel({ admin }: { admin: any }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Notification settings state
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+    message: '',
+    isActive: false
+  });
+  const [savingNotifications, setSavingNotifications] = useState(false);
 
   const daysOfWeek = [
     { value: 0, label: 'Sunday' },
@@ -39,6 +47,12 @@ export default function SettingsPanel({ admin }: { admin: any }) {
       setLoading(true);
       const fetchedSettings = await getSettings();
       setSettings(fetchedSettings);
+
+      // Fetch notification settings
+      const fetchedNotificationSettings = await getNotificationSettings();
+      if (fetchedNotificationSettings) {
+        setNotificationSettings(fetchedNotificationSettings);
+      }
     } catch (err) {
       console.error('Failed to load settings:', err);
       // Use default settings if none exist
@@ -80,6 +94,36 @@ export default function SettingsPanel({ admin }: { admin: any }) {
       [field]: value
     }));
   };
+
+  const handleNotificationInputChange = (field: keyof NotificationSettings, value: any) => {
+    setNotificationSettings((prev: NotificationSettings) => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      setSavingNotifications(true);
+      setError(null);
+      setSuccess(null);
+
+      await updateNotificationSettings({
+        message: notificationSettings.message,
+        isActive: notificationSettings.isActive
+      });
+      setSuccess('Notification settings saved successfully!');
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save notification settings');
+    } finally {
+      setSavingNotifications(false);
+    }
+  };
+
+  const remainingChars = MAX_MESSAGE_LENGTH - notificationSettings.message.length;
 
   if (loading) {
     return (
@@ -289,6 +333,78 @@ export default function SettingsPanel({ admin }: { admin: any }) {
               <p className="text-sm text-brown/60">
                 Window: {settings.pickupTimeStart} - {settings.pickupTimeEnd}
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Notification Banner Settings */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
+          <div className="flex items-center gap-3 mb-6">
+            <FiBell className="text-2xl text-accent-gold" />
+            <h2 className="text-2xl font-serif font-bold text-brown">Notification Banner</h2>
+          </div>
+
+          <div className="space-y-6">
+            {/* Toggle Active */}
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-semibold text-brown/70">
+                  Banner Status
+                </label>
+                <p className="text-xs text-brown/60 mt-1">
+                  Display a notification banner on the homepage
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`text-sm font-semibold ${notificationSettings.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                  {notificationSettings.isActive ? 'Active' : 'Inactive'}
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={notificationSettings.isActive}
+                    onChange={(e) => handleNotificationInputChange('isActive', e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-gold/20 rounded-full peer peer-checked:after:translate-x-8 peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent-gold"></div>
+                </label>
+              </div>
+            </div>
+
+            {/* Message Input */}
+            <div>
+              <label htmlFor="notification-message" className="block text-sm font-semibold text-brown/70 mb-2">
+                Banner Message
+              </label>
+              <textarea
+                id="notification-message"
+                rows={4}
+                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown resize-none"
+                placeholder="Enter your notification banner message..."
+                value={notificationSettings.message}
+                onChange={(e) => handleNotificationInputChange('message', e.target.value)}
+                maxLength={MAX_MESSAGE_LENGTH}
+              />
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-brown/60">
+                  Character limit: {MAX_MESSAGE_LENGTH}
+                </p>
+                <p className={`text-xs font-medium ${remainingChars < 20 ? 'text-red-500' : 'text-brown/60'}`}>
+                  {remainingChars} characters remaining
+                </p>
+              </div>
+            </div>
+
+            {/* Save Notifications Button */}
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleSaveNotifications}
+                disabled={savingNotifications || remainingChars < 0}
+                className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiSave size={18} />
+                {savingNotifications ? 'Saving...' : 'Save Notification Settings'}
+              </button>
             </div>
           </div>
         </div>
