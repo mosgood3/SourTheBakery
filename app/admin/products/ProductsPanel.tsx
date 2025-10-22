@@ -78,10 +78,12 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       let imageUrl = formData.image;
       if (selectedFile) { imageUrl = await uploadImage(selectedFile); }
       const productData = {
-        ...formData,
+        name: formData.name,
+        price: formData.price,
         image: imageUrl,
-        weeklyCap: formData.weeklyCap ? parseInt(formData.weeklyCap) : undefined,
-        weeklyAmountRemaining: formData.weeklyAmountRemaining ? parseInt(formData.weeklyAmountRemaining) : undefined
+        quantity: formData.quantity,
+        weekly_cap: formData.weeklyCap ? parseInt(formData.weeklyCap) : undefined,
+        weekly_amount_remaining: formData.weeklyAmountRemaining ? parseInt(formData.weeklyAmountRemaining) : undefined
       };
       if (editingId) { 
         await updateProduct(editingId, productData); 
@@ -103,8 +105,8 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       price: product.price,
       image: product.image,
       quantity: product.quantity || '',
-      weeklyCap: product.weeklyCap?.toString() || '',
-      weeklyAmountRemaining: product.weeklyAmountRemaining?.toString() || ''
+      weeklyCap: product.weekly_cap?.toString() || '',
+      weeklyAmountRemaining: product.weekly_amount_remaining?.toString() || ''
     });
     setImagePreview(product.image); setSelectedFile(null);
   };
@@ -374,11 +376,11 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                       <h3 className="text-xl font-bold text-brown mb-2">{product.name}</h3>
                       <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
                       {product.quantity && <p className="text-sm text-brown/70 mb-2 font-medium">Quantity: {product.quantity}</p>}
-                      {product.weeklyCap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weeklyCap}</p>}
-                      {typeof product.weeklyAmountRemaining === 'number' && (
+                      {product.weekly_cap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weekly_cap}</p>}
+                      {typeof product.weekly_amount_remaining === 'number' && (
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-sm text-brown/50">Remaining:</span>
-                          <span className="text-brown font-semibold text-base">{product.weeklyAmountRemaining}</span>
+                          <span className="text-brown font-semibold text-base">{product.weekly_amount_remaining}</span>
                         </div>
                       )}
                     </div>

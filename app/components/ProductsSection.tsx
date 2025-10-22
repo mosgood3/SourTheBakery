@@ -128,13 +128,13 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
 
     // Check if adding this item would exceed available stock
     const currentCartQuantity = getCartQuantityForProduct(product.id || '');
-    const availableStock = product.weeklyAmountRemaining ?? 0;
-    
+    const availableStock = product.weekly_amount_remaining ?? 0;
+
     if (currentCartQuantity >= availableStock) {
       // Item is at stock limit
       return;
     }
-    
+
     // Add the product to cart
     addItem({
       id: product.id || '',
@@ -154,7 +154,7 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
 
   // Helper function to get remaining stock for a product (considering cart)
   const getRemainingStock = (product: Product): number => {
-    const availableStock = product.weeklyAmountRemaining ?? 0;
+    const availableStock = product.weekly_amount_remaining ?? 0;
     const currentCartQuantity = getCartQuantityForProduct(product.id || '');
     return Math.max(0, availableStock - currentCartQuantity);
   };

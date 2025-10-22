@@ -98,10 +98,10 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
     return filteredOrders.map(order => ({
       'Order ID': order.id?.slice(-8) || 'N/A',
-      'Customer Name': order.customerName,
-      'Customer Email': order.customerEmail,
+      'Customer Name': order.customer_name,
+      'Customer Email': order.customer_email,
       'Order Total': `$${order.total.toFixed(2)}`,
-      'Order Date': formatDate(order.createdAt),
+      'Order Date': formatDate(order.created_at),
       'Pickup Date': pickupDate,
       'Pickup Time': pickupTime,
       'Pickup Location': pickupLocation,
@@ -255,7 +255,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
-                  <p className="text-brown/70">Placed on {formatDate(order.createdAt)}</p>
+                  <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
@@ -268,11 +268,11 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-semibold text-brown/70 mb-1">Customer</p>
-                    <p className="text-brown font-medium">{order.customerName}</p>
+                    <p className="text-brown font-medium">{order.customer_name}</p>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-brown/70 mb-1">Email</p>
-                    <p className="text-brown font-medium">{order.customerEmail}</p>
+                    <p className="text-brown font-medium">{order.customer_email}</p>
                   </div>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

@@ -232,7 +232,7 @@ export default function NewsletterPanel() {
                     <div>
                       <p className="font-semibold text-brown">{subscriber.email}</p>
                       <p className="text-sm text-brown/50">
-                        Subscribed: {formatDate(subscriber.subscribedAt)}
+                        Subscribed: {formatDate(subscriber.subscribed_at)}
                       </p>
                     </div>
                     <button
