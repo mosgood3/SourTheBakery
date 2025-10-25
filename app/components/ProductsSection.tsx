@@ -56,7 +56,6 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
           pickupTimeEnd: settings.pickupTimeEnd
         });
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError('Failed to load products');
       } finally {
         setLoading(false);
@@ -80,7 +79,6 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
           setProducts(fetchedProducts);
           setOrderWindowOpen(isOrderOpen);
         } catch (err) {
-          console.error('Error refreshing products:', err);
         }
       };
       
@@ -554,7 +552,6 @@ function BakeryGallery() {
         
         setImages(formattedImages);
       } catch (error) {
-        console.error('Error fetching gallery images:', error);
         // Fallback to static images if Firebase fails
         setImages([
           { src: '/collage/sour1.jpg', alt: 'Sourdough Creation 1' },

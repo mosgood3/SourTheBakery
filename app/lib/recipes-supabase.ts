@@ -36,7 +36,6 @@ export const getRecipes = async (): Promise<Recipe[]> => {
 
     return data || [];
   } catch (error) {
-    console.error('Error getting recipes:', error);
     throw error;
   }
 };
@@ -60,7 +59,6 @@ export const getRecipe = async (id: string): Promise<Recipe | null> => {
 
     return data;
   } catch (error) {
-    console.error('Error getting recipe:', error);
     throw error;
   }
 };
@@ -84,7 +82,6 @@ export const addRecipe = async (recipe: Omit<Recipe, 'id' | 'created_at' | 'upda
 
     return data.id;
   } catch (error) {
-    console.error('Error adding recipe:', error);
     throw error;
   }
 };
@@ -107,7 +104,6 @@ export const updateRecipe = async (id: string, recipe: Partial<Recipe>): Promise
 
     if (error) throw error;
   } catch (error) {
-    console.error('Error updating recipe:', error);
     throw error;
   }
 };
@@ -127,7 +123,6 @@ export const deleteRecipe = async (id: string, imageUrl?: string, pdfUrl?: strin
       try {
         await deleteFile(imageUrl);
       } catch (imageError) {
-        console.warn('Failed to delete image:', imageError);
       }
     }
 
@@ -136,11 +131,9 @@ export const deleteRecipe = async (id: string, imageUrl?: string, pdfUrl?: strin
       try {
         await deleteFile(pdfUrl);
       } catch (pdfError) {
-        console.warn('Failed to delete PDF:', pdfError);
       }
     }
   } catch (error) {
-    console.error('Error deleting recipe:', error);
     throw error;
   }
 };
@@ -165,7 +158,6 @@ export const createRecipePurchase = async (purchase: Omit<RecipePurchase, 'id' |
 
     return data.id;
   } catch (error) {
-    console.error('Error creating recipe purchase:', error);
     throw error;
   }
 };
@@ -182,7 +174,6 @@ export const getRecipePurchases = async (): Promise<RecipePurchase[]> => {
 
     return data || [];
   } catch (error) {
-    console.error('Error getting recipe purchases:', error);
     throw error;
   }
 };

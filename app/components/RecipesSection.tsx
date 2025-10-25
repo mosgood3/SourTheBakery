@@ -17,7 +17,6 @@ export default function RecipesSection() {
         const fetchedRecipes = await getRecipes();
         setRecipes(fetchedRecipes);
       } catch (err) {
-        console.error('Error fetching recipes:', err);
         setError('Failed to load recipes');
       } finally {
         setLoading(false);

@@ -31,7 +31,6 @@ export const uploadImage = async (file: File, folder: string = 'products'): Prom
     
     return downloadURL;
   } catch (error) {
-    console.error('Error uploading image:', error);
     throw new Error('Failed to upload image');
   }
 };
@@ -43,29 +42,21 @@ export const deleteImage = async (imageUrl: string): Promise<void> => {
       throw new Error('Storage service not available');
     }
 
-    console.log('Deleting image URL:', imageUrl);
-
     // Extract the file path from the URL
     const url = new URL(imageUrl);
     const path = decodeURIComponent(url.pathname.split('/o/')[1]?.split('?')[0] || '');
-    
-    console.log('Extracted path:', path);
-    
+
     if (!path) {
       throw new Error('Invalid image URL - could not extract path');
     }
-    
+
     // Create a reference to the file
     const storageRef = ref(storage, path);
-    
-    console.log('Attempting to delete file at path:', path);
-    
+
     // Delete the file
     await deleteObject(storageRef);
-    
-    console.log('Successfully deleted file');
+
   } catch (error) {
-    console.error('Error deleting image:', error);
     if (error instanceof Error) {
       throw error;
     }
@@ -110,7 +101,6 @@ export const getGalleryImages = async (): Promise<string[]> => {
     
     return urls;
   } catch (error) {
-    console.error('Error fetching gallery images:', error);
     return [];
   }
 };
@@ -123,13 +113,9 @@ export const uploadGalleryImage = async (file: File): Promise<string> => {
 // Delete gallery image by URL
 export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
   try {
-    console.log('deleteGalleryImage called with URL:', imageUrl);
-
     // First try the standard approach
     await deleteImage(imageUrl);
   } catch (error) {
-    console.log('Standard delete failed, trying alternative approach...');
-
     // Alternative approach: try to extract filename and construct path manually
     try {
       if (!storage) {
@@ -143,14 +129,11 @@ export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
 
       // Try direct path construction
       const alternativePath = `gallery/${fileName}`;
-      console.log('Trying alternative path:', alternativePath);
 
       const storageRef = ref(storage, alternativePath);
       await deleteObject(storageRef);
 
-      console.log('Alternative delete approach succeeded');
     } catch (altError) {
-      console.error('Alternative delete approach also failed:', altError);
       throw error; // Throw the original error
     }
   }
@@ -178,7 +161,6 @@ export const uploadFile = async (file: File, folder: string = 'files'): Promise<
 
     return downloadURL;
   } catch (error) {
-    console.error('Error uploading file:', error);
     throw new Error('Failed to upload file');
   }
 };
@@ -190,13 +172,9 @@ export const deleteFile = async (fileUrl: string): Promise<void> => {
       throw new Error('Storage service not available');
     }
 
-    console.log('Deleting file URL:', fileUrl);
-
     // Extract the file path from the URL
     const url = new URL(fileUrl);
     const path = decodeURIComponent(url.pathname.split('/o/')[1]?.split('?')[0] || '');
-
-    console.log('Extracted path:', path);
 
     if (!path) {
       throw new Error('Invalid file URL - could not extract path');
@@ -205,14 +183,10 @@ export const deleteFile = async (fileUrl: string): Promise<void> => {
     // Create a reference to the file
     const storageRef = ref(storage, path);
 
-    console.log('Attempting to delete file at path:', path);
-
     // Delete the file
     await deleteObject(storageRef);
 
-    console.log('Successfully deleted file');
   } catch (error) {
-    console.error('Error deleting file:', error);
     if (error instanceof Error) {
       throw error;
     }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNewsletterSubscribers, getOpenOrderCustomers } from '../../../lib/newsletter-server-supabase';
+import { getNewsletterSubscribers, getOpenOrderCustomers, logNewsletterSend } from '../../../lib/newsletter-server-supabase';
 import { sendBulkEmails } from '../../../lib/ses-email-service';
 import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/auth-middleware';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
@@ -8,15 +8,11 @@ import { getPickupInfo } from '../../../lib/settings-supabase';
 
 async function handleNewsletterSend(request: AuthenticatedRequest): Promise<NextResponse> {
   try {
-    console.log('API Route: Received newsletter send request');
-    
     const rawData = await request.json();
-    console.log('Request data from user:', request.user?.email);
 
     // Validate input data
     const validation = validateNewsletterData(rawData);
     if (!validation.valid) {
-      console.error('Validation errors:', validation.errors);
       return NextResponse.json(
         { error: 'Invalid input data', details: validation.errors },
         { status: 400 }
@@ -30,18 +26,14 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
     let recipientTypeLabel = '';
 
     if (recipientType === 'newsletter') {
-      console.log('Fetching newsletter subscribers...');
       const subscribers = await getNewsletterSubscribers();
       recipients = subscribers.map(s => ({ email: s.email }));
       recipientTypeLabel = 'newsletter subscribers';
     } else if (recipientType === 'orders') {
-      console.log('Fetching customers with open orders...');
       const customers = await getOpenOrderCustomers();
       recipients = customers.map(c => ({ email: c.email, name: c.name }));
       recipientTypeLabel = 'customers with open orders';
     }
-
-    console.log(`Found ${recipients.length} ${recipientTypeLabel}`);
     
     if (recipients.length === 0) {
       return NextResponse.json(
@@ -83,23 +75,43 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
     let totalSent: number;
     let totalFailed: number;
     let errors: Array<{email: string, error: string}> = [];
+    let results: Array<{email: string, success: boolean, messageId?: string}> = [];
 
     if ('totalSent' in emailResult) {
       // Bulk email result with multiple recipients
       totalSent = emailResult.totalSent;
       totalFailed = emailResult.totalFailed;
       errors = emailResult.errors;
+      results = emailResult.results;
     } else {
       // Single email result
       totalSent = 1;
       totalFailed = 0;
       errors = [];
+      results = [{ email: recipients[0].email, success: true, messageId: emailResult.MessageId }];
     }
 
-    console.log(`Email sending completed: ${totalSent} sent, ${totalFailed} failed`);
-    
-    if (errors.length > 0) {
-      console.error('Failed to send to some recipients:', errors);
+    // Log each successful send to Supabase
+    for (const result of results) {
+      if (result.success) {
+        await logNewsletterSend(
+          result.email,
+          subject,
+          'sent',
+          result.messageId
+        );
+      }
+    }
+
+    // Log each failed send to Supabase
+    for (const error of errors) {
+      await logNewsletterSend(
+        error.email,
+        subject,
+        'failed',
+        undefined,
+        error.error
+      );
     }
 
     return NextResponse.json({
@@ -112,11 +124,6 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
     });
 
   } catch (error: any) {
-    console.error('API Route Error:', {
-      message: error.message,
-      stack: error.stack,
-      user: request.user?.email
-    });
     return NextResponse.json(
       { error: error.message || 'Failed to send newsletter' },
       { status: 500 }

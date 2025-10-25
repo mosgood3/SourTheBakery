@@ -73,10 +73,8 @@ export async function sendEmail({ from, to, subject, html, replyTo, attachments 
 
     try {
       const result = await sesClient.send(command);
-      console.log('Email with attachments sent successfully:', result.MessageId);
       return result;
     } catch (error) {
-      console.error('Failed to send email with attachments:', error);
       throw error;
     }
   }
@@ -104,10 +102,8 @@ export async function sendEmail({ from, to, subject, html, replyTo, attachments 
 
   try {
     const result = await sesClient.send(command);
-    console.log('Email sent successfully:', result.MessageId);
     return result;
   } catch (error) {
-    console.error('Failed to send email:', error);
     throw error;
   }
 }
@@ -132,7 +128,6 @@ export async function sendBulkEmails({ from, to, subject, html, replyTo }: Email
       });
       results.push({ email: recipient, success: true, messageId: result.MessageId });
     } catch (error) {
-      console.error(`Failed to send email to ${recipient}:`, error);
       errors.push({ email: recipient, error: error instanceof Error ? error.message : 'Unknown error' });
     }
   }

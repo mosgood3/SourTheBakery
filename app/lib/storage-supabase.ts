@@ -25,7 +25,6 @@ export const uploadImage = async (file: File, folder: string = 'products'): Prom
 
     return publicUrlData.publicUrl;
   } catch (error) {
-    console.error('Error uploading image:', error);
     throw new Error('Failed to upload image');
   }
 };
@@ -33,21 +32,15 @@ export const uploadImage = async (file: File, folder: string = 'products'): Prom
 // Delete an image from Supabase Storage
 export const deleteImage = async (imageUrl: string): Promise<void> => {
   try {
-    console.log('Deleting image URL:', imageUrl);
-
     // Extract the file path from the URL
     // Supabase URLs format: https://{project}.supabase.co/storage/v1/object/public/images/{path}
     const url = new URL(imageUrl);
     const pathParts = url.pathname.split('/images/');
     const filePath = pathParts[1];
 
-    console.log('Extracted path:', filePath);
-
     if (!filePath) {
       throw new Error('Invalid image URL - could not extract path');
     }
-
-    console.log('Attempting to delete file at path:', filePath);
 
     // Delete the file from the 'images' bucket
     const { error } = await supabase.storage
@@ -56,9 +49,7 @@ export const deleteImage = async (imageUrl: string): Promise<void> => {
 
     if (error) throw error;
 
-    console.log('Successfully deleted file');
   } catch (error) {
-    console.error('Error deleting image:', error);
     if (error instanceof Error) {
       throw error;
     }
@@ -110,7 +101,6 @@ export const getGalleryImages = async (): Promise<string[]> => {
 
     return urls;
   } catch (error) {
-    console.error('Error fetching gallery images:', error);
     return [];
   }
 };
@@ -123,11 +113,8 @@ export const uploadGalleryImage = async (file: File): Promise<string> => {
 // Delete gallery image by URL
 export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
   try {
-    console.log('deleteGalleryImage called with URL:', imageUrl);
     await deleteImage(imageUrl);
   } catch (error) {
-    console.log('Delete failed, trying alternative approach...');
-
     // Alternative approach: try to extract filename and construct path manually
     try {
       // Extract filename from URL
@@ -136,7 +123,6 @@ export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
 
       // Try direct path construction
       const alternativePath = `gallery/${fileName}`;
-      console.log('Trying alternative path:', alternativePath);
 
       const { error: deleteError } = await supabase.storage
         .from('images')
@@ -144,9 +130,7 @@ export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
 
       if (deleteError) throw deleteError;
 
-      console.log('Alternative delete approach succeeded');
     } catch (altError) {
-      console.error('Alternative delete approach also failed:', altError);
       throw error; // Throw the original error
     }
   }
@@ -177,7 +161,6 @@ export const uploadFile = async (file: File, folder: string = 'files'): Promise<
 
     return publicUrlData.publicUrl;
   } catch (error) {
-    console.error('Error uploading file:', error);
     throw new Error('Failed to upload file');
   }
 };
@@ -185,8 +168,6 @@ export const uploadFile = async (file: File, folder: string = 'files'): Promise<
 // Delete any file from Supabase Storage (generic function)
 export const deleteFile = async (fileUrl: string): Promise<void> => {
   try {
-    console.log('Deleting file URL:', fileUrl);
-
     // Extract the file path from the URL
     // Supabase URLs format: https://{project}.supabase.co/storage/v1/object/public/{bucket}/{path}
     const url = new URL(fileUrl);
@@ -205,13 +186,9 @@ export const deleteFile = async (fileUrl: string): Promise<void> => {
       filePath = pathParts[1];
     }
 
-    console.log('Extracted bucket:', bucket, 'path:', filePath);
-
     if (!filePath) {
       throw new Error('Invalid file URL - could not extract path');
     }
-
-    console.log('Attempting to delete file at path:', filePath);
 
     // Delete the file from the appropriate bucket
     const { error } = await supabase.storage
@@ -220,9 +197,7 @@ export const deleteFile = async (fileUrl: string): Promise<void> => {
 
     if (error) throw error;
 
-    console.log('Successfully deleted file');
   } catch (error) {
-    console.error('Error deleting file:', error);
     if (error instanceof Error) {
       throw error;
     }

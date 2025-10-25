@@ -94,9 +94,6 @@ export const generateRecipePurchaseHTML = (data: RecipePurchaseEmailData): strin
         <!-- Footer -->
         <div style="background-color: #228B22; color: white; padding: 20px 30px; text-align: center;">
           <p style="margin: 0; font-size: 14px; opacity: 0.9;">Thank you for choosing Sour The Bakery!</p>
-          <p style="margin: 10px 0 0; font-size: 12px; opacity: 0.7;">
-            This is an automated email. Please do not reply directly to this message.
-          </p>
         </div>
       </div>
     </body>
@@ -106,11 +103,6 @@ export const generateRecipePurchaseHTML = (data: RecipePurchaseEmailData): strin
 
 export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Promise<void> => {
   try {
-    console.log('=== STARTING RECIPE EMAIL SEND ===');
-    console.log('Customer Email:', data.customerEmail);
-    console.log('Recipe Name:', data.recipeName);
-    console.log('PDF URL:', data.pdfUrl);
-
     if (!data.customerEmail) {
       throw new Error('Customer email is required');
     }
@@ -121,7 +113,6 @@ export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Pr
     let attachments: EmailAttachment[] = [];
 
     try {
-      console.log(`Attempting to download PDF from: ${data.pdfUrl}`);
       const response = await fetch(data.pdfUrl);
 
       if (!response.ok) {
@@ -141,10 +132,7 @@ export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Pr
         contentType: 'application/pdf'
       });
 
-      console.log(`PDF downloaded successfully, size: ${pdfBuffer.length} bytes`);
     } catch (downloadError) {
-      console.error('Failed to download PDF for attachment:', downloadError);
-      console.log('Continuing to send email without attachment, download link will still work');
     }
 
     await sendEmail({
@@ -156,9 +144,7 @@ export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Pr
       attachments: attachments.length > 0 ? attachments : undefined
     });
 
-    console.log(`Recipe purchase email sent to ${data.customerEmail} for recipe ${data.recipeName}${attachments.length > 0 ? ' with PDF attachment' : ''}`);
   } catch (error) {
-    console.error('Failed to send recipe purchase email:', error);
     throw error;
   }
 };

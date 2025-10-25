@@ -115,9 +115,7 @@ export default function RecipesPanel({ admin }: { admin: any }) {
         if (selectedImageFile) {
           try {
             imageUrl = await uploadImage(selectedImageFile, 'recipes');
-            console.log('Image uploaded successfully:', imageUrl);
           } catch (uploadError) {
-            console.error('Image upload failed:', uploadError);
             throw new Error('Failed to upload image');
           }
         }
@@ -126,9 +124,7 @@ export default function RecipesPanel({ admin }: { admin: any }) {
         if (selectedPDFFile) {
           try {
             pdfUrl = await uploadFile(selectedPDFFile, 'recipes/pdfs');
-            console.log('PDF uploaded successfully:', pdfUrl);
           } catch (uploadError) {
-            console.error('PDF upload failed:', uploadError);
             throw new Error('Failed to upload PDF');
           }
         }
@@ -162,7 +158,6 @@ export default function RecipesPanel({ admin }: { admin: any }) {
 
       fetchRecipes();
     } catch (err) {
-      console.error('Error saving recipe:', err);
       setError('Failed to save recipe');
     } finally {
       setUploading(false);

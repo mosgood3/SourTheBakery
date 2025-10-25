@@ -56,7 +56,6 @@ export default function SettingsPanel({ admin }: { admin: any }) {
         setNotificationSettings(fetchedNotificationSettings);
       }
     } catch (err) {
-      console.error('Failed to load settings:', err);
       // Use default settings if none exist
     } finally {
       setLoading(false);

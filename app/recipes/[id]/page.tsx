@@ -139,7 +139,6 @@ export default function RecipePage() {
 
         setRecipe(fetchedRecipe);
       } catch (err) {
-        console.error('Error fetching recipe:', err);
         setError('Failed to load recipe');
       } finally {
         setLoading(false);
@@ -174,7 +173,6 @@ export default function RecipePage() {
 
         setClientSecret(data.clientSecret);
       } catch (err) {
-        console.error('Error creating payment intent:', err);
         setError('Failed to initialize payment. Please try again.');
       }
     };

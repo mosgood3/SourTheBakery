@@ -16,6 +16,17 @@ export interface NewsletterEmail {
   recipient_count: number;
 }
 
+export interface NewsletterSend {
+  id?: string;
+  subscriber_id?: string;
+  subscriber_email: string;
+  subject: string;
+  sent_at?: string;
+  status: 'sent' | 'failed' | 'bounced';
+  error_message?: string;
+  message_id?: string;
+}
+
 // Subscribe an email to the newsletter
 export const subscribeToNewsletter = async (email: string): Promise<string> => {
   try {
@@ -42,7 +53,6 @@ export const subscribeToNewsletter = async (email: string): Promise<string> => {
     if (error) throw error;
     return data.id;
   } catch (error) {
-    console.error('Error subscribing to newsletter:', error);
     throw error;
   }
 };
@@ -59,7 +69,6 @@ export const getNewsletterSubscribers = async (): Promise<NewsletterSubscriber[]
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error getting newsletter subscribers:', error);
     throw error;
   }
 };
@@ -74,7 +83,6 @@ export const unsubscribeFromNewsletter = async (subscriberId: string): Promise<v
 
     if (error) throw error;
   } catch (error) {
-    console.error('Error unsubscribing from newsletter:', error);
     throw error;
   }
 };
@@ -119,7 +127,73 @@ export const sendNewsletterEmail = async (
     // For now, just return a success indicator
     return 'success';
   } catch (error) {
-    console.error('Error sending newsletter email:', error);
+    throw error;
+  }
+};
+
+// Log a newsletter send
+export const logNewsletterSend = async (
+  subscriberEmail: string,
+  subject: string,
+  status: 'sent' | 'failed' | 'bounced' = 'sent',
+  messageId?: string,
+  errorMessage?: string
+): Promise<void> => {
+  try {
+    // Try to get subscriber ID
+    const { data: subscriber } = await supabase
+      .from('newsletter_subscribers')
+      .select('id')
+      .eq('email', subscriberEmail.toLowerCase())
+      .maybeSingle();
+
+    const { error } = await supabase
+      .from('newsletter_sends')
+      .insert([{
+        subscriber_id: subscriber?.id || null,
+        subscriber_email: subscriberEmail.toLowerCase(),
+        subject,
+        status,
+        message_id: messageId,
+        error_message: errorMessage
+      }]);
+
+    if (error) {
+      // Don't throw - we don't want logging failures to break email sending
+    }
+  } catch (error) {
+    // Don't throw - we don't want logging failures to break email sending
+  }
+};
+
+// Get newsletter send history for a specific subscriber
+export const getSubscriberSendHistory = async (subscriberEmail: string): Promise<NewsletterSend[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('newsletter_sends')
+      .select('*')
+      .eq('subscriber_email', subscriberEmail.toLowerCase())
+      .order('sent_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get all newsletter sends
+export const getAllNewsletterSends = async (limit: number = 100): Promise<NewsletterSend[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('newsletter_sends')
+      .select('*')
+      .order('sent_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
     throw error;
   }
 };

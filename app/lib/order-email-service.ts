@@ -120,9 +120,7 @@ export const generateOrderConfirmationHTML = async (order: OrderConfirmationData
             <h3 style="color: #228B22; margin: 0 0 15px; font-size: 20px;">📍 Pickup Information</h3>
             <div style="line-height: 1.6; color: #333;">
               <p style="margin: 0 0 10px;"><strong>Pickup Date:</strong> ${formatPickupDate(order.pickupDate)}</p>
-              <p style="margin: 0 0 10px;"><strong>Pickup Time:</strong> ${formatTime(pickupInfo.timeStart)} - ${formatTime(pickupInfo.timeEnd)}</p>
-              <p style="margin: 0 0 10px;"><strong>Location:</strong> ${escapeHtml(pickupInfo.location)}</p>
-              <p style="margin: 0 0 15px;"><strong>Address:</strong> ${escapeHtml(pickupInfo.location)}</p>
+              <p style="margin: 0 0 15px;"><strong>Pickup Time:</strong> ${formatTime(pickupInfo.timeStart)} - ${formatTime(pickupInfo.timeEnd)}</p>
               <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 12px; margin-top: 15px;">
                 <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Please Note:</strong> Orders must be picked up during the scheduled time. If you cannot make your pickup time, please contact us as soon as possible.</p>
               </div>
@@ -142,9 +140,6 @@ export const generateOrderConfirmationHTML = async (order: OrderConfirmationData
         <!-- Footer -->
         <div style="background-color: #228B22; color: white; padding: 20px 30px; text-align: center;">
           <p style="margin: 0; font-size: 14px; opacity: 0.9;">Thank you for choosing Sour The Bakery!</p>
-          <p style="margin: 10px 0 0; font-size: 12px; opacity: 0.7;">
-            This is an automated email. Please do not reply directly to this message.
-          </p>
         </div>
       </div>
     </body>
@@ -245,9 +240,7 @@ export const sendOrderFailureEmail = async (customerName: string, customerEmail:
       replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
-    console.log(`Order failure email sent to ${customerEmail} for payment ${paymentIntentId}`);
   } catch (error) {
-    console.error('Failed to send order failure email:', error);
     throw error;
   }
 };
@@ -268,9 +261,7 @@ export const sendOrderConfirmationEmail = async (order: OrderConfirmationData): 
       replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
-    console.log(`Order confirmation email sent to ${order.customerEmail} for order ${order.orderId}`);
   } catch (error) {
-    console.error('Failed to send order confirmation email:', error);
     throw error;
   }
 };

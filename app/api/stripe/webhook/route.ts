@@ -17,27 +17,15 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig!, endpointSecret);
   } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
   // Add idempotency check to prevent duplicate processing
   const eventId = event.id;
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('Processing webhook event:', eventId, 'Type:', event.type);
-  }
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('Webhook received:', event.type);
-  }
 
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const metadata = paymentIntent.metadata || {};
-
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Processing payment_intent.succeeded:', paymentIntent.id);
-    }
 
     // Check if this is a recipe purchase
     if (metadata.type === 'recipe') {
@@ -47,14 +35,12 @@ export async function POST(req: NextRequest) {
         const customerName = paymentIntent.shipping?.name || 'Customer';
 
         if (!recipeId || !customerEmail) {
-          console.error('Missing recipe metadata:', metadata);
           return new NextResponse('Missing required metadata', { status: 400 });
         }
 
         // Get the recipe details
         const recipe = await getRecipe(recipeId);
         if (!recipe) {
-          console.error('Recipe not found:', recipeId);
           return new NextResponse('Recipe not found', { status: 404 });
         }
 
@@ -68,10 +54,6 @@ export async function POST(req: NextRequest) {
           download_url: recipe.pdf_url
         });
 
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Recipe purchase created:', purchaseId);
-        }
-
         // Send recipe purchase email with PDF
         try {
           await sendRecipePurchaseEmail({
@@ -81,17 +63,12 @@ export async function POST(req: NextRequest) {
             pdfUrl: recipe.pdf_url,
             price: recipe.price
           });
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('Recipe purchase email sent for purchase:', purchaseId);
-          }
         } catch (emailError) {
-          console.error('Failed to send recipe purchase email:', emailError);
           // Don't fail the webhook if email fails - purchase was still created
         }
 
         return new NextResponse('Recipe purchase processed', { status: 200 });
       } catch (err: any) {
-        console.error('Error processing recipe purchase:', err);
         return new NextResponse('Recipe purchase processing failed', { status: 500 });
       }
     }
@@ -102,7 +79,6 @@ export async function POST(req: NextRequest) {
     try {
       // Validate required metadata
       if (!metadata.customerName || !metadata.items || !metadata.pickupInfo) {
-        console.error('Missing required metadata for payment intent:', paymentIntent.id);
         return new NextResponse('Missing required metadata', { status: 400 });
       }
 
@@ -111,9 +87,6 @@ export async function POST(req: NextRequest) {
         items = JSON.parse(metadata.items);
         pickupInfo = JSON.parse(metadata.pickupInfo);
       } catch (parseError) {
-        console.error('Failed to parse metadata:', parseError);
-        console.error('Raw metadata.items:', metadata.items);
-        console.error('Raw metadata.pickupInfo:', metadata.pickupInfo);
         return new NextResponse('Invalid metadata', { status: 400 });
       }
 
@@ -139,10 +112,6 @@ export async function POST(req: NextRequest) {
       };
       const orderId = await createOrderServer(orderData);
 
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Order created successfully:', orderId);
-      }
-      
       // Send order confirmation email
       try {
         await sendOrderConfirmationEmail({
@@ -151,33 +120,11 @@ export async function POST(req: NextRequest) {
           orderDate: new Date(), // Add orderDate for email template
           pickupDate: pickupDateTime // Use the actual pickup date for email
         });
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Order confirmation email sent for order:', orderId);
-        }
       } catch (emailError) {
-        console.error('Failed to send confirmation email for order', orderId, ':', emailError);
         // Don't fail the webhook if email fails - order was still created successfully
       }
-      
+
     } catch (err: any) {
-      console.error('Error creating order from webhook:', err);
-      console.error('Error message:', err.message);
-      console.error('Error stack:', err.stack);
-      
-      // Log detailed error for debugging
-      console.error('Payment Intent ID:', paymentIntent.id);
-      console.error('Customer Email:', paymentIntent.receipt_email);
-      console.error('Metadata:', metadata);
-      console.error('Parsed pickup info:', pickupInfo);
-      console.error('Order data that failed:', {
-        customerName: metadata.customerName,
-        customerEmail: paymentIntent.receipt_email,
-        items,
-        total: paymentIntent.amount / 100,
-        status: 'open',
-        pickupDateTime: pickupInfo ? new Date(`${pickupInfo.date}T${pickupInfo.time}-05:00`) : 'MISSING'
-      });
-      
       // Only send failure email for critical errors, not temporary issues
       const isTemporaryError = err.message.includes('weekly limit') || 
                                err.message.includes('Database service not available') ||
@@ -192,13 +139,10 @@ export async function POST(req: NextRequest) {
             paymentIntent.receipt_email || '',
             paymentIntent.id
           );
-          console.log('Order failure email sent for payment:', paymentIntent.id);
         } catch (emailError) {
-          console.error('Failed to send order failure email:', emailError);
           // Don't fail the webhook if failure email fails
         }
       } else {
-        console.log('Temporary error detected, not sending failure email:', err.message);
         // For temporary errors, we should retry or handle gracefully
         // Return 500 so Stripe retries the webhook
       }
@@ -210,9 +154,6 @@ export async function POST(req: NextRequest) {
   // Handle other webhook events if needed
   if (event.type === 'payment_intent.payment_failed') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Payment failed:', paymentIntent.id);
-    }
     // You could send a failure notification here
   }
 

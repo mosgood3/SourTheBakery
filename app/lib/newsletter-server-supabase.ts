@@ -15,6 +15,17 @@ export interface OrderCustomer {
   orderId?: string;
 }
 
+export interface NewsletterSend {
+  id?: string;
+  subscriber_id?: string;
+  subscriber_email: string;
+  subject: string;
+  sent_at?: string;
+  status: 'sent' | 'failed' | 'bounced';
+  error_message?: string;
+  message_id?: string;
+}
+
 // Get all active newsletter subscribers (server-side)
 export const getNewsletterSubscribers = async (): Promise<NewsletterSubscriber[]> => {
   try {
@@ -27,7 +38,6 @@ export const getNewsletterSubscribers = async (): Promise<NewsletterSubscriber[]
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error getting newsletter subscribers:', error);
     throw error;
   }
 };
@@ -63,7 +73,41 @@ export const getOpenOrderCustomers = async (): Promise<OrderCustomer[]> => {
       a.name.localeCompare(b.name)
     );
   } catch (error) {
-    console.error('Error getting open order customers:', error);
     throw error;
+  }
+};
+
+// Log a newsletter send (server-side)
+export const logNewsletterSend = async (
+  subscriberEmail: string,
+  subject: string,
+  status: 'sent' | 'failed' | 'bounced' = 'sent',
+  messageId?: string,
+  errorMessage?: string
+): Promise<void> => {
+  try {
+    // Try to get subscriber ID
+    const { data: subscriber } = await supabaseServer
+      .from('newsletter_subscribers')
+      .select('id')
+      .eq('email', subscriberEmail.toLowerCase())
+      .maybeSingle();
+
+    const { error } = await supabaseServer
+      .from('newsletter_sends')
+      .insert([{
+        subscriber_id: subscriber?.id || null,
+        subscriber_email: subscriberEmail.toLowerCase(),
+        subject,
+        status,
+        message_id: messageId,
+        error_message: errorMessage
+      }]);
+
+    if (error) {
+      // Don't throw - we don't want logging failures to break email sending
+    }
+  } catch (error) {
+    // Don't throw - we don't want logging failures to break email sending
   }
 };
