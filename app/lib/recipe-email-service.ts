@@ -106,6 +106,11 @@ export const generateRecipePurchaseHTML = (data: RecipePurchaseEmailData): strin
 
 export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Promise<void> => {
   try {
+    console.log('=== STARTING RECIPE EMAIL SEND ===');
+    console.log('Customer Email:', data.customerEmail);
+    console.log('Recipe Name:', data.recipeName);
+    console.log('PDF URL:', data.pdfUrl);
+
     if (!data.customerEmail) {
       throw new Error('Customer email is required');
     }
@@ -116,7 +121,7 @@ export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Pr
     let attachments: EmailAttachment[] = [];
 
     try {
-      console.log(`Downloading PDF from: ${data.pdfUrl}`);
+      console.log(`Attempting to download PDF from: ${data.pdfUrl}`);
       const response = await fetch(data.pdfUrl);
 
       if (!response.ok) {
