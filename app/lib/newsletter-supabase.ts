@@ -24,7 +24,7 @@ export const subscribeToNewsletter = async (email: string): Promise<string> => {
       .from('newsletter_subscribers')
       .select('id')
       .eq('email', email.toLowerCase())
-      .single();
+      .maybeSingle();
 
     if (existing) {
       throw new Error('Email already subscribed to newsletter');

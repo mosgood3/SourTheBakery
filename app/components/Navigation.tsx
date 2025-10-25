@@ -38,8 +38,9 @@ export default function Navigation() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#home" className="text-deep-green hover:text-sage-green transition-colors">Home</a>
+            <a href="/" className="text-deep-green hover:text-sage-green transition-colors">Home</a>
             <a href="#products" className="text-deep-green hover:text-sage-green transition-colors">Menu</a>
+            <a href="#recipes" className="text-deep-green hover:text-sage-green transition-colors">Recipes</a>
             <a href="#about" className="text-deep-green hover:text-sage-green transition-colors">About</a>
             <a href="#contact" className="text-deep-green hover:text-sage-green transition-colors">Contact</a>
 
@@ -96,22 +97,29 @@ export default function Navigation() {
           {/* Mobile Menu */}
           <div className="relative z-50 md:hidden border-t border-muted transition-all duration-300" style={{ backgroundColor: 'var(--cream)' }}>
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <a 
-                href="#home" 
+              <a
+                href="/"
                 className="block px-3 py-2 text-deep-green hover:text-sage-green transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
               </a>
-              <a 
-                href="#products" 
+              <a
+                href="#products"
                 className="block px-3 py-2 text-deep-green hover:text-sage-green transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Menu
               </a>
-              <a 
-                href="#about" 
+              <a
+                href="#recipes"
+                className="block px-3 py-2 text-deep-green hover:text-sage-green transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Recipes
+              </a>
+              <a
+                href="#about"
                 className="block px-3 py-2 text-deep-green hover:text-sage-green transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >

@@ -56,16 +56,16 @@ export default function AboutSection() {
                 From Family Kitchen to Community Favorite
               </h3>
               <p className="text-xl md:text-2xl font-serif text-deep-green mb-4">
-                Hi, we're Isabela and Matt — the couple behind SOUR the bakery.
+                Hi, I'm Isabela — the baker behind SOUR the bakery.
               </p>
               <p className="text-lg md:text-xl text-deep-green mb-2">
-                Isabela is the owner and baker, and SOUR began in early 2024 from her passion for sourdough, slow living, and homemade food. What started as a hobby quickly became a deep love for creating real, nourishing bakes.
+                SOUR began in early 2024 from my passion for sourdough, slow living, and homemade food. What started as a hobby quickly became a deep love for creating real, nourishing bakes.
               </p>
               <p className="text-lg md:text-xl text-deep-green mb-2">
-                By June 2025, she launched SOUR with a small front-yard stand to share fresh, handmade goods with the local community.
+                By June 2025, I launched SOUR with a small front-yard stand to share fresh, handmade goods with the local community.
               </p>
               <p className="text-lg md:text-xl text-deep-green mb-2">
-                Matt supports behind the scenes — building the website, helping with setup, and cheering Isabela on every step of the way.
+                Matt is the developer supporting SOUR the bakery from a technical standpoint.
               </p>
               <p className="text-lg md:text-xl text-deep-green">
                 SOUR is just getting started — thanks for being part of the journey.

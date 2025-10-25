@@ -15,7 +15,9 @@ export default function SettingsPanel({ admin }: { admin: any }) {
     pickupLocation: 'Sour The Bakery - 123 Main St'
   });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingOrderSystem, setSavingOrderSystem] = useState(false);
+  const [savingOrderWindow, setSavingOrderWindow] = useState(false);
+  const [savingPickup, setSavingPickup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -61,21 +63,54 @@ export default function SettingsPanel({ admin }: { admin: any }) {
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveOrderSystem = async () => {
     try {
-      setSaving(true);
+      setSavingOrderSystem(true);
       setError(null);
       setSuccess(null);
-      
+
       await updateSettings(settings);
-      setSuccess('Settings saved successfully!');
-      
-      // Clear success message after 3 seconds
+      setSuccess('Order system settings saved successfully!');
+
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('Failed to save settings');
+      setError('Failed to save order system settings');
     } finally {
-      setSaving(false);
+      setSavingOrderSystem(false);
+    }
+  };
+
+  const handleSaveOrderWindow = async () => {
+    try {
+      setSavingOrderWindow(true);
+      setError(null);
+      setSuccess(null);
+
+      await updateSettings(settings);
+      setSuccess('Order window settings saved successfully!');
+
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError('Failed to save order window settings');
+    } finally {
+      setSavingOrderWindow(false);
+    }
+  };
+
+  const handleSavePickup = async () => {
+    try {
+      setSavingPickup(true);
+      setError(null);
+      setSuccess(null);
+
+      await updateSettings(settings);
+      setSuccess('Pickup settings saved successfully!');
+
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError('Failed to save pickup settings');
+    } finally {
+      setSavingPickup(false);
     }
   };
 
@@ -136,21 +171,9 @@ export default function SettingsPanel({ admin }: { admin: any }) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-4xl font-serif font-bold text-brown mb-2">Store Settings</h1>
-          <p className="text-brown/70">Configure order windows and pickup information</p>
-        </div>
-        <div className="w-full sm:w-auto">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-          >
-            <FiSave size={18} />
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-4xl font-serif font-bold text-brown mb-2">Store Settings</h1>
+        <p className="text-brown/70">Configure order windows and pickup information</p>
       </div>
 
       {error && (
@@ -166,6 +189,37 @@ export default function SettingsPanel({ admin }: { admin: any }) {
       )}
 
       <div className="space-y-8">
+        {/* Current Status Display - MOVED TO TOP */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
+          <h2 className="text-2xl font-serif font-bold text-brown mb-4">Current Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-brown/5 rounded-xl">
+              <p className="text-sm font-semibold text-brown/70 mb-1">Order System</p>
+              <p className={`font-bold ${settings.ordersEnabled ? 'text-green-600' : 'text-red-600'}`}>
+                {settings.ordersEnabled ? 'Orders Enabled' : 'Orders Disabled'}
+              </p>
+            </div>
+            <div className="p-4 bg-brown/5 rounded-xl">
+              <p className="text-sm font-semibold text-brown/70 mb-1">Order Window</p>
+              <p className="font-bold text-brown">
+                {settings.orderWindowStart} - {settings.orderWindowEnd}
+              </p>
+              <p className="text-sm text-brown/60">
+                Days: {settings.orderWindowDays.map(day => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]).join(', ')}
+              </p>
+            </div>
+            <div className="p-4 bg-brown/5 rounded-xl md:col-span-2">
+              <p className="text-sm font-semibold text-brown/70 mb-1">Next Pickup</p>
+              <p className="font-bold text-brown">
+                {new Date(settings.pickupDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+              <p className="text-sm text-brown/60">
+                Window: {settings.pickupTimeStart} - {settings.pickupTimeEnd} at {settings.pickupLocation}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Master Order Toggle */}
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
           <div className="flex items-center justify-between">
@@ -195,6 +249,16 @@ export default function SettingsPanel({ admin }: { admin: any }) {
               </p>
             </div>
           )}
+          <div className="flex justify-end mt-6 pt-4 border-t border-brown/10">
+            <button
+              onClick={handleSaveOrderSystem}
+              disabled={savingOrderSystem}
+              className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiSave size={18} />
+              {savingOrderSystem ? 'Saving...' : 'Save Order System'}
+            </button>
+          </div>
         </div>
 
         {/* Order Window Settings */}
@@ -250,6 +314,16 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="flex justify-end mt-6 pt-4 border-t border-brown/10">
+            <button
+              onClick={handleSaveOrderWindow}
+              disabled={savingOrderWindow}
+              className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiSave size={18} />
+              {savingOrderWindow ? 'Saving...' : 'Save Order Window'}
+            </button>
           </div>
         </div>
 
@@ -310,30 +384,15 @@ export default function SettingsPanel({ admin }: { admin: any }) {
               />
             </div>
           </div>
-        </div>
-
-        {/* Current Status Display */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
-          <h2 className="text-2xl font-serif font-bold text-brown mb-4">Current Status</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-brown/5 rounded-xl">
-              <p className="text-sm font-semibold text-brown/70 mb-1">Order Window</p>
-              <p className="font-bold text-brown">
-                {settings.orderWindowStart} - {settings.orderWindowEnd}
-              </p>
-              <p className="text-sm text-brown/60">
-                Days: {settings.orderWindowDays.map(day => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]).join(', ')}
-              </p>
-            </div>
-            <div className="p-4 bg-brown/5 rounded-xl">
-              <p className="text-sm font-semibold text-brown/70 mb-1">Next Pickup</p>
-              <p className="font-bold text-brown">
-                {new Date(settings.pickupDate + 'T12:00:00').toLocaleDateString('en-US')}
-              </p>
-              <p className="text-sm text-brown/60">
-                Window: {settings.pickupTimeStart} - {settings.pickupTimeEnd}
-              </p>
-            </div>
+          <div className="flex justify-end mt-6 pt-4 border-t border-brown/10">
+            <button
+              onClick={handleSavePickup}
+              disabled={savingPickup}
+              className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiSave size={18} />
+              {savingPickup ? 'Saving...' : 'Save Pickup Settings'}
+            </button>
           </div>
         </div>
 
@@ -395,17 +454,16 @@ export default function SettingsPanel({ admin }: { admin: any }) {
               </div>
             </div>
 
-            {/* Save Notifications Button */}
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={handleSaveNotifications}
-                disabled={savingNotifications || remainingChars < 0}
-                className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiSave size={18} />
-                {savingNotifications ? 'Saving...' : 'Save Notification Settings'}
-              </button>
-            </div>
+          </div>
+          <div className="flex justify-end mt-6 pt-4 border-t border-brown/10">
+            <button
+              onClick={handleSaveNotifications}
+              disabled={savingNotifications || remainingChars < 0}
+              className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiSave size={18} />
+              {savingNotifications ? 'Saving...' : 'Save Notification Banner'}
+            </button>
           </div>
         </div>
       </div>

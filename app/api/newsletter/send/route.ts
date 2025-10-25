@@ -65,7 +65,7 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
         </div>
         <div style="background-color: #228B22; color: white; padding: 20px 30px; text-align: center; font-size: 12px;">
           <p style="margin: 0 0 10px; opacity: 0.9;">You're receiving this because you subscribed to our newsletter.</p>
-          <p style="margin: 0; opacity: 0.7;">Sour the Bakery | ${pickupInfo.location}</p>
+          <p style="margin: 0; opacity: 0.7;">SOUR The Bakery | Rocky Hill CT, 06067</p>
         </div>
       </div>
     `;

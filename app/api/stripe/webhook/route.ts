@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createOrderServer } from '../../../lib/products-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
+import { createRecipePurchase, getRecipe } from '../../../lib/recipes-supabase';
+import { sendRecipePurchaseEmail } from '../../../lib/recipe-email-service';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
@@ -32,11 +34,68 @@ export async function POST(req: NextRequest) {
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const metadata = paymentIntent.metadata || {};
-    
+
     if (process.env.NODE_ENV !== 'production') {
       console.log('Processing payment_intent.succeeded:', paymentIntent.id);
     }
-    
+
+    // Check if this is a recipe purchase
+    if (metadata.type === 'recipe') {
+      try {
+        const { recipeId, recipeName } = metadata;
+        const customerEmail = paymentIntent.receipt_email || '';
+        const customerName = paymentIntent.shipping?.name || 'Customer';
+
+        if (!recipeId || !customerEmail) {
+          console.error('Missing recipe metadata:', metadata);
+          return new NextResponse('Missing required metadata', { status: 400 });
+        }
+
+        // Get the recipe details
+        const recipe = await getRecipe(recipeId);
+        if (!recipe) {
+          console.error('Recipe not found:', recipeId);
+          return new NextResponse('Recipe not found', { status: 404 });
+        }
+
+        // Create recipe purchase record
+        const purchaseId = await createRecipePurchase({
+          recipe_name: recipe.name,
+          recipe_id: recipeId,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          price: recipe.price,
+          download_url: recipe.pdf_url
+        });
+
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Recipe purchase created:', purchaseId);
+        }
+
+        // Send recipe purchase email with PDF
+        try {
+          await sendRecipePurchaseEmail({
+            customerName,
+            customerEmail,
+            recipeName: recipe.name,
+            pdfUrl: recipe.pdf_url,
+            price: recipe.price
+          });
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Recipe purchase email sent for purchase:', purchaseId);
+          }
+        } catch (emailError) {
+          console.error('Failed to send recipe purchase email:', emailError);
+          // Don't fail the webhook if email fails - purchase was still created
+        }
+
+        return new NextResponse('Recipe purchase processed', { status: 200 });
+      } catch (err: any) {
+        console.error('Error processing recipe purchase:', err);
+        return new NextResponse('Recipe purchase processing failed', { status: 500 });
+      }
+    }
+
     // Declare variables outside try block for catch block access
     let items, pickupInfo;
     

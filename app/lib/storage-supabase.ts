@@ -73,7 +73,7 @@ export const getFileExtension = (filename: string): string => {
 
 // Validate file type
 export const isValidImageFile = (file: File): boolean => {
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
   return validTypes.includes(file.type);
 };
 
@@ -150,4 +150,87 @@ export const deleteGalleryImage = async (imageUrl: string): Promise<void> => {
       throw error; // Throw the original error
     }
   }
+};
+
+// Generic file upload function (supports any file type including PDFs)
+export const uploadFile = async (file: File, folder: string = 'files'): Promise<string> => {
+  try {
+    // Create a unique filename
+    const timestamp = Date.now();
+    const fileName = `${timestamp}_${file.name}`;
+    const filePath = `${folder}/${fileName}`;
+
+    // Upload the file to the 'files' bucket
+    const { data, error } = await supabase.storage
+      .from('files')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('files')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw new Error('Failed to upload file');
+  }
+};
+
+// Delete any file from Supabase Storage (generic function)
+export const deleteFile = async (fileUrl: string): Promise<void> => {
+  try {
+    console.log('Deleting file URL:', fileUrl);
+
+    // Extract the file path from the URL
+    // Supabase URLs format: https://{project}.supabase.co/storage/v1/object/public/{bucket}/{path}
+    const url = new URL(fileUrl);
+
+    // Determine bucket from URL
+    let bucket = 'files';
+    let filePath = '';
+
+    if (url.pathname.includes('/images/')) {
+      bucket = 'images';
+      const pathParts = url.pathname.split('/images/');
+      filePath = pathParts[1];
+    } else if (url.pathname.includes('/files/')) {
+      bucket = 'files';
+      const pathParts = url.pathname.split('/files/');
+      filePath = pathParts[1];
+    }
+
+    console.log('Extracted bucket:', bucket, 'path:', filePath);
+
+    if (!filePath) {
+      throw new Error('Invalid file URL - could not extract path');
+    }
+
+    console.log('Attempting to delete file at path:', filePath);
+
+    // Delete the file from the appropriate bucket
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([filePath]);
+
+    if (error) throw error;
+
+    console.log('Successfully deleted file');
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to delete file');
+  }
+};
+
+// Validate PDF file type
+export const isValidPDFFile = (file: File): boolean => {
+  return file.type === 'application/pdf';
 };

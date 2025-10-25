@@ -1,4 +1,4 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/client-ses';
 
 const sesClient = new SESClient({
   region: process.env.AWS_REGION || 'us-east-1',
@@ -8,21 +8,80 @@ const sesClient = new SESClient({
   },
 });
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+}
+
 export interface EmailOptions {
   from: string;
   to: string | string[];
   subject: string;
   html: string;
   replyTo?: string;
+  attachments?: EmailAttachment[];
 }
 
-export async function sendEmail({ from, to, subject, html, replyTo }: EmailOptions) {
+export async function sendEmail({ from, to, subject, html, replyTo, attachments }: EmailOptions) {
   if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
     throw new Error('AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.');
   }
 
   const recipients = Array.isArray(to) ? to : [to];
 
+  // If there are attachments, use SendRawEmailCommand
+  if (attachments && attachments.length > 0) {
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    let rawEmail = [
+      `From: ${from}`,
+      `To: ${recipients.join(', ')}`,
+      replyTo ? `Reply-To: ${replyTo}` : '',
+      `Subject: ${subject}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      '',
+      html,
+      ''
+    ].filter(Boolean).join('\r\n');
+
+    // Add attachments
+    for (const attachment of attachments) {
+      rawEmail += [
+        `--${boundary}`,
+        `Content-Type: ${attachment.contentType}; name="${attachment.filename}"`,
+        `Content-Transfer-Encoding: base64`,
+        `Content-Disposition: attachment; filename="${attachment.filename}"`,
+        '',
+        attachment.content.toString('base64'),
+        ''
+      ].join('\r\n');
+    }
+
+    rawEmail += `--${boundary}--`;
+
+    const command = new SendRawEmailCommand({
+      RawMessage: {
+        Data: Buffer.from(rawEmail)
+      }
+    });
+
+    try {
+      const result = await sesClient.send(command);
+      console.log('Email with attachments sent successfully:', result.MessageId);
+      return result;
+    } catch (error) {
+      console.error('Failed to send email with attachments:', error);
+      throw error;
+    }
+  }
+
+  // No attachments - use simple SendEmailCommand
   const command = new SendEmailCommand({
     Source: from,
     ...(replyTo && { ReplyToAddresses: [replyTo] }),
