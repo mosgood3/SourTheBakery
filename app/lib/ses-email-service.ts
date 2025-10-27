@@ -34,38 +34,48 @@ export async function sendEmail({ from, to, subject, html, replyTo, attachments 
   if (attachments && attachments.length > 0) {
     const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-    let rawEmail = [
+    // Build email headers (before the blank line)
+    const headers = [
       `From: ${from}`,
       `To: ${recipients.join(', ')}`,
-      replyTo ? `Reply-To: ${replyTo}` : '',
+      replyTo ? `Reply-To: ${replyTo}` : null,
       `Subject: ${subject}`,
       `MIME-Version: 1.0`,
-      `Content-Type: multipart/mixed; boundary="${boundary}"`,
-      '',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`
+    ].filter(Boolean).join('\r\n');
+
+    // Build HTML part
+    const htmlPart = [
+      '',  // Blank line after headers (required by MIME spec)
       `--${boundary}`,
       `Content-Type: text/html; charset=UTF-8`,
       `Content-Transfer-Encoding: 7bit`,
       '',
       html,
       ''
-    ].filter(Boolean).join('\r\n');
+    ].join('\r\n');
+
+    let rawEmail = headers + htmlPart;
 
     // Add attachments
     for (const attachment of attachments) {
-      rawEmail += [
+      const attachmentPart = [
+        '',
         `--${boundary}`,
-        `Content-Type: ${attachment.contentType}; name="${attachment.filename}"`,
+        `Content-Type: ${attachment.contentType}`,
         `Content-Transfer-Encoding: base64`,
         `Content-Disposition: attachment; filename="${attachment.filename}"`,
         '',
-        attachment.content.toString('base64'),
-        ''
+        attachment.content.toString('base64')
       ].join('\r\n');
+      rawEmail += attachmentPart;
     }
 
-    rawEmail += `--${boundary}--`;
+    rawEmail += `\r\n\r\n--${boundary}--`;
 
     const command = new SendRawEmailCommand({
+      Source: from,
+      Destinations: recipients,
       RawMessage: {
         Data: Buffer.from(rawEmail)
       }
@@ -75,6 +85,7 @@ export async function sendEmail({ from, to, subject, html, replyTo, attachments 
       const result = await sesClient.send(command);
       return result;
     } catch (error) {
+      console.error('SES Raw Email Error:', error);
       throw error;
     }
   }
