@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createOrderServer } from '../../../lib/products-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
-import { createRecipePurchase, getRecipe } from '../../../lib/recipes-supabase';
+import { createRecipePurchaseServer, getRecipe } from '../../../lib/recipes-supabase';
 import { sendRecipePurchaseEmail } from '../../../lib/recipe-email-service';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           return new NextResponse('Recipe not found', { status: 404 });
         }
 
-        await createRecipePurchase({
+        await createRecipePurchaseServer({
           recipe_name: recipe.name,
           recipe_id: recipeId,
           customer_name: customerName,
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         }
 
         console.log('Creating recipe purchase record...');
-        await createRecipePurchase({
+        await createRecipePurchaseServer({
           recipe_name: recipe.name,
           recipe_id: recipeId,
           customer_name: customerName || 'Customer',
