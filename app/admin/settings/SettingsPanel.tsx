@@ -266,9 +266,9 @@ export default function SettingsPanel({ admin }: { admin: any }) {
             <FiClock className="text-2xl text-accent-gold" />
             <h2 className="text-2xl font-serif font-bold text-brown">Order Window Settings</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Order Window Start Time
               </label>
@@ -276,11 +276,11 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 type="time"
                 value={settings.orderWindowStart}
                 onChange={(e) => handleInputChange('orderWindowStart', e.target.value)}
-                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+                className="w-full max-w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Order Window End Time
               </label>
@@ -288,7 +288,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 type="time"
                 value={settings.orderWindowEnd}
                 onChange={(e) => handleInputChange('orderWindowEnd', e.target.value)}
-                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+                className="w-full max-w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
               />
             </div>
           </div>
@@ -332,9 +332,9 @@ export default function SettingsPanel({ admin }: { admin: any }) {
             <FiCalendar className="text-2xl text-accent-gold" />
             <h2 className="text-2xl font-serif font-bold text-brown">Pickup Settings</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Pickup Date
               </label>
@@ -342,11 +342,11 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 type="date"
                 value={settings.pickupDate}
                 onChange={(e) => handleInputChange('pickupDate', e.target.value)}
-                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+                className="w-full max-w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Pickup Window Start
               </label>
@@ -354,11 +354,11 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 type="time"
                 value={settings.pickupTimeStart}
                 onChange={(e) => handleInputChange('pickupTimeStart', e.target.value)}
-                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+                className="w-full max-w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Pickup Window End
               </label>
@@ -366,11 +366,11 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 type="time"
                 value={settings.pickupTimeEnd}
                 onChange={(e) => handleInputChange('pickupTimeEnd', e.target.value)}
-                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+                className="w-full max-w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
               />
             </div>
 
-            <div className="md:col-span-3">
+            <div className="md:col-span-3 min-w-0">
               <label className="block text-sm font-semibold text-brown/70 mb-2">
                 Pickup Location
               </label>
@@ -378,7 +378,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
                 type="text"
                 value={settings.pickupLocation}
                 onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                className="w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
+                className="w-full max-w-full px-4 py-3 border border-brown/20 rounded-xl focus:ring-2 focus:ring-accent-gold focus:border-transparent bg-white/50 text-brown"
                 placeholder="Enter pickup location"
               />
             </div>

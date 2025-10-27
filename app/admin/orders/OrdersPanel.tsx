@@ -1,8 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { getOrders, updateOrderStatus, Order } from '../../lib/products-supabase';
 import { getPickupInfo } from '../../lib/settings-supabase';
-import { FiRefreshCw, FiDownload, FiChevronDown } from 'react-icons/fi';
+import { FiRefreshCw, FiDownload, FiChevronDown, FiX } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
+
+// Confirmation Modal Component
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmText?: string;
+  isProcessing?: boolean;
+}
+
+function ConfirmationModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = 'Confirm',
+  isProcessing = false
+}: ConfirmationModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-serif font-bold text-brown">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-brown/50 hover:text-brown transition-colors"
+            disabled={isProcessing}
+          >
+            <FiX size={24} />
+          </button>
+        </div>
+        <p className="text-brown/70 mb-6">{message}</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isProcessing}
+            className="flex-1 px-4 py-2 rounded-lg font-semibold transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isProcessing}
+            className="flex-1 px-4 py-2 rounded-lg font-semibold transition-colors duration-300 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
+          >
+            {isProcessing ? 'Processing...' : confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function OrdersPanel({ admin }: { admin: any }) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -14,6 +71,9 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const [pickupDate, setPickupDate] = useState<string>('TBD');
   const [pickupLocation, setPickupLocation] = useState<string>('Sour The Bakery');
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'single' | 'bulk', orderId?: string } | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -67,10 +127,63 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       setUpdatingStatus(orderId);
       await updateOrderStatus(orderId, newStatus);
       fetchOrders();
+      setSelectedOrders(new Set()); // Clear selections after update
     } catch (err) {
       setError('Failed to update order status');
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const requestSingleComplete = (orderId: string) => {
+    setConfirmAction({ type: 'single', orderId });
+    setShowConfirmModal(true);
+  };
+
+  const requestBulkComplete = () => {
+    setConfirmAction({ type: 'bulk' });
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmComplete = async () => {
+    if (!confirmAction) return;
+
+    try {
+      if (confirmAction.type === 'single' && confirmAction.orderId) {
+        await handleStatusUpdate(confirmAction.orderId, 'completed');
+      } else if (confirmAction.type === 'bulk') {
+        setUpdatingStatus('bulk');
+        for (const orderId of Array.from(selectedOrders)) {
+          await updateOrderStatus(orderId, 'completed');
+        }
+        fetchOrders();
+        setSelectedOrders(new Set());
+      }
+    } catch (err) {
+      setError('Failed to complete orders');
+    } finally {
+      setUpdatingStatus(null);
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const toggleOrderSelection = (orderId: string) => {
+    const newSelection = new Set(selectedOrders);
+    if (newSelection.has(orderId)) {
+      newSelection.delete(orderId);
+    } else {
+      newSelection.add(orderId);
+    }
+    setSelectedOrders(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.size === filteredOrders.filter(o => o.status === 'open').length) {
+      setSelectedOrders(new Set());
+    } else {
+      const allOpenOrders = new Set(filteredOrders.filter(o => o.status === 'open').map(o => o.id!));
+      setSelectedOrders(allOpenOrders);
     }
   };
 
@@ -155,9 +268,33 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
 
   const filteredOrders = showOnlyOpen ? orders.filter(order => order.status === 'open') : orders;
+  const openOrders = filteredOrders.filter(o => o.status === 'open');
+  const allOpenSelected = openOrders.length > 0 && selectedOrders.size === openOrders.length;
+
+  const getConfirmationMessage = () => {
+    if (confirmAction?.type === 'single') {
+      return 'Are you sure you want to mark this order as completed?';
+    } else if (confirmAction?.type === 'bulk') {
+      return `Are you sure you want to mark ${selectedOrders.size} order(s) as completed?`;
+    }
+    return '';
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setConfirmAction(null);
+        }}
+        onConfirm={handleConfirmComplete}
+        title="Confirm Completion"
+        message={getConfirmationMessage()}
+        confirmText="Mark Complete"
+        isProcessing={updatingStatus !== null}
+      />
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-4xl font-serif font-bold text-brown mb-2">Order Management</h1>
@@ -239,6 +376,47 @@ export default function OrdersPanel({ admin }: { admin: any }) {
           <p className="text-red-600">{error}</p>
         </div>
       )}
+
+      {openOrders.length > 0 && (
+        <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-accent-gold/20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allOpenSelected}
+                  onChange={toggleSelectAll}
+                  className="w-5 h-5 rounded border-brown/30 text-green-600 focus:ring-green-500 cursor-pointer"
+                />
+                <span className="font-medium text-brown">
+                  Select All Open Orders ({openOrders.length})
+                </span>
+              </label>
+            </div>
+            {selectedOrders.size > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-brown/70 font-medium">
+                  {selectedOrders.size} order(s) selected
+                </span>
+                <button
+                  onClick={requestBulkComplete}
+                  disabled={updatingStatus !== null}
+                  className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 cursor-pointer"
+                >
+                  {updatingStatus === 'bulk' ? 'Completing...' : 'Mark Selected Complete'}
+                </button>
+                <button
+                  onClick={() => setSelectedOrders(new Set())}
+                  className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                >
+                  Clear Selection
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
@@ -251,11 +429,21 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       ) : (
         <div className="space-y-6">
           {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
+            <div key={order.id} className={`bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border transition-all duration-200 ${selectedOrders.has(order.id!) ? 'border-green-400 border-2' : 'border-accent-gold/20'}`}>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
-                  <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
+                <div className="flex items-start gap-3">
+                  {order.status === 'open' && (
+                    <input
+                      type="checkbox"
+                      checked={selectedOrders.has(order.id!)}
+                      onChange={() => toggleOrderSelection(order.id!)}
+                      className="mt-1 w-5 h-5 rounded border-brown/30 text-green-600 focus:ring-green-500 cursor-pointer"
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
+                    <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(order.status)}`}>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
@@ -310,9 +498,9 @@ export default function OrdersPanel({ admin }: { admin: any }) {
               {order.status === 'open' && (
                 <div className="flex flex-wrap gap-2">
                   <button
-                    onClick={() => handleStatusUpdate(order.id!, 'completed')}
+                    onClick={() => requestSingleComplete(order.id!)}
                     disabled={updatingStatus === order.id}
-                    className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 cursor-pointer bg-green-500 text-white hover:bg-green-600"
+                    className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 cursor-pointer bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
                   >
                     {updatingStatus === order.id ? 'Updating...' : 'Mark Complete'}
                   </button>
