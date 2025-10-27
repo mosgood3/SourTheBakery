@@ -109,39 +109,14 @@ export const sendRecipePurchaseEmail = async (data: RecipePurchaseEmailData): Pr
 
     const emailHTML = generateRecipePurchaseHTML(data);
 
-    // Download the PDF from the URL to attach it
-    let attachments: EmailAttachment[] = [];
-
-    try {
-      const response = await fetch(data.pdfUrl);
-
-      if (!response.ok) {
-        throw new Error(`Failed to download PDF: ${response.statusText}`);
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const pdfBuffer = Buffer.from(arrayBuffer);
-
-      // Create a clean filename from the recipe name
-      const cleanFilename = data.recipeName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const filename = `${cleanFilename}_recipe.pdf`;
-
-      attachments.push({
-        filename: filename,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      });
-
-    } catch (downloadError) {
-    }
-
+    // Temporarily disable PDF attachment - just send download link
+    // TODO: Fix MIME multipart formatting to support attachments
     await sendEmail({
       from: process.env.SES_FROM_EMAIL || 'info@sourthebakery.com',
       to: [data.customerEmail],
       subject: `Your Recipe: ${data.recipeName} - Sour The Bakery`,
       html: emailHTML,
-      replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com',
-      attachments: attachments.length > 0 ? attachments : undefined
+      replyTo: process.env.SES_REPLY_TO_EMAIL || 'info@sourthebakery.com'
     });
 
   } catch (error) {
