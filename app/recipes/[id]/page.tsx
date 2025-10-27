@@ -11,12 +11,13 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-function CheckoutForm({ recipe, customerEmail, customerName, onEmailChange, onNameChange }: {
+function CheckoutForm({ recipe, customerEmail, customerName, onEmailChange, onNameChange, clientSecret }: {
   recipe: Recipe;
   customerEmail: string;
   customerName: string;
   onEmailChange: (email: string) => void;
   onNameChange: (name: string) => void;
+  clientSecret: string | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -36,6 +37,20 @@ function CheckoutForm({ recipe, customerEmail, customerName, onEmailChange, onNa
     setErrorMessage(null);
 
     try {
+      // First, update the payment intent with customer details
+      if (clientSecret) {
+        await fetch('/api/recipes/update-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientSecret,
+            customerEmail,
+            customerName,
+          }),
+        });
+      }
+
+      // Then confirm the payment
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
@@ -278,6 +293,7 @@ export default function RecipePage() {
                     customerName={customerName}
                     onEmailChange={setCustomerEmail}
                     onNameChange={setCustomerName}
+                    clientSecret={clientSecret}
                   />
                 </Elements>
               ) : (

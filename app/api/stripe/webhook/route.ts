@@ -71,40 +71,51 @@ export async function POST(req: NextRequest) {
     // Handle recipe purchases
     if (metadata.type === 'recipe') {
       try {
-        const { recipeId, recipeName } = metadata;
-        const customerEmail = paymentIntent.receipt_email || '';
-        const customerName = (paymentIntent as any).shipping?.name || 'Customer';
+        const { recipeId, recipeName, customerEmail, customerName } = metadata;
 
-        if (!recipeId || !customerEmail) {
-          return new NextResponse('Missing required metadata for recipe purchase', { status: 400 });
+        console.log('Processing recipe purchase:', { recipeId, recipeName, customerEmail, customerName });
+
+        if (!recipeId) {
+          console.error('Missing recipeId in metadata');
+          return new NextResponse('Missing recipeId in metadata', { status: 400 });
+        }
+
+        if (!customerEmail) {
+          console.error('Missing customerEmail in metadata');
+          return new NextResponse('Missing customerEmail in metadata', { status: 400 });
         }
 
         const recipe = await getRecipe(recipeId);
         if (!recipe) {
+          console.error('Recipe not found:', recipeId);
           return new NextResponse('Recipe not found', { status: 404 });
         }
 
+        console.log('Creating recipe purchase record...');
         await createRecipePurchase({
           recipe_name: recipe.name,
           recipe_id: recipeId,
-          customer_name: customerName,
+          customer_name: customerName || 'Customer',
           customer_email: customerEmail,
           price: recipe.price,
           download_url: recipe.pdf_url,
         });
 
+        console.log('Sending recipe purchase email to:', customerEmail);
         await sendRecipePurchaseEmail({
-          customerName,
+          customerName: customerName || 'Customer',
           customerEmail,
           recipeName: recipe.name,
           pdfUrl: recipe.pdf_url,
           price: recipe.price,
         });
 
+        console.log('Recipe purchase processed successfully for:', customerEmail);
         return new NextResponse('Recipe purchase processed successfully', { status: 200 });
       } catch (err: any) {
         console.error('Recipe purchase processing error:', err);
-        return new NextResponse('Recipe purchase processing failed', { status: 500 });
+        console.error('Error stack:', err.stack);
+        return new NextResponse(`Recipe purchase processing failed: ${err.message}`, { status: 500 });
       }
     }
 
