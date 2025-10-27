@@ -23,52 +23,87 @@ export async function POST(req: NextRequest) {
   // Add idempotency check to prevent duplicate processing
   const eventId = event.id;
 
-  if (event.type === 'payment_intent.succeeded') {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    const metadata = paymentIntent.metadata || {};
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const metadata = session.metadata || {};
 
-    // Check if this is a recipe purchase
     if (metadata.type === 'recipe') {
       try {
         const { recipeId, recipeName } = metadata;
-        const customerEmail = paymentIntent.receipt_email || '';
-        const customerName = paymentIntent.shipping?.name || 'Customer';
+        const customerEmail = session.customer_details?.email || '';
+        const customerName = session.customer_details?.name || 'Customer';
 
         if (!recipeId || !customerEmail) {
           return new NextResponse('Missing required metadata', { status: 400 });
         }
 
-        // Get the recipe details
         const recipe = await getRecipe(recipeId);
         if (!recipe) {
           return new NextResponse('Recipe not found', { status: 404 });
         }
 
-        // Create recipe purchase record
-        const purchaseId = await createRecipePurchase({
+        await createRecipePurchase({
           recipe_name: recipe.name,
           recipe_id: recipeId,
           customer_name: customerName,
           customer_email: customerEmail,
           price: recipe.price,
-          download_url: recipe.pdf_url
+          download_url: recipe.pdf_url,
         });
 
-        // Send recipe purchase email with PDF
-        try {
-          await sendRecipePurchaseEmail({
-            customerName,
-            customerEmail,
-            recipeName: recipe.name,
-            pdfUrl: recipe.pdf_url,
-            price: recipe.price
-          });
-        } catch (emailError) {
-          // Don't fail the webhook if email fails - purchase was still created
-        }
+        await sendRecipePurchaseEmail({
+          customerName,
+          customerEmail,
+          recipeName: recipe.name,
+          pdfUrl: recipe.pdf_url,
+          price: recipe.price,
+        });
 
         return new NextResponse('Recipe purchase processed', { status: 200 });
       } catch (err: any) {
+        return new NextResponse('Recipe purchase processing failed', { status: 500 });
+      }
+    }
+  } else if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const metadata = paymentIntent.metadata || {};
+
+    // Handle recipe purchases
+    if (metadata.type === 'recipe') {
+      try {
+        const { recipeId, recipeName } = metadata;
+        const customerEmail = paymentIntent.receipt_email || '';
+        const customerName = (paymentIntent as any).shipping?.name || 'Customer';
+
+        if (!recipeId || !customerEmail) {
+          return new NextResponse('Missing required metadata for recipe purchase', { status: 400 });
+        }
+
+        const recipe = await getRecipe(recipeId);
+        if (!recipe) {
+          return new NextResponse('Recipe not found', { status: 404 });
+        }
+
+        await createRecipePurchase({
+          recipe_name: recipe.name,
+          recipe_id: recipeId,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          price: recipe.price,
+          download_url: recipe.pdf_url,
+        });
+
+        await sendRecipePurchaseEmail({
+          customerName,
+          customerEmail,
+          recipeName: recipe.name,
+          pdfUrl: recipe.pdf_url,
+          price: recipe.price,
+        });
+
+        return new NextResponse('Recipe purchase processed successfully', { status: 200 });
+      } catch (err: any) {
+        console.error('Recipe purchase processing error:', err);
         return new NextResponse('Recipe purchase processing failed', { status: 500 });
       }
     }

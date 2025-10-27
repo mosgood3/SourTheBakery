@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { getProducts, Product } from '../lib/products-supabase';
 import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings-supabase';
 import { FaTimes } from 'react-icons/fa';
+import RecipesSection from './RecipesSection';
 
 interface ProductsSectionProps {
   refreshTrigger?: number;
@@ -528,6 +529,7 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
           </div>
         </div>
       )}
+      <RecipesSection />
       <BakeryGallery />
     </section>
   );

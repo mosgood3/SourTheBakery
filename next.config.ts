@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Experimental configuration for Turbopack
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  // Turbopack configuration (stable in Next.js 15)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
@@ -77,32 +75,34 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Webpack configuration for better bundle optimization
-  webpack: (config, { dev, isServer }) => {
-    // Only apply webpack optimizations in production and when not using Turbopack
-    if (!dev && !isServer && !process.env.TURBOPACK) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
+  // Webpack configuration for better bundle optimization (only when not using Turbopack)
+  ...(!process.argv.includes('--turbopack') && {
+    webpack: (config, { dev, isServer }) => {
+      // Only apply webpack optimizations in production
+      if (!dev && !isServer) {
+        config.optimization.splitChunks = {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
           },
-        },
-      };
-    }
+        };
+      }
 
-    // Improve file system stability
-    if (dev) {
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-      };
-    }
+      // Improve file system stability
+      if (dev) {
+        config.watchOptions = {
+          poll: 1000,
+          aggregateTimeout: 300,
+        };
+      }
 
-    return config;
-  },
+      return config;
+    },
+  }),
 
   // Environment variables configuration
   env: {
