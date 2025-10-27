@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createOrderServer } from '../../../lib/products-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
-import { createRecipePurchaseServer, getRecipe } from '../../../lib/recipes-supabase';
+import { getRecipe } from '../../../lib/recipes-supabase';
+import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
 import { sendRecipePurchaseEmail } from '../../../lib/recipe-email-service';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
