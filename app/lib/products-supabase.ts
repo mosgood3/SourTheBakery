@@ -64,6 +64,10 @@ export const isOrderWindowOpen = (): boolean => {
 };
 
 // Check if a product has reached its weekly cap
+// NOTE: This is a non-locking check used for UX purposes (pre-checkout validation)
+// The actual atomic inventory decrement happens in the webhook using the RPC function
+// This helps prevent users from adding out-of-stock items to cart, but the webhook
+// is the source of truth for inventory availability
 export const checkWeeklyCap = async (
   productId: string,
   requestedQuantity: number

@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import CateringForm from './CateringForm';
 import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { subscribeToNewsletter } from '../lib/newsletter-supabase';
+import { getGalleryImages } from '../lib/storage-supabase';
 
 interface Slide {
   id: number;
@@ -17,7 +18,8 @@ interface Slide {
   accentColor: string;
 }
 
-const slides: Slide[] = [
+// Fallback slides with default images (used if no gallery images exist)
+const defaultSlides: Slide[] = [
   {
     id: 1,
     title: "LET'S GET",
@@ -43,7 +45,7 @@ const slides: Slide[] = [
     title: "FRESH",
     subtitle: "LOAVES",
     description: "Naturally leavened handcrafted sourdough",
-    image: "/hero/loaf.jpg", 
+    image: "/hero/loaf.jpg",
     bgColor: "from-mint-cream via-soft-peach to-warm-beige",
     textColor: "text-white",
     accentColor: "text-soft-green"
@@ -54,7 +56,43 @@ const slides: Slide[] = [
     subtitle: "BAGELS",
     description: "New York style bagels with sourdough twist",
     image: "/hero/bagels.png",
-    bgColor: "from-golden-sand via-warm-beige to-soft-peach", 
+    bgColor: "from-golden-sand via-warm-beige to-soft-peach",
+    textColor: "text-white",
+    accentColor: "text-soft-green"
+  }
+];
+
+// Slide templates for gallery images
+const slideTemplates = [
+  {
+    title: "LET'S GET",
+    subtitle: "SOUR",
+    description: "Handcrafted sourdough treats made with love",
+    bgColor: "from-cream via-soft-peach to-warm-beige",
+    textColor: "text-white",
+    accentColor: "text-soft-green"
+  },
+  {
+    title: "ARTISAN",
+    subtitle: "TREATS",
+    description: "Crispy, chewy perfection in every bite",
+    bgColor: "from-warm-white via-golden-sand to-soft-peach",
+    textColor: "text-white",
+    accentColor: "text-soft-green"
+  },
+  {
+    title: "FRESH",
+    subtitle: "BAKES",
+    description: "Naturally leavened handcrafted sourdough",
+    bgColor: "from-mint-cream via-soft-peach to-warm-beige",
+    textColor: "text-white",
+    accentColor: "text-soft-green"
+  },
+  {
+    title: "GOLDEN",
+    subtitle: "GOODNESS",
+    description: "Perfection in every bite",
+    bgColor: "from-golden-sand via-warm-beige to-soft-peach",
     textColor: "text-white",
     accentColor: "text-soft-green"
   }
@@ -76,6 +114,42 @@ export default function HeroSection() {
   const [newsletterStatus, setNewsletterStatus] = useState<string | null>(null);
   const [isSubmittingNewsletter, setIsSubmittingNewsletter] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement>(null);
+  const [slides, setSlides] = useState<Slide[]>(defaultSlides);
+  const [loadingGallery, setLoadingGallery] = useState(true);
+
+  // Fetch gallery images from Supabase
+  useEffect(() => {
+    const fetchGalleryImages = async () => {
+      try {
+        setLoadingGallery(true);
+        const galleryImages = await getGalleryImages();
+
+        if (galleryImages && galleryImages.length > 0) {
+          // Create slides from gallery images
+          const dynamicSlides: Slide[] = galleryImages.map((imageUrl, index) => {
+            const template = slideTemplates[index % slideTemplates.length];
+            return {
+              id: index + 1,
+              image: imageUrl,
+              ...template
+            };
+          });
+          setSlides(dynamicSlides);
+        } else {
+          // No gallery images, use default slides
+          setSlides(defaultSlides);
+        }
+      } catch (error) {
+        console.error('Failed to load gallery images:', error);
+        // Fallback to default slides on error
+        setSlides(defaultSlides);
+      } finally {
+        setLoadingGallery(false);
+      }
+    };
+
+    fetchGalleryImages();
+  }, []);
 
   const nextSlide = () => {
     if (isAnimating) return;

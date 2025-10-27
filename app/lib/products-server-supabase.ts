@@ -50,41 +50,62 @@ export const checkWeeklyCapServer = async (
   }
 };
 
-// Create a new order (server-side)
+// Create a new order (server-side) with atomic inventory updates
 export const createOrderServer = async (order: Omit<OrderData, 'orderDate'>): Promise<string> => {
+  // Track successfully decremented items for rollback in case of failure
+  const decrementedItems: Array<{ productId: string; quantity: number; productName: string }> = [];
+
   try {
-    // Check weekly caps for all items and update remaining amounts
+    // Phase 1: Atomically decrement inventory for all items
+    // Uses database-level row locking to prevent race conditions
     for (const item of order.items) {
       try {
-        console.log('Processing item for weekly cap check (server):', {
+        console.log('Atomically decrementing inventory (server):', {
           productId: item.productId,
           productName: item.productName,
           quantity: item.quantity
         });
 
-        const capCheck = await checkWeeklyCapServer(item.productId, item.quantity);
-        if (!capCheck.available) {
-          throw new Error(
-            `${item.productName} has reached its weekly limit. Only ${capCheck.remaining} available this week.`
-          );
+        // Call the atomic RPC function that uses FOR UPDATE locking
+        const { data, error } = await supabaseServer.rpc('decrement_inventory', {
+          product_id: item.productId,
+          quantity_requested: item.quantity
+        });
+
+        if (error) {
+          console.error('RPC error for item:', item.productName, error);
+          throw new Error(`Failed to update inventory for ${item.productName}: ${error.message}`);
         }
 
-        // Update the product's weekly_amount_remaining
-        const { error: updateError } = await supabaseServer
-          .from('products')
-          .update({ weekly_amount_remaining: capCheck.remaining - item.quantity })
-          .eq('id', item.productId);
+        // Check if the decrement was successful
+        if (!data || data.length === 0) {
+          throw new Error(`No response from inventory system for ${item.productName}`);
+        }
 
-        if (updateError) throw updateError;
+        const result = data[0];
+        if (!result.success) {
+          // Insufficient stock or other error
+          throw new Error(result.error_message || `${item.productName} is out of stock`);
+        }
 
-        console.log('Successfully updated inventory for (server):', item.productName);
+        // Track this item for potential rollback
+        decrementedItems.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          productName: item.productName
+        });
+
+        console.log('Successfully decremented inventory for:', item.productName, 'Remaining:', result.remaining);
       } catch (itemError) {
         console.error('Error processing item (server):', item, 'Error:', itemError);
+        // Rollback all previously decremented items
+        await rollbackInventory(decrementedItems);
         throw itemError;
       }
     }
 
-    // Create the order document
+    // Phase 2: Create the order document
+    // Inventory has been decremented, now create the order
     const { data, error } = await supabaseServer
       .from('orders')
       .insert([
@@ -101,12 +122,48 @@ export const createOrderServer = async (order: Omit<OrderData, 'orderDate'>): Pr
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating order document:', error);
+      // Rollback inventory since order creation failed
+      await rollbackInventory(decrementedItems);
+      throw new Error(`Order creation failed: ${error.message}`);
+    }
 
     console.log('Order created successfully (server):', data.id);
     return data.id;
   } catch (error) {
     console.error('Error creating order (server):', error);
+    // Ensure rollback happens even for unexpected errors
+    if (decrementedItems.length > 0) {
+      await rollbackInventory(decrementedItems);
+    }
     throw error;
   }
 };
+
+// Helper function to rollback inventory for failed orders
+async function rollbackInventory(
+  items: Array<{ productId: string; quantity: number; productName: string }>
+): Promise<void> {
+  if (items.length === 0) return;
+
+  console.log('Rolling back inventory for', items.length, 'items');
+
+  for (const item of items) {
+    try {
+      const { error } = await supabaseServer.rpc('rollback_inventory', {
+        product_id: item.productId,
+        quantity_to_restore: item.quantity
+      });
+
+      if (error) {
+        console.error('Failed to rollback inventory for:', item.productName, error);
+        // Log critical error but don't throw - we want to attempt all rollbacks
+      } else {
+        console.log('Successfully rolled back inventory for:', item.productName);
+      }
+    } catch (rollbackError) {
+      console.error('Exception during rollback for:', item.productName, rollbackError);
+    }
+  }
+}
