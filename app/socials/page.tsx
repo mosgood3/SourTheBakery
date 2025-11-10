@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaHome, FaInstagram, FaTiktok, FaFacebook, FaYoutube } from 'react-icons/fa';
+import { FaHome, FaBook, FaAmazon, FaInstagram, FaTiktok, FaFacebook, FaYoutube } from 'react-icons/fa';
 
 export default function SocialsPage() {
   const socialLinks = [
@@ -12,11 +12,18 @@ export default function SocialsPage() {
       description: 'Visit our main website'
     },
     {
-      name: 'Instagram',
-      url: 'https://instagram.com/sourthebakery',
-      icon: FaInstagram,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
-      description: 'Follow us on Instagram'
+      name: 'Recipes',
+      url: '/#recipes',
+      icon: FaBook,
+      color: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700',
+      description: 'Browse our sourdough recipes'
+    },
+    {
+      name: 'Amazon Storefront',
+      url: 'https://www.amazon.com/shop/sourthebakery?ref_=cm_sw_r_mwn_aipsfshop_MRHJW9M4R51PA9F772A2&language=en-US',
+      icon: FaAmazon,
+      color: 'bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600',
+      description: 'Shop our recommended products'
     },
     {
       name: 'TikTok',
@@ -26,18 +33,25 @@ export default function SocialsPage() {
       description: 'Watch our videos on TikTok'
     },
     {
-      name: 'Facebook',
-      url: 'https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user',
-      icon: FaFacebook,
-      color: 'bg-blue-600 hover:bg-blue-700',
-      description: 'Like us on Facebook'
-    },
-    {
       name: 'YouTube',
       url: 'https://www.youtube.com/@SOURTheBakery',
       icon: FaYoutube,
       color: 'bg-red-600 hover:bg-red-700',
       description: 'Subscribe to our channel'
+    },
+    {
+      name: 'Instagram',
+      url: 'https://instagram.com/sourthebakery',
+      icon: FaInstagram,
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
+      description: 'Follow us on Instagram'
+    },
+    {
+      name: 'Facebook',
+      url: 'https://m.facebook.com/profile.php?id=61577470065750&name=xhp_nt__fb__action__open_user',
+      icon: FaFacebook,
+      color: 'bg-blue-600 hover:bg-blue-700',
+      description: 'Like us on Facebook'
     }
   ];
 
@@ -56,7 +70,7 @@ export default function SocialsPage() {
             />
           </div>
           <h1 className="text-2xl font-lobster text-brown mb-2 lobster-heading">
-            Sour The Bakery
+            SOUR The Bakery
           </h1>
           <p className="text-brown text-sm mb-4">
             Handcrafted sourdough cookies, brownies, loaves, and bagels
