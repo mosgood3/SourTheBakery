@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { getProducts, addProduct, updateProduct, deleteProduct, Product, resetWeeklyAmounts, updateProductWeeklyAmount } from '../../lib/products-supabase';
+import { getProducts, addProduct, updateProduct, deleteProduct, Product, resetWeeklyAmounts, updateProductWeeklyAmount, archiveProduct, unarchiveProduct } from '../../lib/products-supabase';
 import { uploadImage, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
-import { FiPlus, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiRefreshCw, FiArchive } from 'react-icons/fi';
 
 export default function ProductsPanel({ admin }: { admin: any }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,12 +35,14 @@ export default function ProductsPanel({ admin }: { admin: any }) {
     weeklyAmountRemaining: ''
   });
   const [resetting, setResetting] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Fetch products
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const fetchedProducts = await getProducts();
+      // Admin view: fetch all products including archived ones
+      const fetchedProducts = await getProducts(true);
       setProducts(fetchedProducts);
     } catch (err) {
       setError('Failed to load products');
@@ -112,9 +114,19 @@ export default function ProductsPanel({ admin }: { admin: any }) {
   };
 
   const handleDelete = async (id: string, imageUrl: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm('Are you sure you want to delete this product? This action cannot be undone. Consider archiving instead to preserve the data.')) {
       try { await deleteProduct(id, imageUrl); fetchProducts(); } catch (err) { setError('Failed to delete product'); }
     }
+  };
+
+  const handleArchive = async (id: string) => {
+    if (window.confirm('Archive this product? It will be hidden from customers but can be restored later.')) {
+      try { await archiveProduct(id); fetchProducts(); } catch (err) { setError('Failed to archive product'); }
+    }
+  };
+
+  const handleUnarchive = async (id: string) => {
+    try { await unarchiveProduct(id); fetchProducts(); } catch (err) { setError('Failed to unarchive product'); }
   };
 
   const cancelEdit = () => {
@@ -149,6 +161,10 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       setError('Failed to update weekly amount remaining');
     }
   };
+
+  // Separate active and archived products
+  const activeProducts = products.filter(p => !p.archived);
+  const archivedProducts = products.filter(p => p.archived);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -246,22 +262,22 @@ export default function ProductsPanel({ admin }: { admin: any }) {
           </form>
         </div>
       )}
-      {/* Product List */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">
-        <h2 className="text-2xl font-serif font-bold text-brown mb-6">All Products</h2>
+      {/* Active Products List */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 mb-8">
+        <h2 className="text-2xl font-serif font-bold text-brown mb-6">Active Products</h2>
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
             <p className="mt-4 text-brown/70">Loading products...</p>
           </div>
-        ) : products.length === 0 ? (
+        ) : activeProducts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-brown/70 text-xl">No products yet.</p>
+            <p className="text-brown/70 text-xl">No active products.</p>
             <p className="text-brown/50 mt-2">Add your first product to get started.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product) => (
+            {activeProducts.map((product) => (
               <div key={product.id} className="bg-cream/80 rounded-2xl p-6 shadow border border-accent-gold/10 flex flex-col">
                 {editingId === product.id ? (
                   // Inline Edit Form
@@ -385,8 +401,11 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                       )}
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <button onClick={() => handleEdit(product)} className="bg-accent-gold text-brown px-4 py-2 rounded-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 border-1 border-brown cursor-pointer">Edit</button>
-                      <button onClick={() => handleDelete(product.id!, product.image)} className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-300 cursor-pointer">Delete</button>
+                      <button onClick={() => handleEdit(product)} className="bg-accent-gold text-brown px-4 py-2 rounded-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 border-1 border-brown cursor-pointer flex-1">Edit</button>
+                      <button onClick={() => handleArchive(product.id!)} className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors duration-300 cursor-pointer flex items-center justify-center gap-1">
+                        <FiArchive size={16} />
+                        Archive
+                      </button>
                     </div>
                   </>
                 )}
@@ -395,6 +414,66 @@ export default function ProductsPanel({ admin }: { admin: any }) {
           </div>
         )}
       </div>
+
+      {/* Archived Products Section */}
+      {archivedProducts.length > 0 && (
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-serif font-bold text-brown">Archived Products</h2>
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className="text-brown/70 hover:text-brown transition-colors duration-200 text-sm font-semibold"
+            >
+              {showArchived ? 'Hide' : 'Show'} ({archivedProducts.length})
+            </button>
+          </div>
+
+          {showArchived && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {archivedProducts.map((product) => (
+                <div key={product.id} className="bg-cream/80 rounded-2xl p-6 shadow border border-accent-gold/10 flex flex-col opacity-75">
+                  <div className="flex-1">
+                    {product.image ? (
+                      <Image src={product.image} alt={product.name} width={200} height={200} className="rounded-xl mb-4 object-cover w-full h-40 grayscale" />
+                    ) : (
+                      <div className="w-full h-40 bg-gray-200 rounded-xl mb-4 flex items-center justify-center">
+                        <span className="text-gray-500 text-sm">No Image</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-bold text-brown">{product.name}</h3>
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-semibold">Archived</span>
+                    </div>
+                    <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
+                    {product.quantity && <p className="text-sm text-brown/70 mb-2 font-medium">Quantity: {product.quantity}</p>}
+                    {product.weekly_cap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weekly_cap}</p>}
+                    {typeof product.weekly_amount_remaining === 'number' && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm text-brown/50">Remaining:</span>
+                        <span className="text-brown font-semibold text-base">{product.weekly_amount_remaining}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => handleUnarchive(product.id!)}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300 cursor-pointer flex-1"
+                    >
+                      Restore
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id!, product.image)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-300 cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 } 

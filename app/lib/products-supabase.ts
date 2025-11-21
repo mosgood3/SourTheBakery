@@ -10,6 +10,7 @@ export interface Product {
   quantity?: string;
   weekly_cap?: number;
   weekly_amount_remaining?: number;
+  archived?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -100,12 +101,20 @@ export const checkWeeklyCap = async (
 };
 
 // Get all products
-export const getProducts = async (): Promise<Product[]> => {
+// By default, only returns active (non-archived) products
+// Set includeArchived to true to get all products including archived ones (admin view)
+export const getProducts = async (includeArchived: boolean = false): Promise<Product[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
+
+    // Filter out archived products unless explicitly requested
+    if (!includeArchived) {
+      query = query.eq('archived', false);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -318,6 +327,36 @@ export const updateProductWeeklyAmount = async (productId: string, weeklyAmountR
     if (error) throw error;
   } catch (error) {
     console.error('Error updating product weekly amount:', error);
+    throw error;
+  }
+};
+
+// Archive a product (soft delete - hides from public but preserves data)
+export const archiveProduct = async (productId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('products')
+      .update({ archived: true })
+      .eq('id', productId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error archiving product:', error);
+    throw error;
+  }
+};
+
+// Unarchive a product (restore to active status)
+export const unarchiveProduct = async (productId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('products')
+      .update({ archived: false })
+      .eq('id', productId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error unarchiving product:', error);
     throw error;
   }
 };
