@@ -20,7 +20,9 @@
       "Bash(timeout 60 npm run build)",
       "Bash(mkdir:*)",
       "Bash(git checkout:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebSearch",
+      "WebFetch(domain:supabase.com)"
     ],
     "deny": []
   }

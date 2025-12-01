@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { getRecipes, addRecipe, updateRecipe, deleteRecipe, Recipe } from '../../lib/recipes-supabase';
-import { uploadImage, uploadFile, isValidImageFile, isValidPDFFile, isValidFileSize } from '../../lib/storage-supabase';
+import { uploadImageCompressed, uploadFile, isValidImageFile, isValidPDFFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
 import { FiPlus, FiTrash2, FiEdit2, FiX } from 'react-icons/fi';
 
@@ -114,7 +114,8 @@ export default function RecipesPanel({ admin }: { admin: any }) {
         // Upload new image if selected
         if (selectedImageFile) {
           try {
-            imageUrl = await uploadImage(selectedImageFile, 'recipes');
+            // Compress recipe images to 1200px width with 85% quality
+            imageUrl = await uploadImageCompressed(selectedImageFile, 'recipes', 1200, 85);
           } catch (uploadError) {
             throw new Error('Failed to upload image');
           }

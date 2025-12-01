@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { getProducts, addProduct, updateProduct, deleteProduct, Product, resetWeeklyAmounts, updateProductWeeklyAmount, archiveProduct, unarchiveProduct } from '../../lib/products-supabase';
-import { uploadImage, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
+import { uploadImageCompressed, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
 import { FiPlus, FiRefreshCw, FiArchive } from 'react-icons/fi';
 
@@ -78,7 +78,10 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       
       setUploading(true);
       let imageUrl = formData.image;
-      if (selectedFile) { imageUrl = await uploadImage(selectedFile); }
+      if (selectedFile) {
+        // Compress product images to 1200px width with 85% quality
+        imageUrl = await uploadImageCompressed(selectedFile, 'products', 1200, 85);
+      }
       const productData = {
         name: formData.name,
         price: formData.price,

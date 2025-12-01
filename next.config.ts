@@ -30,8 +30,8 @@ const nextConfig: NextConfig = {
     ],
     // Optimize images for better performance
     formats: ['image/webp', 'image/avif'],
-    // Set minimum cache time for images
-    minimumCacheTTL: 60,
+    // Set minimum cache time for images - 1 year to reduce egress costs
+    minimumCacheTTL: 31536000,
     // Enable device pixel ratio optimization
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

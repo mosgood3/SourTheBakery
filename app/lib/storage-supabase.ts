@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 
-// Upload an image file to Supabase Storage
+// Upload an image file to Supabase Storage (LEGACY - uncompressed)
+// Use uploadImageCompressed() instead for better performance
 export const uploadImage = async (file: File, folder: string = 'products'): Promise<string> => {
   try {
     // Create a unique filename
@@ -12,7 +13,7 @@ export const uploadImage = async (file: File, folder: string = 'products'): Prom
     const { data, error } = await supabase.storage
       .from('images')
       .upload(filePath, file, {
-        cacheControl: '3600',
+        cacheControl: '31536000', // 1 year cache
         upsert: false
       });
 
@@ -26,6 +27,46 @@ export const uploadImage = async (file: File, folder: string = 'products'): Prom
     return publicUrlData.publicUrl;
   } catch (error) {
     throw new Error('Failed to upload image');
+  }
+};
+
+// Upload and compress an image using server-side Sharp compression
+// This dramatically reduces egress costs and improves performance
+export const uploadImageCompressed = async (
+  file: File,
+  folder: string = 'products',
+  maxWidth: number = 1200,
+  quality: number = 85
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('maxWidth', maxWidth.toString());
+    formData.append('quality', quality.toString());
+
+    const response = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+
+    // Log compression stats for debugging
+    console.log('Image compressed:', {
+      original: (data.originalSize / 1024).toFixed(2) + 'KB',
+      compressed: (data.compressedSize / 1024).toFixed(2) + 'KB',
+      saved: data.compressionRatio
+    });
+
+    return data.url;
+  } catch (error) {
+    throw new Error('Failed to upload and compress image');
   }
 };
 
@@ -105,9 +146,10 @@ export const getGalleryImages = async (): Promise<string[]> => {
   }
 };
 
-// Upload gallery image
+// Upload gallery image with compression
 export const uploadGalleryImage = async (file: File): Promise<string> => {
-  return uploadImage(file, 'gallery');
+  // Gallery images can be larger since they're used in hero slider
+  return uploadImageCompressed(file, 'gallery', 1920, 90);
 };
 
 // Delete gallery image by URL
@@ -148,7 +190,7 @@ export const uploadFile = async (file: File, folder: string = 'files'): Promise<
     const { data, error } = await supabase.storage
       .from('files')
       .upload(filePath, file, {
-        cacheControl: '3600',
+        cacheControl: '31536000', // 1 year cache
         upsert: false
       });
 
