@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compressImage, validateImageForCompression } from '@/app/lib/image-compression';
-import { supabase } from '@/app/lib/supabase';
+import { supabaseServer } from '@/app/lib/supabase-server';
 
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Sharp
 
@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     const fileName = `${timestamp}_${originalName}.webp`;
     const filePath = `${folder}/${fileName}`;
 
-    // Upload compressed image to Supabase
-    const { data, error } = await supabase.storage
+    // Upload compressed image to Supabase using service role (bypasses RLS)
+    const { data, error } = await supabaseServer.storage
       .from('images')
       .upload(filePath, compressed.buffer, {
         contentType: 'image/webp',
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: publicUrlData } = supabase.storage
+    const { data: publicUrlData } = supabaseServer.storage
       .from('images')
       .getPublicUrl(filePath);
 
@@ -76,8 +76,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Image upload error:', error);
+    // Log detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', { errorMessage, errorStack });
+
     return NextResponse.json(
-      { error: 'Failed to process image upload' },
+      {
+        error: 'Failed to process image upload',
+        details: errorMessage,
+        debug: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
       { status: 500 }
     );
   }

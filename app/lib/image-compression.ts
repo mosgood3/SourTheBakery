@@ -1,5 +1,12 @@
 import sharp from 'sharp';
 
+// Configure Sharp for serverless/Vercel environment
+// This prevents caching issues and ensures proper binary loading
+if (process.env.VERCEL) {
+  sharp.cache(false);
+  sharp.simd(true);
+}
+
 export interface CompressedImageResult {
   buffer: Buffer;
   contentType: string;
@@ -20,8 +27,11 @@ export async function compressImage(
   quality: number = 85
 ): Promise<CompressedImageResult> {
   try {
+    console.log('Starting image compression...', { maxWidth, quality, bufferSize: buffer.length });
+
     // Get image metadata
     const metadata = await sharp(buffer).metadata();
+    console.log('Image metadata:', metadata);
 
     // Calculate dimensions maintaining aspect ratio
     let width = metadata.width || maxWidth;
@@ -33,6 +43,8 @@ export async function compressImage(
       height = Math.round(height * ratio);
     }
 
+    console.log('Target dimensions:', { width, height });
+
     // Compress and convert to WebP
     const compressed = await sharp(buffer)
       .resize(width, height, {
@@ -42,6 +54,12 @@ export async function compressImage(
       .webp({ quality, effort: 6 }) // effort 6 = good balance of compression vs speed
       .toBuffer();
 
+    console.log('Compression complete:', {
+      originalSize: buffer.length,
+      compressedSize: compressed.length,
+      ratio: ((1 - compressed.length / buffer.length) * 100).toFixed(1) + '%'
+    });
+
     return {
       buffer: compressed,
       contentType: 'image/webp',
@@ -49,6 +67,7 @@ export async function compressImage(
       height,
     };
   } catch (error) {
+    console.error('Compression error:', error);
     throw new Error(`Failed to compress image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
