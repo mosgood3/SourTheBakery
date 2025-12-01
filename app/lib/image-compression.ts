@@ -47,6 +47,7 @@ export async function compressImage(
 
     // Compress and convert to WebP
     const compressed = await sharp(buffer)
+      .rotate() // Auto-rotate based on EXIF orientation (fixes sideways images from phones)
       .resize(width, height, {
         fit: 'inside',
         withoutEnlargement: true,
