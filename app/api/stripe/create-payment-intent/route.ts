@@ -4,7 +4,9 @@ import { checkWeeklyCap } from '../../../lib/products-supabase';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateEmail } from '../../../lib/input-validator';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: '2025-11-17.clover',
+});
 
 // This endpoint is intended to handle POST requests from the frontend and send a POST to Stripe
 async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse> {

@@ -3,6 +3,27 @@ import { compressImage, validateImageForCompression } from '@/app/lib/image-comp
 import { supabaseServer } from '@/app/lib/supabase-server';
 
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Sharp
+export const dynamic = 'force-dynamic'; // Disable static optimization for this route
+
+// Add OPTIONS handler for CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
+// Add GET handler to return proper error instead of 413
+export async function GET(request: NextRequest) {
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST to upload images.' },
+    { status: 405 }
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {

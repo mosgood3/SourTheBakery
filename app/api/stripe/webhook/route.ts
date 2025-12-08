@@ -6,7 +6,9 @@ import { getRecipe } from '../../../lib/recipes-supabase';
 import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
 import { sendRecipePurchaseEmail } from '../../../lib/recipe-email-service';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: '2025-11-17.clover',
+});
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
 
