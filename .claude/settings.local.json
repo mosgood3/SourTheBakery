@@ -24,7 +24,8 @@
       "WebSearch",
       "WebFetch(domain:supabase.com)",
       "Bash(if exist .next rmdir /s /q .next)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": []
   }

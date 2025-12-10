@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getOrders, updateOrderStatus, Order } from '../../lib/products-supabase';
 import { getPickupInfo } from '../../lib/settings-supabase';
-import { FiRefreshCw, FiDownload, FiChevronDown, FiX } from 'react-icons/fi';
+import { FiRefreshCw, FiDownload, FiChevronDown, FiX, FiPrinter } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 
 // Confirmation Modal Component
@@ -68,7 +68,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [showOnlyOpen, setShowOnlyOpen] = useState(true);
   const [pickupTime, setPickupTime] = useState<string>('9:00 AM');
-  const [pickupDate, setPickupDate] = useState<string>('TBD');
   const [pickupLocation, setPickupLocation] = useState<string>('Sour The Bakery');
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
@@ -91,17 +90,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       };
       setPickupTime(`${formatTime(pickupInfo.timeStart)} - ${formatTime(pickupInfo.timeEnd)}`);
       setPickupLocation(pickupInfo.location);
-      
-      // Format pickup date from settings (force EST timezone)
-      const dateFromSettings = new Date(pickupInfo.date + 'T12:00:00-05:00'); // Force EST noon
-      const formattedPickupDate = dateFromSettings.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric', 
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'America/New_York'
-      });
-      setPickupDate(formattedPickupDate);
     } catch (err) {
       setError('Failed to load orders');
     } finally {
@@ -201,6 +189,18 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     return new Date(timestamp).toLocaleString();
   };
 
+  const formatPickupDate = (pickupDate: string | undefined) => {
+    if (!pickupDate) return 'TBD';
+    const date = new Date(pickupDate);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'America/New_York'
+    });
+  };
+
   const getExportData = (filterType: 'open' | 'completed') => {
     const filteredOrders = orders.filter(order => order.status === filterType);
 
@@ -215,7 +215,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       'Customer Email': order.customer_email,
       'Order Total': `$${order.total.toFixed(2)}`,
       'Order Date': formatDate(order.created_at),
-      'Pickup Date': pickupDate,
+      'Pickup Date': formatPickupDate(order.pickup_date),
       'Pickup Time': pickupTime,
       'Pickup Location': pickupLocation,
       'Items': order.items.map(item => `${item.productName} (Qty: ${item.quantity})`).join('; '),
@@ -266,6 +266,250 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     document.body.removeChild(link);
   };
 
+  const printOpenOrders = () => {
+    const openOrders = orders.filter(order => order.status === 'open');
+
+    if (openOrders.length === 0) {
+      alert('No open orders to print');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow popups to print orders');
+      return;
+    }
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Open Orders - ${new Date().toLocaleDateString()}</title>
+          <style>
+            @page {
+              margin: 1in 0.5in 0.5in 0.5in;
+            }
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 13pt;
+              line-height: 1.5;
+              color: #000;
+            }
+            .receipt {
+              page-break-after: always;
+              max-width: 5in;
+              margin: 0 auto 30px;
+              border: 1px dashed #000;
+              padding: 0;
+            }
+            .receipt:last-child {
+              page-break-after: auto;
+            }
+            .receipt-content {
+              padding: 25px 15px 15px 15px;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 1px dashed #000;
+              padding-bottom: 10px;
+              margin-bottom: 10px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 20pt;
+              font-weight: bold;
+            }
+            .header .tagline {
+              font-size: 12pt;
+              margin: 2px 0;
+            }
+            .divider {
+              border-bottom: 1px dashed #000;
+              margin: 10px 0;
+            }
+            .divider-solid {
+              border-bottom: 1px solid #000;
+              margin: 10px 0;
+            }
+            .order-info {
+              text-align: center;
+              margin-bottom: 10px;
+            }
+            .order-number {
+              font-size: 18pt;
+              font-weight: bold;
+              margin: 5px 0;
+            }
+            .info-line {
+              margin: 3px 0;
+              font-size: 11pt;
+            }
+            .section-title {
+              font-weight: bold;
+              text-transform: uppercase;
+              margin: 10px 0 5px 0;
+              font-size: 13pt;
+            }
+            .customer-line {
+              margin: 3px 0;
+              font-size: 12pt;
+            }
+            .pickup-box {
+              padding: 5px 0;
+              margin: 8px 0;
+              text-align: left;
+              font-size: 10pt;
+              color: #666;
+            }
+            .pickup-box .label {
+              font-weight: normal;
+              font-size: 9pt;
+              display: inline;
+            }
+            .pickup-box .value {
+              font-size: 10pt;
+              margin: 0;
+              display: inline;
+            }
+            .items-header {
+              display: flex;
+              font-weight: bold;
+              border-bottom: 2px solid #000;
+              padding: 8px 0;
+              margin-top: 15px;
+              font-size: 14pt;
+            }
+            .items-header .qty {
+              width: 50px;
+            }
+            .items-header .item {
+              flex: 1;
+            }
+            .items-header .price {
+              width: 90px;
+              text-align: right;
+            }
+            .item-row {
+              display: flex;
+              padding: 10px 0;
+              border-bottom: 1px dotted #999;
+              font-size: 14pt;
+            }
+            .item-row .qty {
+              width: 50px;
+              font-weight: bold;
+              font-size: 16pt;
+            }
+            .item-row .item {
+              flex: 1;
+              font-weight: bold;
+            }
+            .item-row .price {
+              width: 90px;
+              text-align: right;
+              font-weight: bold;
+            }
+            .total-line {
+              display: flex;
+              justify-content: space-between;
+              font-size: 18pt;
+              font-weight: bold;
+              margin-top: 10px;
+              padding-top: 10px;
+              border-top: 2px solid #000;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 15px;
+              padding-top: 10px;
+              border-top: 1px dashed #000;
+              font-size: 11pt;
+            }
+            .thank-you {
+              font-weight: bold;
+              margin: 5px 0;
+            }
+            @media print {
+              body {
+                margin: 0;
+              }
+              .receipt {
+                border: none;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${openOrders.map(order => `
+            <div class="receipt">
+              <div class="receipt-content">
+                <div class="header">
+                  <h1>SOUR THE BAKERY</h1>
+                  <div class="tagline">Lets get sour</div>
+                </div>
+
+                <div class="order-info">
+                  <div class="order-number">ORDER #${order.id?.slice(-8)}</div>
+                  <div class="info-line">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="section-title">CUSTOMER</div>
+                <div class="customer-line">${order.customer_name}</div>
+                <div class="customer-line">${order.customer_email}</div>
+
+                <div class="divider"></div>
+
+                <div class="pickup-box">
+                  <div><span class="label">Pickup:</span> <span class="value">${formatPickupDate(order.pickup_date)} ${pickupTime}</span></div>
+                  <div><span class="label">Location:</span> <span class="value">${pickupLocation}</span></div>
+                </div>
+
+                <div class="divider-solid"></div>
+
+                <div class="items-header">
+                  <div class="qty">QTY</div>
+                  <div class="item">ITEM</div>
+                  <div class="price">PRICE</div>
+                </div>
+
+                ${order.items.map(item => `
+                  <div class="item-row">
+                    <div class="qty">${item.quantity}</div>
+                    <div class="item">${item.productName}</div>
+                    <div class="price">$${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}</div>
+                  </div>
+                `).join('')}
+
+                <div class="total-line">
+                  <span>TOTAL:</span>
+                  <span>$${order.total.toFixed(2)}</span>
+                </div>
+
+                <div class="footer">
+                  <div class="thank-you">THANK YOU!</div>
+                  <div>Please arrive during pickup window</div>
+                  <div>Questions? info@sourthebakery.com</div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+
+    // Wait for content to load then print
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    };
+  };
+
 
   const filteredOrders = showOnlyOpen ? orders.filter(order => order.status === 'open') : orders;
   const openOrders = filteredOrders.filter(o => o.status === 'open');
@@ -307,6 +551,13 @@ export default function OrdersPanel({ admin }: { admin: any }) {
           >
             <FiRefreshCw size={18} />
             Refresh Orders
+          </button>
+          <button
+            onClick={printOpenOrders}
+            className="flex items-center justify-center gap-2 bg-purple-600 border-1 border-purple-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors duration-300 shadow-md cursor-pointer"
+          >
+            <FiPrinter size={18} />
+            Print Open Orders
           </button>
           <div className="relative w-full sm:w-auto">
             <button
@@ -468,7 +719,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   <div className="space-y-2">
                     <div>
                       <p className="text-xs text-brown/60">Pickup Date</p>
-                      <p className="text-brown font-medium">{pickupDate}</p>
+                      <p className="text-brown font-medium">{formatPickupDate(order.pickup_date)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-brown/60">Pickup Time</p>
