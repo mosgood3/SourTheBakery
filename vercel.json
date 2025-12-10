@@ -2,8 +2,7 @@
   "functions": {
     "app/api/upload-image/route.ts": {
       "maxDuration": 60,
-      "memory": 3008,
-      "maxRequestBodySize": "10mb"
+      "memory": 3008
     }
   }
 }
