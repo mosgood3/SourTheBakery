@@ -1,150 +1,42 @@
 'use client';
 
-import { useCart } from '../contexts/CartContext';
 import { useEffect, useState, useRef } from 'react';
-import CateringForm from './CateringForm';
-import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { subscribeToNewsletter } from '../lib/newsletter-supabase';
 import { getGalleryImages } from '../lib/storage-supabase';
 
-interface Slide {
-  id: number;
-  title: string;
-  subtitle: string;
-  description: string;
-  image: string;
-  bgColor: string;
-  textColor: string;
-  accentColor: string;
-}
-
-// Fallback slides with default images (used if no gallery images exist)
-const defaultSlides: Slide[] = [
-  {
-    id: 1,
-    title: "LET'S GET",
-    subtitle: "SOUR",
-    description: "Handcrafted sourdough treats made with love",
-    image: "/hero/muffins.png",
-    bgColor: "from-cream via-soft-peach to-warm-beige",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  },
-  {
-    id: 2,
-    title: "ARTISAN",
-    subtitle: "TREATS",
-    description: "Crispy, chewy perfection in every bite",
-    image: "/hero/brownies.png",
-    bgColor: "from-warm-white via-golden-sand to-soft-peach",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  },
-  {
-    id: 3,
-    title: "FRESH",
-    subtitle: "LOAVES",
-    description: "Naturally leavened handcrafted sourdough",
-    image: "/hero/loaf.jpg",
-    bgColor: "from-mint-cream via-soft-peach to-warm-beige",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  },
-  {
-    id: 4,
-    title: "GOLDEN",
-    subtitle: "BAGELS",
-    description: "New York style bagels with sourdough twist",
-    image: "/hero/bagels.png",
-    bgColor: "from-golden-sand via-warm-beige to-soft-peach",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  }
+// Default hero images
+const defaultImages = [
+  "/hero/muffins.png",
+  "/hero/brownies.png",
+  "/hero/loaf.jpg",
+  "/hero/bagels.png"
 ];
-
-// Slide templates for gallery images
-const slideTemplates = [
-  {
-    title: "LET'S GET",
-    subtitle: "SOUR",
-    description: "Handcrafted sourdough treats made with love",
-    bgColor: "from-cream via-soft-peach to-warm-beige",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  },
-  {
-    title: "ARTISAN",
-    subtitle: "TREATS",
-    description: "Crispy, chewy perfection in every bite",
-    bgColor: "from-warm-white via-golden-sand to-soft-peach",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  },
-  {
-    title: "FRESH",
-    subtitle: "BAKES",
-    description: "Naturally leavened handcrafted sourdough",
-    bgColor: "from-mint-cream via-soft-peach to-warm-beige",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  },
-  {
-    title: "GOLDEN",
-    subtitle: "GOODNESS",
-    description: "Perfection in every bite",
-    bgColor: "from-golden-sand via-warm-beige to-soft-peach",
-    textColor: "text-white",
-    accentColor: "text-soft-green"
-  }
-];
-
-const getButtonColors = (accentColor: string) => {
-  const colorMap = {
-    'text-soft-green': { primary: 'bg-soft-green hover:bg-nature-green', secondary: 'border-soft-green hover:border-nature-green' }
-  };
-  return colorMap[accentColor as keyof typeof colorMap] || colorMap['text-soft-green'];
-};
 
 export default function HeroSection() {
-  const { toggleCart } = useCart();
-  const [showCateringForm, setShowCateringForm] = useState(false);
-  const [showCateringPopup, setShowCateringPopup] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [images, setImages] = useState<string[]>(defaultImages);
   const [newsletterStatus, setNewsletterStatus] = useState<string | null>(null);
   const [isSubmittingNewsletter, setIsSubmittingNewsletter] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement>(null);
-  const [slides, setSlides] = useState<Slide[]>(defaultSlides);
-  const [loadingGallery, setLoadingGallery] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Prevent flash by setting loaded state after mount
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   // Fetch gallery images from Supabase
   useEffect(() => {
     const fetchGalleryImages = async () => {
       try {
-        setLoadingGallery(true);
         const galleryImages = await getGalleryImages();
-
         if (galleryImages && galleryImages.length > 0) {
-          // Create slides from gallery images
-          const dynamicSlides: Slide[] = galleryImages.map((imageUrl, index) => {
-            const template = slideTemplates[index % slideTemplates.length];
-            return {
-              id: index + 1,
-              image: imageUrl,
-              ...template
-            };
-          });
-          setSlides(dynamicSlides);
-        } else {
-          // No gallery images, use default slides
-          setSlides(defaultSlides);
+          setImages(galleryImages);
         }
       } catch (error) {
         console.error('Failed to load gallery images:', error);
-        // Fallback to default slides on error
-        setSlides(defaultSlides);
-      } finally {
-        setLoadingGallery(false);
       }
     };
 
@@ -154,14 +46,14 @@ export default function HeroSection() {
   const nextSlide = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % images.length);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
   const prevSlide = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
@@ -176,7 +68,7 @@ export default function HeroSection() {
   useEffect(() => {
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [isAnimating]);
+  }, [isAnimating, images.length]);
 
   // Handle newsletter subscription
   const handleNewsletterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -187,7 +79,7 @@ export default function HeroSection() {
     try {
       const formData = new FormData(e.currentTarget);
       const email = formData.get('email') as string;
-      
+
       if (!email) {
         throw new Error('Email is required');
       }
@@ -197,8 +89,7 @@ export default function HeroSection() {
       if (newsletterFormRef.current) {
         newsletterFormRef.current.reset();
       }
-      
-      // Clear success message after 3 seconds
+
       setTimeout(() => setNewsletterStatus(null), 3000);
     } catch (error: any) {
       console.error('Newsletter subscription error:', error);
@@ -207,462 +98,207 @@ export default function HeroSection() {
       } else {
         setNewsletterStatus('error');
       }
-      
-      // Clear error message after 5 seconds
+
       setTimeout(() => setNewsletterStatus(null), 5000);
     } finally {
       setIsSubmittingNewsletter(false);
     }
   };
 
-  const currentSlideData = slides[currentSlide] || slides[0];
-  const buttonColors = getButtonColors(currentSlideData.accentColor);
-
-  // Don't render if no slide data is available
-  if (!currentSlideData || !currentSlideData.image) {
-    return null;
-  }
-
   return (
-    <section
-      id="home"
-      className="relative min-h-screen overflow-hidden pt-24 sm:pt-42 md:pt-24 lg:pt-20"
-    >
-      {/* Full background image */}
-      <div className="absolute inset-0">
-        <img 
-          src={currentSlideData.image}
-          alt={`${currentSlideData.subtitle} background`}
-          className="w-full h-full object-cover hero-bg-image transition-all duration-1000 ease-out"
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/40 transition-all duration-1000 ease-out"></div>
-      </div>
-
-      {/* Slider Container */}
-      <div className="relative z-10 h-screen flex items-end pb-32">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Main Slide Content - Mobile First Design */}
-          <div className="flex flex-col items-center text-center space-y-8 lg:grid lg:grid-cols-2 lg:gap-16 lg:text-left min-h-[80vh]">
-            
-              {/* Hero Text - Always First */}
-              <div className="space-y-6 lg:order-1">
-                <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-8xl xl:text-9xl font-black leading-tight text-white transition-colors duration-700 drop-shadow-2xl">
-                  <span className="block text-soft-green font-vintage tracking-wide drop-shadow-lg font-black">
-                    {currentSlideData.title}
-                  </span>
-                  <span className="block text-light-green font-vintage tracking-wide drop-shadow-lg font-black">
-                    {currentSlideData.subtitle}
-                  </span>
-                </h1>
-                <p className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl text-white font-serif leading-relaxed max-w-2xl mx-auto lg:mx-0 drop-shadow-lg font-semibold">
-                  {currentSlideData.description}
-                </p>
-              </div>
-
-              {/* Buttons Only */}
-              <div className="w-full flex justify-center lg:justify-start lg:order-2">
-                <div className="flex gap-3 justify-center lg:justify-start">
-                  <a 
-                    href="#products"
-                    className="px-6 py-3 rounded-xl font-semibold text-center transition-all duration-300 bg-soft-green hover:bg-nature-green text-white shadow-lg hover:shadow-xl"
-                  >
-                    View Menu
-                  </a>
-                </div>
-              </div>
-          </div>
-
-          {/* Email Newsletter Section - Positioned near bottom */}
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
-            <form ref={newsletterFormRef} className="relative" onSubmit={handleNewsletterSubmit}>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter email to join our newsletter"
-                required
-                disabled={isSubmittingNewsletter}
-                className="w-full px-4 py-3 pr-32 bg-white/95 border-2 border-white/50 rounded-xl text-deep-green placeholder-moss-green/70 focus:outline-none focus:border-sage-green backdrop-blur-sm shadow-lg disabled:opacity-70"
-              />
-              <button
-                type="submit"
-                disabled={isSubmittingNewsletter}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-sage-green text-white rounded-lg font-semibold hover:bg-forest-green transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isSubmittingNewsletter ? 'Saving...' : 'Subscribe'}
-              </button>
-            </form>
-            
-            {/* Newsletter Status Messages */}
-            {newsletterStatus && (
-              <div className={`mt-2 p-2 rounded-lg text-sm text-center ${
-                newsletterStatus === 'success' 
-                  ? 'bg-green-100 text-green-800' 
-                  : newsletterStatus === 'already_subscribed'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {newsletterStatus === 'success' && '✅ Successfully subscribed to newsletter!'}
-                {newsletterStatus === 'already_subscribed' && '📧 Email already subscribed'}
-                {newsletterStatus === 'error' && '❌ Subscription failed. Please try again.'}
-              </div>
-            )}
-          </div>
-
-          {/* Slide Indicators - Clean and Minimal */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-            <div className="flex space-x-3 bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                    index === currentSlide 
-                      ? 'bg-soft-green scale-125 shadow-lg'
-                      : 'bg-white/50 hover:bg-white/75'
-                  }`}
-                  disabled={isAnimating}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Modern Navigation Arrows - Hidden on mobile */}
-          <button
-            onClick={prevSlide}
-            className="nav-arrow hidden lg:block absolute left-4 lg:left-6 top-[60%] lg:top-1/2 -translate-y-1/2 p-3 lg:p-4 rounded-2xl bg-gray-900/20 hover:bg-gray-900/30 text-white transition-all duration-500 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-110 border border-white/10 z-20"
-            disabled={isAnimating}
-          >
-            <FaChevronLeft size={16} className="lg:w-5 lg:h-5" />
-          </button>
-          
-          <button
-            onClick={nextSlide}
-            className="nav-arrow hidden lg:block absolute right-4 lg:right-6 top-[60%] lg:top-1/2 -translate-y-1/2 p-3 lg:p-4 rounded-2xl bg-gray-900/20 hover:bg-gray-900/30 text-white transition-all duration-500 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-110 border border-white/10 z-20"
-            disabled={isAnimating}
-          >
-            <FaChevronRight size={16} className="lg:w-5 lg:h-5" />
-          </button>
-
-        </div>
-      </div>
-
-      {/* Catering Form Modal */}
-      {showCateringForm && <CateringForm onClose={() => setShowCateringForm(false)} />}
-      {showCateringPopup && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setShowCateringPopup(false)}
-        >
+    <section id="home" className="relative min-h-screen overflow-hidden pt-20 bg-black">
+      {/* Background Image Slideshow */}
+      <div className="absolute inset-0" style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in' }}>
+        {images.map((image, index) => (
           <div
-            className="bg-white rounded-2xl shadow-xl p-8 max-w-sm mx-4 text-center relative"
-            onClick={(e) => e.stopPropagation()}
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
           >
+            <img
+              src={image}
+              alt="Bakery hero"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ))}
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-start pt-32 md:justify-center md:pt-20 px-6 py-20">
+
+        {/* Hero Title */}
+        <div className="text-center space-y-4 mb-12">
+          <h1 className="hero-title">
+            <div className="hero-line">
+              <span className="hero-word">LET'S</span>
+              <span className="hero-word-space"></span>
+              <span className="hero-word">GET</span>
+            </div>
+            <div className="hero-line">
+              <span className="hero-word">SOUR</span>
+            </div>
+          </h1>
+          <p className="hero-subtitle">Handcrafted sourdough treats made with love</p>
+        </div>
+
+        {/* CTA Button */}
+        <a
+          href="#products"
+          className="group relative px-10 py-5 bg-white text-deep-green text-lg font-bold rounded-full transition-all duration-300 shadow-2xl hover:shadow-sage-green/50 hover:scale-105 overflow-hidden"
+        >
+          <span className="relative z-10">Explore Menu</span>
+          <div className="absolute inset-0 bg-sage-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+          <span className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-bold">
+            Explore Menu
+          </span>
+        </a>
+
+        {/* Newsletter Signup */}
+        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 w-full max-w-lg px-6">
+          <form ref={newsletterFormRef} className="relative group" onSubmit={handleNewsletterSubmit}>
+            <input
+              type="email"
+              name="email"
+              placeholder="Join our newsletter for fresh updates"
+              required
+              disabled={isSubmittingNewsletter}
+              className="w-full px-6 py-4 pr-36 bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-white/60 focus:bg-white/20 transition-all duration-300 disabled:opacity-70"
+            />
             <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-3xl font-bold focus:outline-none w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full"
-              onClick={() => setShowCateringPopup(false)}
-              aria-label="Close"
+              type="submit"
+              disabled={isSubmittingNewsletter}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-8 py-2.5 bg-white text-deep-green rounded-full font-bold hover:bg-sage-green hover:text-white transition-all duration-300 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              ×
+              {isSubmittingNewsletter ? 'Sending...' : 'Subscribe'}
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-gray-600">Pre Orders</h2>
-            <p className="text-gray-600 mb-6">Pre-orders are coming soon! We are working on a workflow to make it easy for you to reserve your favorite bakes in advance.</p>
-            <p className="text-gray-600 text-sm mt-8">For special event cookie inquiries please contact <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} className="underline text-terracotta">{process.env.NEXT_PUBLIC_CONTACT_EMAIL}</a></p>
+          </form>
+
+          {/* Newsletter Status Messages */}
+          {newsletterStatus && (
+            <div className={`mt-3 p-3 rounded-full text-sm text-center font-semibold backdrop-blur-md ${
+              newsletterStatus === 'success'
+                ? 'bg-green-500/90 text-white'
+                : newsletterStatus === 'already_subscribed'
+                ? 'bg-yellow-500/90 text-white'
+                : 'bg-red-500/90 text-white'
+            }`}>
+              {newsletterStatus === 'success' && '✓ Successfully subscribed!'}
+              {newsletterStatus === 'already_subscribed' && 'Already subscribed'}
+              {newsletterStatus === 'error' && 'Failed. Please try again.'}
+            </div>
+          )}
+        </div>
+
+        {/* Slide Indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <div className="flex space-x-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-3 border border-white/20">
+            {images.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`transition-all duration-300 rounded-full ${
+                  index === currentSlide
+                    ? 'w-8 h-3 bg-white'
+                    : 'w-3 h-3 bg-white/40 hover:bg-white/60'
+                }`}
+                disabled={isAnimating}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Modern Slider Styles */}
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="hidden lg:flex absolute left-8 top-1/2 -translate-y-1/2 w-14 h-14 items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-50"
+          disabled={isAnimating}
+          aria-label="Previous slide"
+        >
+          <FaChevronLeft size={20} />
+        </button>
+
+        <button
+          onClick={nextSlide}
+          className="hidden lg:flex absolute right-8 top-1/2 -translate-y-1/2 w-14 h-14 items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:bg-white/20 hover:scale-110 disabled:opacity-50"
+          disabled={isAnimating}
+          aria-label="Next slide"
+        >
+          <FaChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* Styles */}
       <style jsx>{`
-        .font-vintage {
-          font-family: var(--font-vintage), Georgia, serif;
+        .hero-title {
+          font-family: var(--font-nunito), system-ui, sans-serif;
+          font-weight: 900;
+          line-height: 0.9;
+          letter-spacing: -0.03em;
+          text-transform: uppercase;
         }
-        
-        /* Modern slide animations */
-        @keyframes slideInRight {
-          0% { 
-            opacity: 0;
-            transform: translateX(100px);
+
+        .hero-line {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .hero-word-space {
+          width: 1.5rem;
+        }
+
+        .hero-word {
+          display: inline-block;
+          color: #9CAF88;
+          text-shadow:
+            0 0 40px rgba(156, 175, 136, 0.8),
+            0 0 80px rgba(156, 175, 136, 0.5),
+            0 8px 32px rgba(0, 0, 0, 0.8);
+          font-size: 5rem;
+        }
+
+        .hero-subtitle {
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 1.25rem;
+          font-weight: 400;
+          letter-spacing: 0.05em;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Responsive font sizes */
+        @media (max-width: 640px) {
+          .hero-word {
+            font-size: 3.5rem;
           }
-          100% { 
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes slideInLeft {
-          0% { 
-            opacity: 0;
-            transform: translateX(-100px);
-          }
-          100% { 
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes fadeInUp {
-          0% { 
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          100% { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { 
-            transform: scale(1);
-          }
-          50% { 
-            transform: scale(1.05);
-          }
-        }
-        
-        @keyframes float {
-          0%, 100% { 
-            transform: translateY(0px);
-          }
-          50% { 
-            transform: translateY(-20px);
-          }
-        }
-        
-        /* Text entrance animation */
-        .slide-text {
-          animation: slideInLeft 0.8s ease-out;
-        }
-        
-        /* Image entrance animation */
-        .slide-image {
-          animation: slideInRight 0.8s ease-out;
-        }
-        
-        /* Floating animation for images */
-        .float-animation {
-          animation: float 4s ease-in-out infinite;
-        }
-        
-        /* Button hover effects */
-        .modern-btn {
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .modern-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.5s;
-        }
-        
-        .modern-btn:hover::before {
-          left: 100%;
-        }
-        
-        /* Gradient text effect */
-        .gradient-text {
-          background: linear-gradient(135deg, currentColor 0%, currentColor 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-        }
-        
-        /* Glass morphism effect for buttons */
-        .glass-btn {
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Slide indicators animation */
-        @keyframes indicatorPulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.2); }
-          100% { transform: scale(1); }
-        }
-        
-        .active-indicator {
-          animation: indicatorPulse 0.3s ease-out;
-        }
-        
-        /* Navigation arrows hover effect */
-        .nav-arrow:hover {
-          transform: scale(1.1);
-        }
-        
-        /* Modern background animations */
-        @keyframes pulse-slow {
-          0%, 100% { 
-            opacity: 0.08;
-            transform: scale(1);
-          }
-          50% { 
-            opacity: 0.12;
-            transform: scale(1.02);
-          }
-        }
-        
-        @keyframes float-gentle {
-          0%, 100% { 
-            transform: translateY(0px) translateX(0px) scale(1);
-          }
-          33% { 
-            transform: translateY(-8px) translateX(4px) scale(1.01);
-          }
-          66% { 
-            transform: translateY(4px) translateX(-6px) scale(0.99);
-          }
-        }
-        
-        @keyframes drift-1 {
-          0%, 100% { 
-            transform: translate(0, 0);
-          }
-          25% { 
-            transform: translate(6px, -8px);
-          }
-          50% { 
-            transform: translate(-4px, -12px);
-          }
-          75% { 
-            transform: translate(8px, -4px);
-          }
-        }
-        
-        @keyframes drift-2 {
-          0%, 100% { 
-            transform: translate(0, 0);
-          }
-          50% { 
-            transform: translate(-10px, 6px);
-          }
-        }
-        
-        @keyframes pulse-gentle {
-          0%, 100% { 
-            opacity: 0.2;
-          }
-          50% { 
-            opacity: 0.3;
-          }
-        }
-        
-        @keyframes float-soft {
-          0%, 100% { 
-            transform: translateY(0px);
-          }
-          50% { 
-            transform: translateY(-6px);
-          }
-        }
-        
-        @keyframes drift-gentle {
-          0%, 100% { 
-            transform: translate(0, 0) scale(1);
-          }
-          33% { 
-            transform: translate(2px, -3px) scale(1.1);
-          }
-          66% { 
-            transform: translate(-2px, 2px) scale(0.9);
-          }
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse-slow 6s ease-in-out infinite;
-        }
-        
-        .animate-float-gentle {
-          animation: float-gentle 8s ease-in-out infinite;
-        }
-        
-        .animate-drift-1 {
-          animation: drift-1 10s ease-in-out infinite;
-        }
-        
-        .animate-drift-2 {
-          animation: drift-2 12s ease-in-out infinite;
-        }
-        
-        .animate-pulse-gentle {
-          animation: pulse-gentle 4s ease-in-out infinite;
-        }
-        
-        .animate-float-soft {
-          animation: float-soft 6s ease-in-out infinite;
-        }
-        
-        .animate-drift-gentle {
-          animation: drift-gentle 8s ease-in-out infinite;
-        }
-        
-        /* Responsive background image scaling */
-        .hero-bg-image {
-          object-position: center center;
-        }
-        
-        /* Mobile and small screens - keep current behavior */
-        @media (max-width: 768px) {
-          .hero-bg-image {
-            object-fit: cover;
-            transform: scale(1);
-          }
-        }
-        
-        /* Large screens - reduce zoom/scale for better fit */
-        @media (min-width: 769px) {
-          .hero-bg-image {
-            object-fit: cover;
-            transform: scale(0.85);
-            object-position: center center;
-          }
-        }
-        
-        /* Extra large screens - even less zoom */
-        @media (min-width: 1200px) {
-          .hero-bg-image {
-            object-fit: cover;
-            transform: scale(0.75);
-            object-position: center center;
-          }
-        }
-        
-        /* Ultra wide screens */
-        @media (min-width: 1600px) {
-          .hero-bg-image {
-            object-fit: cover;
-            transform: scale(0.7);
-            object-position: center center;
+          .hero-word-space {
+            width: 1rem;
           }
         }
 
-        /* Responsive text scaling */
-        @media (max-width: 640px) {
-          .responsive-title {
-            font-size: clamp(3rem, 8vw, 4rem);
+        @media (min-width: 641px) and (max-width: 768px) {
+          .hero-word {
+            font-size: 4.5rem;
           }
         }
-        
-        @media (min-width: 641px) and (max-width: 1024px) {
-          .responsive-title {
-            font-size: clamp(4rem, 10vw, 6rem);
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .hero-word {
+            font-size: 6rem;
           }
         }
-        
+
         @media (min-width: 1025px) {
-          .responsive-title {
-            font-size: clamp(6rem, 12vw, 8rem);
+          .hero-word {
+            font-size: 8rem;
           }
         }
       `}</style>
     </section>
   );
-} 
+}

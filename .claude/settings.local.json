@@ -25,7 +25,11 @@
       "WebFetch(domain:supabase.com)",
       "Bash(if exist .next rmdir /s /q .next)",
       "Bash(grep:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(del CartContext.tsx)",
+      "Bash(del \"C:\\Users\\matth\\Engineering\\sourthebakery\\app\\contexts\\CartContext.tsx\")"
     ],
     "deny": []
   }

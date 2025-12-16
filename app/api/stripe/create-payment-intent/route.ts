@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { checkWeeklyCap } from '../../../lib/products-supabase';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateEmail } from '../../../lib/input-validator';
-import { createPendingOrder } from '../../../lib/products-server-supabase';
+import { createPendingOrder } from '../../../lib/pickups-server-supabase';
+import { getPickup, isPickupOrderWindowOpen, checkPickupInventory } from '../../../lib/pickups-supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-11-17.clover',
@@ -22,7 +22,7 @@ async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse
     if (process.env.NODE_ENV !== 'production') {
       console.log('[DEBUG] Request body:', body);
     }
-    const { items, customerName, customerEmail, pickupInfo } = body;
+    const { items, customerName, customerEmail, pickupId } = body;
 
     // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -37,19 +37,34 @@ async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse
       return NextResponse.json({ error: 'Valid customer email is required' }, { status: 400 });
     }
 
+    if (!pickupId || typeof pickupId !== 'string') {
+      return NextResponse.json({ error: 'Pickup ID is required' }, { status: 400 });
+    }
+
+    // Validate pickup exists and is active
+    const pickup = await getPickup(pickupId);
+    if (!pickup) {
+      return NextResponse.json({ error: 'Pickup event not found' }, { status: 404 });
+    }
+
+    const isOrderWindowOpen = await isPickupOrderWindowOpen(pickupId);
+    if (!isOrderWindowOpen) {
+      return NextResponse.json({ error: 'The order window for this pickup has closed' }, { status: 400 });
+    }
+
     // Check inventory availability for all items BEFORE processing payment
     for (const item of items) {
       try {
-        const capCheck = await checkWeeklyCap(item.id, item.quantity);
-        if (!capCheck.available) {
-          return NextResponse.json({ 
-            error: `${item.name} has reached its weekly limit. Only ${capCheck.remaining} available this week.` 
+        const inventoryCheck = await checkPickupInventory(pickupId, item.id, item.quantity);
+        if (!inventoryCheck.available) {
+          return NextResponse.json({
+            error: `${item.name} does not have enough inventory. Only ${inventoryCheck.remaining} available for this pickup.`
           }, { status: 400 });
         }
       } catch (error) {
-        console.error('Error checking weekly cap for item:', item.id, error);
-        return NextResponse.json({ 
-          error: `Unable to verify availability for ${item.name}. Please try again.` 
+        console.error('Error checking pickup inventory for item:', item.id, error);
+        return NextResponse.json({
+          error: `Unable to verify availability for ${item.name}. Please try again.`
         }, { status: 500 });
       }
     }
@@ -72,7 +87,13 @@ async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse
       customerName,
       customerEmail,
       items: simplifiedItems,
-      pickupInfo
+      pickupId,
+      pickupInfo: {
+        date: pickup.pickup_date,
+        timeStart: pickup.pickup_time_start,
+        timeEnd: pickup.pickup_time_end,
+        location: pickup.pickup_location
+      }
     });
 
     // Send POST request to Stripe to create a PaymentIntent

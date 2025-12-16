@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getOrders, updateOrderStatus, Order } from '../../lib/products-supabase';
 import { getPickupInfo } from '../../lib/settings-supabase';
-import { FiRefreshCw, FiDownload, FiChevronDown, FiX, FiPrinter } from 'react-icons/fi';
+import { getAllPickups, Pickup } from '../../lib/pickups-supabase';
+import { FiRefreshCw, FiDownload, FiChevronDown, FiX, FiPrinter, FiCalendar } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 
 // Confirmation Modal Component
@@ -63,10 +64,12 @@ function ConfirmationModal({
 
 export default function OrdersPanel({ admin }: { admin: any }) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [showOnlyOpen, setShowOnlyOpen] = useState(true);
+  const [selectedPickupFilter, setSelectedPickupFilter] = useState<string>('all');
   const [pickupTime, setPickupTime] = useState<string>('9:00 AM');
   const [pickupLocation, setPickupLocation] = useState<string>('Sour The Bakery');
   const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -77,10 +80,14 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const fetchedOrders = await getOrders();
+      const [fetchedOrders, fetchedPickups] = await Promise.all([
+        getOrders(),
+        getAllPickups()
+      ]);
       setOrders(fetchedOrders);
-      
-      // Fetch pickup time and date from settings
+      setPickups(fetchedPickups);
+
+      // Fetch pickup time and date from settings (for legacy orders)
       const pickupInfo = await getPickupInfo();
       const formatTime = (timeString: string) => {
         const [hours, minutes] = timeString.split(':');
@@ -209,18 +216,22 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       return null;
     }
 
-    return filteredOrders.map(order => ({
-      'Order ID': order.id?.slice(-8) || 'N/A',
-      'Customer Name': order.customer_name,
-      'Customer Email': order.customer_email,
-      'Order Total': `$${order.total.toFixed(2)}`,
-      'Order Date': formatDate(order.created_at),
-      'Pickup Date': formatPickupDate(order.pickup_date),
-      'Pickup Time': pickupTime,
-      'Pickup Location': pickupLocation,
-      'Items': order.items.map(item => `${item.productName} (Qty: ${item.quantity})`).join('; '),
-      'Status': order.status
-    }));
+    return filteredOrders.map(order => {
+      const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
+      return {
+        'Order ID': order.id?.slice(-8) || 'N/A',
+        'Pickup Event': getPickupName(order),
+        'Customer Name': order.customer_name,
+        'Customer Email': order.customer_email,
+        'Order Total': `$${order.total.toFixed(2)}`,
+        'Order Date': formatDate(order.created_at),
+        'Pickup Date': pickup ? formatPickupDate(pickup.pickup_date) : formatPickupDate(order.pickup_date),
+        'Pickup Time': pickup ? `${pickup.pickup_time_start} - ${pickup.pickup_time_end}` : pickupTime,
+        'Pickup Location': pickup ? pickup.pickup_location : pickupLocation,
+        'Items': order.items.map(item => `${item.productName} (Qty: ${item.quantity})`).join('; '),
+        'Status': order.status
+      };
+    });
   };
 
   const exportToExcel = (filterType: 'open' | 'completed') => {
@@ -462,8 +473,21 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                 <div class="divider"></div>
 
                 <div class="pickup-box">
-                  <div><span class="label">Pickup:</span> <span class="value">${formatPickupDate(order.pickup_date)} ${pickupTime}</span></div>
-                  <div><span class="label">Location:</span> <span class="value">${pickupLocation}</span></div>
+                  <div><span class="label">Event:</span> <span class="value">${(() => {
+                    const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
+                    return pickup ? pickup.name : 'Legacy Order';
+                  })()}</span></div>
+                  <div><span class="label">Pickup:</span> <span class="value">${(() => {
+                    const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
+                    if (pickup) {
+                      return `${formatPickupDate(pickup.pickup_date)} ${pickup.pickup_time_start} - ${pickup.pickup_time_end}`;
+                    }
+                    return `${formatPickupDate(order.pickup_date)} ${pickupTime}`;
+                  })()}</span></div>
+                  <div><span class="label">Location:</span> <span class="value">${(() => {
+                    const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
+                    return pickup ? pickup.pickup_location : pickupLocation;
+                  })()}</span></div>
                 </div>
 
                 <div class="divider-solid"></div>
@@ -511,9 +535,27 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   };
 
 
-  const filteredOrders = showOnlyOpen ? orders.filter(order => order.status === 'open') : orders;
+  // Filter by status and pickup
+  let filteredOrders = showOnlyOpen ? orders.filter(order => order.status === 'open') : orders;
+
+  // Apply pickup filter
+  if (selectedPickupFilter !== 'all') {
+    if (selectedPickupFilter === 'no-pickup') {
+      filteredOrders = filteredOrders.filter(order => !order.pickup_id);
+    } else {
+      filteredOrders = filteredOrders.filter(order => order.pickup_id === selectedPickupFilter);
+    }
+  }
+
   const openOrders = filteredOrders.filter(o => o.status === 'open');
   const allOpenSelected = openOrders.length > 0 && selectedOrders.size === openOrders.length;
+
+  // Helper to get pickup name for an order
+  const getPickupName = (order: Order): string => {
+    if (!order.pickup_id) return 'Legacy Order';
+    const pickup = pickups.find(p => p.id === order.pickup_id);
+    return pickup ? pickup.name : 'Unknown Pickup';
+  };
 
   const getConfirmationMessage = () => {
     if (confirmAction?.type === 'single') {
@@ -628,6 +670,38 @@ export default function OrdersPanel({ admin }: { admin: any }) {
         </div>
       )}
 
+      {/* Filters */}
+      <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-accent-gold/20">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex items-center gap-2">
+            <FiCalendar className="text-brown" size={20} />
+            <label className="font-semibold text-brown">Filter by Pickup:</label>
+          </div>
+          <select
+            value={selectedPickupFilter}
+            onChange={(e) => setSelectedPickupFilter(e.target.value)}
+            className="flex-1 sm:flex-initial px-4 py-2 border border-accent-gold/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-gold text-brown"
+          >
+            <option value="all">All Pickups</option>
+            <option value="no-pickup">Legacy Orders (No Pickup)</option>
+            {pickups.map(pickup => (
+              <option key={pickup.id} value={pickup.id}>
+                {pickup.name} - {new Date(pickup.pickup_date).toLocaleDateString()}
+              </option>
+            ))}
+          </select>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showOnlyOpen}
+              onChange={(e) => setShowOnlyOpen(e.target.checked)}
+              className="w-5 h-5 rounded border-brown/30 text-accent-gold focus:ring-accent-gold cursor-pointer"
+            />
+            <span className="font-medium text-brown">Show Only Open Orders</span>
+          </label>
+        </div>
+      </div>
+
       {openOrders.length > 0 && (
         <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-accent-gold/20">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -694,6 +768,12 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   <div>
                     <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
                     <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <FiCalendar size={14} className="text-brown/50" />
+                      <span className="text-sm font-medium text-brown/70">
+                        {getPickupName(order)}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">

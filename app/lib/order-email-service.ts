@@ -1,6 +1,5 @@
 import { sendEmail } from './ses-email-service';
 import { escapeHtml } from './input-validator';
-import { getPickupInfo } from './settings-supabase';
 
 export interface OrderConfirmationData {
   orderId: string;
@@ -15,6 +14,9 @@ export interface OrderConfirmationData {
   total: number;
   orderDate?: Date;
   pickupDate?: string | Date;
+  pickupLocation?: string;
+  pickupTimeStart?: string;
+  pickupTimeEnd?: string;
 }
 
 export const generateOrderConfirmationHTML = async (order: OrderConfirmationData): Promise<string> => {
@@ -42,8 +44,10 @@ export const generateOrderConfirmationHTML = async (order: OrderConfirmationData
     }
   };
 
-  // Get pickup location from settings
-  const pickupInfo = await getPickupInfo();
+  // Extract pickup time from pickupDate if not provided separately
+  const pickupDateTime = order.pickupDate ? new Date(order.pickupDate) : null;
+  const pickupTimeStart = order.pickupTimeStart || (pickupDateTime ? pickupDateTime.toTimeString().slice(0, 5) : '09:00');
+  const pickupTimeEnd = order.pickupTimeEnd || '12:00';
 
   const itemsHTML = order.items.map(item => `
     <tr style="border-bottom: 1px solid #eee;">
@@ -120,7 +124,8 @@ export const generateOrderConfirmationHTML = async (order: OrderConfirmationData
             <h3 style="color: #228B22; margin: 0 0 15px; font-size: 20px;">📍 Pickup Information</h3>
             <div style="line-height: 1.6; color: #333;">
               <p style="margin: 0 0 10px;"><strong>Pickup Date:</strong> ${formatPickupDate(order.pickupDate)}</p>
-              <p style="margin: 0 0 15px;"><strong>Pickup Time:</strong> ${formatTime(pickupInfo.timeStart)} - ${formatTime(pickupInfo.timeEnd)}</p>
+              <p style="margin: 0 0 10px;"><strong>Pickup Time:</strong> ${formatTime(pickupTimeStart)} - ${formatTime(pickupTimeEnd)}</p>
+              ${order.pickupLocation ? `<p style="margin: 0 0 15px;"><strong>Location:</strong> ${escapeHtml(order.pickupLocation)}</p>` : ''}
               <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 12px; margin-top: 15px;">
                 <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Please Note:</strong> Orders must be picked up during the scheduled time. If you cannot make your pickup time, please contact us as soon as possible.</p>
               </div>

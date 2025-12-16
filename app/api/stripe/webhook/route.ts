@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrderServer, getPendingOrder, deletePendingOrder } from '../../../lib/products-server-supabase';
+import { createOrderWithPickup, getPendingOrder, deletePendingOrder } from '../../../lib/pickups-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
 import { getRecipe } from '../../../lib/recipes-supabase';
 import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
 import { sendRecipePurchaseEmail } from '../../../lib/recipe-email-service';
+import { getPickup } from '../../../lib/pickups-supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-11-17.clover',
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Declare variables outside try block for catch block access
-    let items, pickupInfo, customerName, customerEmail;
+    let items, pickupId, customerName, customerEmail, pickup;
 
     try {
       // Fetch pending order from Supabase using the ID from metadata
@@ -138,17 +139,43 @@ export async function POST(req: NextRequest) {
 
       // Extract data from pending order
       items = pendingOrder.items;
-      pickupInfo = pendingOrder.pickupInfo;
+      pickupId = pendingOrder.pickupId;
       customerName = pendingOrder.customerName;
       customerEmail = pendingOrder.customerEmail;
 
-      // Create pickup date from pending order (use timeStart for the timestamp)
-      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.timeStart}-05:00`);
+      // Validate pickup exists
+      if (!pickupId) {
+        console.error('Missing pickup ID in pending order - this is a legacy order without pickup data', {
+          pendingOrderId: metadata.pendingOrderId,
+          customerEmail
+        });
+
+        // Send failure email to customer
+        try {
+          await sendOrderFailureEmail(
+            customerName || 'Customer',
+            customerEmail || paymentIntent.receipt_email || '',
+            paymentIntent.id
+          );
+        } catch (emailError) {
+          console.error('Failed to send failure email:', emailError);
+        }
+
+        return new NextResponse('Missing pickup ID in pending order - legacy order cannot be processed', { status: 400 });
+      }
+
+      pickup = await getPickup(pickupId);
+      if (!pickup) {
+        return new NextResponse('Pickup event not found', { status: 404 });
+      }
+
+      // Create pickup date from pickup data
+      const pickupDateTime = new Date(`${pickup.pickup_date}T${pickup.pickup_time_start}`);
 
       // Items from pending order already have correct format (productId, productName, etc.)
       const mappedItems = items;
 
-      // Create order with all required fields using server-side function
+      // Create order with all required fields using pickup-specific function
       const orderData = {
         customerName,
         customerEmail,
@@ -157,30 +184,34 @@ export async function POST(req: NextRequest) {
         status: 'open' as const,
         pickupDate: pickupDateTime.toISOString()
       };
-      const orderId = await createOrderServer(orderData);
+      const orderId = await createOrderWithPickup(orderData, pickupId);
 
       // Delete the pending order after successfully creating the final order
       await deletePendingOrder(metadata.pendingOrderId);
 
-      // Send order confirmation email
+      // Send order confirmation email with pickup details
       try {
         await sendOrderConfirmationEmail({
           ...orderData,
           orderId,
-          orderDate: new Date(), // Add orderDate for email template
-          pickupDate: pickupDateTime // Use the actual pickup date for email
+          orderDate: new Date(),
+          pickupDate: pickupDateTime,
+          pickupLocation: pickup.pickup_location,
+          pickupTimeStart: pickup.pickup_time_start,
+          pickupTimeEnd: pickup.pickup_time_end
         });
       } catch (emailError) {
         // Don't fail the webhook if email fails - order was still created successfully
+        console.error('Failed to send order confirmation email:', emailError);
       }
 
     } catch (err: any) {
       // Only send failure email for critical errors, not temporary issues
-      const isTemporaryError = err.message.includes('weekly limit') || 
+      const isTemporaryError = err.message.includes('inventory') ||
                                err.message.includes('Database service not available') ||
                                err.message.includes('timeout') ||
                                err.message.includes('UNAVAILABLE');
-      
+
       if (!isTemporaryError) {
         // Send failure email to customer only for non-temporary errors
         try {
@@ -191,12 +222,14 @@ export async function POST(req: NextRequest) {
           );
         } catch (emailError) {
           // Don't fail the webhook if failure email fails
+          console.error('Failed to send failure email:', emailError);
         }
       } else {
         // For temporary errors, we should retry or handle gracefully
         // Return 500 so Stripe retries the webhook
+        console.error('Temporary error during order creation:', err);
       }
-      
+
       return new NextResponse('Order creation failed', { status: 500 });
     }
   }

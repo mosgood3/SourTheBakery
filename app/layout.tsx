@@ -1,61 +1,23 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Playfair_Display } from "next/font/google";
-import { Crimson_Text } from "next/font/google";
-import { Oi } from "next/font/google";
-import { Barrio } from "next/font/google";
-import { Rubik_Distressed } from "next/font/google";
-import { Lobster } from "next/font/google";
+import { Nunito } from "next/font/google";
+import { Cormorant } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "./contexts/CartContext";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const inter = Inter({
+const nunito = Nunito({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-nunito",
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const cormorant = Cormorant({
   subsets: ["latin"],
-  variable: "--font-playfair",
-  display: "swap",
-});
-
-const crimson = Crimson_Text({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-crimson",
-  display: "swap",
-});
-
-const oi = Oi({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-oi",
-  display: "swap",
-});
-
-const barrio = Barrio({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-barrio",
-  display: "swap",
-});
-
-const rubikDistressed = Rubik_Distressed({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-rubik-distressed",
-  display: "swap",
-});
-
-const lobster = Lobster({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-lobster",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -135,7 +97,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} ${crimson.variable} ${oi?.variable || ''} ${barrio?.variable || ''} ${rubikDistressed?.variable || ''} ${lobster.variable}`}>
+      <body className={`${nunito.variable} ${cormorant.variable}`}>
         <AdminAuthProvider>
           <CartProvider>
             {children}
