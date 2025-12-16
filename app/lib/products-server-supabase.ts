@@ -18,6 +18,18 @@ export interface OrderData {
   pickupDate?: string;
 }
 
+export interface PendingOrderData {
+  customerName: string;
+  customerEmail: string;
+  items: OrderItem[];
+  pickupInfo: {
+    date: string;
+    timeStart: string;
+    timeEnd: string;
+    location: string;
+  };
+}
+
 // Check if a product has reached its weekly cap (server-side)
 export const checkWeeklyCapServer = async (
   productId: string,
@@ -167,3 +179,79 @@ async function rollbackInventory(
     }
   }
 }
+
+// Create a pending order before payment (to avoid Stripe metadata limits)
+export const createPendingOrder = async (pendingOrder: PendingOrderData): Promise<string> => {
+  try {
+    const { data, error } = await supabaseServer
+      .from('pending_orders')
+      .insert([
+        {
+          customer_name: pendingOrder.customerName,
+          customer_email: pendingOrder.customerEmail,
+          items: pendingOrder.items,
+          pickup_info: pendingOrder.pickupInfo,
+          created_at: new Date().toISOString()
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating pending order:', error);
+      throw new Error(`Failed to create pending order: ${error.message}`);
+    }
+
+    console.log('Pending order created successfully:', data.id);
+    return data.id;
+  } catch (error) {
+    console.error('Error creating pending order:', error);
+    throw error;
+  }
+};
+
+// Retrieve a pending order by ID
+export const getPendingOrder = async (pendingOrderId: string): Promise<PendingOrderData | null> => {
+  try {
+    const { data, error } = await supabaseServer
+      .from('pending_orders')
+      .select('*')
+      .eq('id', pendingOrderId)
+      .single();
+
+    if (error) {
+      console.error('Error retrieving pending order:', error);
+      throw new Error(`Failed to retrieve pending order: ${error.message}`);
+    }
+
+    if (!data) return null;
+
+    return {
+      customerName: data.customer_name,
+      customerEmail: data.customer_email,
+      items: data.items,
+      pickupInfo: data.pickup_info
+    };
+  } catch (error) {
+    console.error('Error retrieving pending order:', error);
+    throw error;
+  }
+};
+
+// Delete a pending order after successful payment processing
+export const deletePendingOrder = async (pendingOrderId: string): Promise<void> => {
+  try {
+    const { error } = await supabaseServer
+      .from('pending_orders')
+      .delete()
+      .eq('id', pendingOrderId);
+
+    if (error) {
+      console.error('Error deleting pending order:', error);
+      // Don't throw - this is cleanup, not critical
+    }
+  } catch (error) {
+    console.error('Error deleting pending order:', error);
+    // Don't throw - this is cleanup, not critical
+  }
+};

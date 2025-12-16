@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { checkWeeklyCap } from '../../../lib/products-supabase';
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { validateEmail } from '../../../lib/input-validator';
+import { createPendingOrder } from '../../../lib/products-server-supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-11-17.clover',
@@ -58,7 +59,7 @@ async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse
       return sum + Math.round(parseFloat(item.price.replace('$', '')) * 100) * item.quantity;
     }, 0);
 
-    // Create simplified items for metadata (remove long URLs and descriptions)
+    // Create simplified items for pending order (remove long URLs and descriptions)
     const simplifiedItems = items.map((item: any) => ({
       id: item.id,
       name: item.name,
@@ -66,15 +67,22 @@ async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse
       quantity: item.quantity
     }));
 
+    // Save order details to Supabase pending_orders table to avoid Stripe metadata limits
+    const pendingOrderId = await createPendingOrder({
+      customerName,
+      customerEmail,
+      items: simplifiedItems,
+      pickupInfo
+    });
+
     // Send POST request to Stripe to create a PaymentIntent
+    // Only pass the pending order ID to avoid metadata size limits
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
       currency: 'usd',
       receipt_email: customerEmail,
       metadata: {
-        customerName,
-        items: JSON.stringify(simplifiedItems),
-        pickupInfo: JSON.stringify(pickupInfo),
+        pendingOrderId,
       },
     });
 

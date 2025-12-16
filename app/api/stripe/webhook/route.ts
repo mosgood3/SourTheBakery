@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrderServer } from '../../../lib/products-server-supabase';
+import { createOrderServer, getPendingOrder, deletePendingOrder } from '../../../lib/products-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
 import { getRecipe } from '../../../lib/recipes-supabase';
 import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
@@ -123,23 +123,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Declare variables outside try block for catch block access
-    let items, pickupInfo;
-    
+    let items, pickupInfo, customerName, customerEmail;
+
     try {
-      // Validate required metadata
-      if (!metadata.customerName || !metadata.items || !metadata.pickupInfo) {
-        return new NextResponse('Missing required metadata', { status: 400 });
+      // Fetch pending order from Supabase using the ID from metadata
+      if (!metadata.pendingOrderId) {
+        return new NextResponse('Missing pending order ID in metadata', { status: 400 });
       }
 
-      // Parse items and pickup info safely
-      try {
-        items = JSON.parse(metadata.items);
-        pickupInfo = JSON.parse(metadata.pickupInfo);
-      } catch (parseError) {
-        return new NextResponse('Invalid metadata', { status: 400 });
+      const pendingOrder = await getPendingOrder(metadata.pendingOrderId);
+      if (!pendingOrder) {
+        return new NextResponse('Pending order not found', { status: 400 });
       }
 
-      // Create pickup date from metadata (use timeStart for the timestamp)
+      // Extract data from pending order
+      items = pendingOrder.items;
+      pickupInfo = pendingOrder.pickupInfo;
+      customerName = pendingOrder.customerName;
+      customerEmail = pendingOrder.customerEmail;
+
+      // Create pickup date from pending order (use timeStart for the timestamp)
       const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.timeStart || pickupInfo.time}-05:00`);
       
       // Map items to match expected format (id -> productId, name -> productName)
@@ -152,14 +155,17 @@ export async function POST(req: NextRequest) {
 
       // Create order with all required fields using server-side function
       const orderData = {
-        customerName: metadata.customerName,
-        customerEmail: paymentIntent.receipt_email || '',
+        customerName,
+        customerEmail,
         items: mappedItems,
         total: paymentIntent.amount / 100,
         status: 'open' as const,
         pickupDate: pickupDateTime.toISOString()
       };
       const orderId = await createOrderServer(orderData);
+
+      // Delete the pending order after successfully creating the final order
+      await deletePendingOrder(metadata.pendingOrderId);
 
       // Send order confirmation email
       try {
@@ -184,8 +190,8 @@ export async function POST(req: NextRequest) {
         // Send failure email to customer only for non-temporary errors
         try {
           await sendOrderFailureEmail(
-            metadata.customerName,
-            paymentIntent.receipt_email || '',
+            customerName || 'Customer',
+            customerEmail || paymentIntent.receipt_email || '',
             paymentIntent.id
           );
         } catch (emailError) {
