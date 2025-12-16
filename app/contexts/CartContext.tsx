@@ -10,7 +10,7 @@ export interface CartItem {
   description: string;
   image: string;
   maxQuantity?: number; // Maximum quantity available for this item
-  pickupId: string; // NEW: Track which pickup this item belongs to
+  pickupId?: string; // Track which pickup this item belongs to (optional for legacy)
 }
 
 interface CartState {
@@ -52,14 +52,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
               : item
           ),
           // Set current pickup if not set
-          currentPickupId: state.currentPickupId || action.payload.pickupId,
+          currentPickupId: state.currentPickupId || (action.payload.pickupId ?? null),
         };
       }
       return {
         ...state,
         items: [...state.items, { ...action.payload, quantity: 1 }],
         // Set current pickup if not set
-        currentPickupId: state.currentPickupId || action.payload.pickupId,
+        currentPickupId: state.currentPickupId || (action.payload.pickupId ?? null),
       };
     }
     case 'REMOVE_ITEM':

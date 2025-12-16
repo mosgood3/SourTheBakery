@@ -24,6 +24,7 @@ export interface Order {
   status: 'open' | 'completed' | 'cancelled';
   order_date?: string;
   pickup_date?: string;
+  pickup_id?: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -475,7 +475,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                 <div class="pickup-box">
                   <div><span class="label">Event:</span> <span class="value">${(() => {
                     const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
-                    return pickup ? pickup.name : 'Legacy Order';
+                    return pickup ? formatPickupDate(pickup.pickup_date) : 'Legacy Order';
                   })()}</span></div>
                   <div><span class="label">Pickup:</span> <span class="value">${(() => {
                     const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
@@ -554,7 +554,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   const getPickupName = (order: Order): string => {
     if (!order.pickup_id) return 'Legacy Order';
     const pickup = pickups.find(p => p.id === order.pickup_id);
-    return pickup ? pickup.name : 'Unknown Pickup';
+    return pickup ? formatPickupDate(pickup.pickup_date) : 'Unknown Pickup';
   };
 
   const getConfirmationMessage = () => {
@@ -686,7 +686,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
             <option value="no-pickup">Legacy Orders (No Pickup)</option>
             {pickups.map(pickup => (
               <option key={pickup.id} value={pickup.id}>
-                {pickup.name} - {new Date(pickup.pickup_date).toLocaleDateString()}
+                {formatPickupDate(pickup.pickup_date)} - {pickup.pickup_location}
               </option>
             ))}
           </select>

@@ -218,7 +218,7 @@ export const getPendingOrder = async (pendingOrderId: string): Promise<PendingOr
       .from('pending_orders')
       .select('*')
       .eq('id', pendingOrderId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error retrieving pending order:', error);

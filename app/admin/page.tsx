@@ -105,7 +105,7 @@ export default function AdminTabbedPanel() {
             return (
               <button
                 key={item.key}
-                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery' | 'recipes' | 'pickups')}
+                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups')}
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-200 mb-2 ${
                   activeTab === item.key
                     ? "bg-accent-gold/20 text-brown border-l-4 border-accent-gold"
@@ -146,7 +146,7 @@ export default function AdminTabbedPanel() {
                   ? "border-accent-gold text-brown"
                   : "border-transparent text-brown/50 hover:text-brown"
               }`}
-              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery' | 'recipes' | 'pickups')}
+              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups')}
             >
               <IconComponent size={18} />
               {item.label}
