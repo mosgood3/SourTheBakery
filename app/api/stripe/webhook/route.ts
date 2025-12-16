@@ -143,15 +143,10 @@ export async function POST(req: NextRequest) {
       customerEmail = pendingOrder.customerEmail;
 
       // Create pickup date from pending order (use timeStart for the timestamp)
-      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.timeStart || pickupInfo.time}-05:00`);
-      
-      // Map items to match expected format (id -> productId, name -> productName)
-      const mappedItems = items.map((item: any) => ({
-        productId: item.id,
-        productName: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }));
+      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.timeStart}-05:00`);
+
+      // Items from pending order already have correct format (productId, productName, etc.)
+      const mappedItems = items;
 
       // Create order with all required fields using server-side function
       const orderData = {

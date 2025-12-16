@@ -61,8 +61,8 @@ async function handleCreatePaymentIntent(req: NextRequest): Promise<NextResponse
 
     // Create simplified items for pending order (remove long URLs and descriptions)
     const simplifiedItems = items.map((item: any) => ({
-      id: item.id,
-      name: item.name,
+      productId: item.id,
+      productName: item.name,
       price: item.price,
       quantity: item.quantity
     }));
