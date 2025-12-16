@@ -16,6 +16,7 @@ export interface OrderData {
   status: 'open' | 'completed' | 'cancelled';
   orderDate?: string;
   pickupDate?: string;
+  paymentIntentId?: string;
 }
 
 export interface PendingOrderData {
@@ -128,7 +129,8 @@ export const createOrderServer = async (order: Omit<OrderData, 'orderDate'>): Pr
           total: order.total,
           status: order.status,
           order_date: new Date().toISOString(),
-          pickup_date: order.pickupDate
+          pickup_date: order.pickupDate,
+          payment_intent_id: order.paymentIntentId
         }
       ])
       .select()
@@ -253,5 +255,26 @@ export const deletePendingOrder = async (pendingOrderId: string): Promise<void> 
   } catch (error) {
     console.error('Error deleting pending order:', error);
     // Don't throw - this is cleanup, not critical
+  }
+};
+
+// Check if an order already exists for a payment intent (for idempotency)
+export const getOrderByPaymentIntent = async (paymentIntentId: string): Promise<{ id: string } | null> => {
+  try {
+    const { data, error } = await supabaseServer
+      .from('orders')
+      .select('id')
+      .eq('payment_intent_id', paymentIntentId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking for existing order:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error checking for existing order:', error);
+    return null;
   }
 };

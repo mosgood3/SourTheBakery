@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrderServer, getPendingOrder, deletePendingOrder } from '../../../lib/products-server-supabase';
+import { createOrderServer, getPendingOrder, deletePendingOrder, getOrderByPaymentIntent } from '../../../lib/products-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
 import { getRecipe } from '../../../lib/recipes-supabase';
 import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
@@ -126,6 +126,13 @@ export async function POST(req: NextRequest) {
     let items, pickupInfo, customerName, customerEmail;
 
     try {
+      // Idempotency check: if order already exists for this payment intent, return success
+      const existingOrder = await getOrderByPaymentIntent(paymentIntent.id);
+      if (existingOrder) {
+        console.log('Order already exists for payment intent:', paymentIntent.id, '- skipping (idempotent)');
+        return new NextResponse('Order already processed', { status: 200 });
+      }
+
       // Fetch pending order from Supabase using the ID from metadata
       if (!metadata.pendingOrderId) {
         return new NextResponse('Missing pending order ID in metadata', { status: 400 });
@@ -155,7 +162,8 @@ export async function POST(req: NextRequest) {
         items: mappedItems,
         total: paymentIntent.amount / 100,
         status: 'open' as const,
-        pickupDate: pickupDateTime.toISOString()
+        pickupDate: pickupDateTime.toISOString(),
+        paymentIntentId: paymentIntent.id
       };
       const orderId = await createOrderServer(orderData);
 
