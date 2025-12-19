@@ -34,11 +34,16 @@ export default function PickupsSection() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const start = new Date(pickup.order_window_start);
-    start.setHours(0, 0, 0, 0);
+    // Handle both YYYY-MM-DD and full datetime formats
+    const startDateOnly = pickup.order_window_start.includes('T')
+      ? pickup.order_window_start.split('T')[0]
+      : pickup.order_window_start;
+    const endDateOnly = pickup.order_window_end.includes('T')
+      ? pickup.order_window_end.split('T')[0]
+      : pickup.order_window_end;
 
-    const end = new Date(pickup.order_window_end);
-    end.setHours(0, 0, 0, 0);
+    const start = new Date(startDateOnly + 'T00:00:00');
+    const end = new Date(endDateOnly + 'T00:00:00');
 
     if (today < start) {
       return { status: 'Opens Soon', color: 'bg-blue-100 text-blue-800 border-blue-300' };
@@ -56,7 +61,9 @@ export default function PickupsSection() {
   };
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
+    // Handle both YYYY-MM-DD and full datetime formats
+    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+    const date = new Date(dateOnly + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
@@ -209,7 +216,7 @@ export default function PickupsSection() {
                       <div>
                         <p className="text-xs font-semibold text-brown/50 uppercase tracking-wide">Order By</p>
                         <p className="text-brown font-semibold">
-                          {new Date(pickup.order_window_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {new Date((pickup.order_window_end.includes('T') ? pickup.order_window_end.split('T')[0] : pickup.order_window_end) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                     </div>
