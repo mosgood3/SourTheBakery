@@ -412,7 +412,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
             </button>
             <button
               onClick={handleSaveProducts}
-              className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors"
+              className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors border-2 border-brown"
             >
               Save Products
             </button>
@@ -429,7 +429,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(product => {
               const isSelected = selectedProducts.has(product.id!);
-              const quantity = productQuantities[product.id!]?.quantity || 10;
+              const quantity = productQuantities[product.id!]?.quantity ?? 10;
               const price = productQuantities[product.id!]?.price || product.price;
 
               return (
