@@ -635,7 +635,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleManageProducts(pickup.id!)}
-                    className="flex-1 bg-brown/10 text-brown px-4 py-2 rounded-lg hover:bg-brown/20 transition-colors flex items-center justify-center gap-2 text-sm"
+                    className="flex-1 bg-brown/10 text-brown px-4 py-2 rounded-lg hover:bg-brown/20 transition-colors flex items-center justify-center gap-2 text-sm border border-brown"
                   >
                     <FiPackage size={16} />
                     Products
