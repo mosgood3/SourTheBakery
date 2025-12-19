@@ -396,25 +396,24 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
             </button>
           </div>
 
-          {/* Order Status */}
-          <div className="p-4 border-b border-muted">
-            <div className={`text-center p-3 rounded-lg ${orderStatus.status === 'open' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-              <p className={`font-semibold ${orderStatus.color}`}>
-                {orderStatus.message}
-              </p>
-            </div>
-          </div>
-
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200">
-              <p className="text-red-600">{error}</p>
-            </div>
-          )}
-
           {/* Checkout Content */}
           {!showEmailConfirmation && (
+            <>
+            {/* Order Status */}
+            <div className="p-4 border-b border-muted">
+              <div className={`text-center p-3 rounded-lg ${orderStatus.status === 'open' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                <p className={`font-semibold ${orderStatus.color}`}>
+                  {orderStatus.message}
+                </p>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200">
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
             <div className="flex-1 overflow-y-auto p-6">
               {/* Step 1: Contact Information & Payment Form */}
               <div style={{ display: currentStep === 'form' ? 'block' : 'none' }}>
@@ -568,6 +567,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
               </div>
 
             </div>
+            </>
           )}
 
           {/* Footer */}
