@@ -152,7 +152,7 @@ export default function PickupsSection() {
                 onClick={() => handleViewMenu(pickup.id!)}
               >
                 {/* Bold Header with Calendar Date */}
-                <div className="relative bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-800 p-6 text-center overflow-hidden">
+                <div className="relative bg-sage-green p-6 text-center overflow-hidden">
                   {/* Decorative pickup icon */}
                   <div className="absolute bottom-2 left-2 opacity-20">
                     <FiPackage className="w-24 h-24 text-white transform -rotate-12" strokeWidth={1.5} />
@@ -170,8 +170,8 @@ export default function PickupsSection() {
 
                   {/* Calendar-style Date Display */}
                   <div className="relative z-10">
-                    <p className="text-emerald-300 font-bold text-sm tracking-widest mb-1">{dayOfWeek}</p>
-                    <p className="text-white/70 text-xs tracking-wider mb-2">{month}</p>
+                    <p className="text-white font-bold text-sm tracking-widest mb-1">{dayOfWeek}</p>
+                    <p className="text-white/80 text-xs tracking-wider mb-2">{month}</p>
                     <p className="text-white text-7xl font-bold leading-none tracking-tight">{day}</p>
                   </div>
                 </div>
