@@ -9,6 +9,7 @@ export interface Pickup {
   pickup_time_start: string;
   pickup_time_end: string;
   pickup_location: string;
+  image_url?: string;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -126,6 +127,7 @@ export const createPickup = async (pickup: Omit<Pickup, 'id' | 'created_at' | 'u
         pickup_time_start: pickup.pickup_time_start,
         pickup_time_end: pickup.pickup_time_end,
         pickup_location: pickup.pickup_location,
+        image_url: pickup.image_url || null,
         is_active: pickup.is_active ?? true,
       }])
       .select()
@@ -152,6 +154,7 @@ export const updatePickup = async (id: string, pickup: Partial<Pickup>): Promise
     if (pickup.pickup_time_start !== undefined) updateData.pickup_time_start = pickup.pickup_time_start;
     if (pickup.pickup_time_end !== undefined) updateData.pickup_time_end = pickup.pickup_time_end;
     if (pickup.pickup_location !== undefined) updateData.pickup_location = pickup.pickup_location;
+    if (pickup.image_url !== undefined) updateData.image_url = pickup.image_url;
     if (pickup.is_active !== undefined) updateData.is_active = pickup.is_active;
 
     const { error } = await supabase

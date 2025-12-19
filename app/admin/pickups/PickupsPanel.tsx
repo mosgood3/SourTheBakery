@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   getAllPickups,
   getPickupProducts,
@@ -12,8 +12,9 @@ import {
   PickupProduct
 } from '../../lib/pickups-supabase';
 import { getProducts, Product } from '../../lib/products-supabase';
+import { uploadImageCompressed, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
-import { FiPlus, FiEdit2, FiTrash2, FiCalendar, FiClock, FiMapPin, FiPackage, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiCalendar, FiClock, FiMapPin, FiPackage, FiX, FiImage, FiUpload } from 'react-icons/fi';
 
 export default function PickupsPanel({ admin }: { admin: any }) {
   const [pickups, setPickups] = useState<Pickup[]>([]);
@@ -34,8 +35,15 @@ export default function PickupsPanel({ admin }: { admin: any }) {
     pickup_time_start: '',
     pickup_time_end: '',
     pickup_location: '',
+    image_url: '',
     is_active: true,
   });
+
+  // Image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Product assignment state
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
@@ -99,6 +107,35 @@ export default function PickupsPanel({ admin }: { admin: any }) {
     }
   }, [success]);
 
+  // Handle image file selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isValidImageFile(file)) {
+      setError('Invalid file type. Accepted: JPEG, PNG, WebP, GIF');
+      return;
+    }
+    if (!isValidFileSize(file, 10)) {
+      setError('File size exceeds 10MB');
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setError(null);
+  };
+
+  // Remove selected image
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData({ ...formData, image_url: '' });
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -118,6 +155,20 @@ export default function PickupsPanel({ admin }: { admin: any }) {
         return;
       }
 
+      // Upload image if a new file was selected
+      let imageUrl = formData.image_url;
+      if (imageFile) {
+        setUploadingImage(true);
+        try {
+          imageUrl = await uploadImageCompressed(imageFile, 'pickups', 1200, 85);
+        } catch (uploadErr) {
+          setError('Failed to upload image. Please try again.');
+          setUploadingImage(false);
+          return;
+        }
+        setUploadingImage(false);
+      }
+
       const pickupData = {
         order_window_start: formData.order_window_start,
         order_window_end: formData.order_window_end,
@@ -125,6 +176,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
         pickup_time_start: formData.pickup_time_start || '09:00',
         pickup_time_end: formData.pickup_time_end || '12:00',
         pickup_location: formData.pickup_location,
+        image_url: imageUrl || undefined,
         is_active: formData.is_active,
       };
 
@@ -156,8 +208,13 @@ export default function PickupsPanel({ admin }: { admin: any }) {
       pickup_time_start: pickup.pickup_time_start || '',
       pickup_time_end: pickup.pickup_time_end || '',
       pickup_location: pickup.pickup_location || '',
+      image_url: pickup.image_url || '',
       is_active: pickup.is_active ?? true,
     });
+    // Set image preview if pickup has an image
+    if (pickup.image_url) {
+      setImagePreview(pickup.image_url);
+    }
   };
 
   const handleDelete = async (id: string, pickupDate: string) => {
@@ -269,8 +326,14 @@ export default function PickupsPanel({ admin }: { admin: any }) {
       pickup_time_start: '',
       pickup_time_end: '',
       pickup_location: '',
+      image_url: '',
       is_active: true,
     });
+    setImageFile(null);
+    setImagePreview(null);
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   const cancelEdit = () => {
@@ -550,6 +613,61 @@ export default function PickupsPanel({ admin }: { admin: any }) {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Cover Image Upload */}
+            <div className="border-t border-accent-gold/20 pt-6">
+              <h4 className="text-lg font-semibold text-brown mb-4 flex items-center gap-2">
+                <FiImage /> Cover Image
+              </h4>
+              <p className="text-sm text-brown/60 mb-4">
+                Add a cover image for this pickup event. This will be displayed on the pickup card.
+              </p>
+
+              {/* Image Preview */}
+              {imagePreview ? (
+                <div className="relative w-full max-w-md mb-4">
+                  <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-accent-gold/30">
+                    <Image
+                      src={imagePreview}
+                      alt="Pickup cover preview"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-lg"
+                  >
+                    <FiX size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => imageInputRef.current?.click()}
+                  className="w-full max-w-md aspect-video rounded-xl border-2 border-dashed border-accent-gold/30 flex flex-col items-center justify-center cursor-pointer hover:border-accent-gold/60 hover:bg-accent-gold/5 transition-colors mb-4"
+                >
+                  <FiUpload className="text-brown/40 mb-2" size={32} />
+                  <p className="text-brown/60 text-sm">Click to upload image</p>
+                  <p className="text-brown/40 text-xs mt-1">JPEG, PNG, WebP, GIF up to 10MB</p>
+                </div>
+              )}
+
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+
+              {uploadingImage && (
+                <div className="flex items-center gap-2 text-brown/70">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-accent-gold border-t-transparent"></div>
+                  <span className="text-sm">Uploading image...</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3">

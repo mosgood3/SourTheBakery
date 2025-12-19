@@ -135,7 +135,7 @@ export default function PickupsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-brown mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-brown mb-4">
             Upcoming Pickups
           </h2>
           <p className="text-xl text-brown/70 max-w-2xl mx-auto">
@@ -158,15 +158,33 @@ export default function PickupsSection() {
                 className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer hover:-translate-y-2 border border-brown/5"
                 onClick={() => handleViewMenu(pickup.id!)}
               >
-                {/* Bold Header with Calendar Date */}
-                <div className="relative bg-sage-green p-6 text-center overflow-hidden">
-                  {/* Decorative pickup icon */}
-                  <div className="absolute bottom-2 left-2 opacity-20">
-                    <FiPackage className="w-24 h-24 text-white transform -rotate-12" strokeWidth={1.5} />
-                  </div>
-                  <div className="absolute top-2 right-12 opacity-15">
-                    <FiPackage className="w-14 h-14 text-white transform rotate-12" strokeWidth={1.5} />
-                  </div>
+                {/* Header with Image or Calendar Date */}
+                <div className="relative h-48 overflow-hidden">
+                  {pickup.image_url ? (
+                    <>
+                      {/* Background Image */}
+                      <Image
+                        src={pickup.image_url}
+                        alt={`Pickup on ${dayOfWeek}`}
+                        fill
+                        className="object-cover"
+                      />
+                      {/* Dark overlay for text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20"></div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Fallback: Green background */}
+                      <div className="absolute inset-0 bg-sage-green"></div>
+                      {/* Decorative pickup icon */}
+                      <div className="absolute bottom-2 left-2 opacity-20">
+                        <FiPackage className="w-24 h-24 text-white transform -rotate-12" strokeWidth={1.5} />
+                      </div>
+                      <div className="absolute top-2 right-12 opacity-15">
+                        <FiPackage className="w-14 h-14 text-white transform rotate-12" strokeWidth={1.5} />
+                      </div>
+                    </>
+                  )}
 
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3 z-20">
@@ -176,10 +194,10 @@ export default function PickupsSection() {
                   </div>
 
                   {/* Calendar-style Date Display */}
-                  <div className="relative z-10">
-                    <p className="text-white font-bold text-sm tracking-widest mb-1">{dayOfWeek}</p>
-                    <p className="text-white/80 text-xs tracking-wider mb-2">{month}</p>
-                    <p className="text-white text-7xl font-bold leading-none tracking-tight">{day}</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <p className="text-white font-bold text-sm tracking-widest mb-1 drop-shadow-lg">{dayOfWeek}</p>
+                    <p className="text-white/90 text-xs tracking-wider mb-2 drop-shadow-lg">{month}</p>
+                    <p className="text-white text-7xl font-bold leading-none tracking-tight drop-shadow-lg">{day}</p>
                   </div>
                 </div>
 

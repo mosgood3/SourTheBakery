@@ -20,12 +20,6 @@ export default function HeroSection() {
   const [newsletterStatus, setNewsletterStatus] = useState<string | null>(null);
   const [isSubmittingNewsletter, setIsSubmittingNewsletter] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Prevent flash by setting loaded state after mount
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
 
   // Fetch gallery images from Supabase
   useEffect(() => {
@@ -108,7 +102,7 @@ export default function HeroSection() {
   return (
     <section id="home" className="relative min-h-screen overflow-hidden pt-20 bg-black">
       {/* Background Image Slideshow */}
-      <div className="absolute inset-0" style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in' }}>
+      <div className="absolute inset-0">
         {images.map((image, index) => (
           <div
             key={index}
@@ -256,10 +250,7 @@ export default function HeroSection() {
         .hero-word {
           display: inline-block;
           color: #9CAF88;
-          text-shadow:
-            0 0 40px rgba(156, 175, 136, 0.8),
-            0 0 80px rgba(156, 175, 136, 0.5),
-            0 8px 32px rgba(0, 0, 0, 0.8);
+          text-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
           font-size: 5rem;
         }
 
