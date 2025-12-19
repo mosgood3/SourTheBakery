@@ -16,7 +16,7 @@ export default function Navigation() {
       setScrolled(window.scrollY > 10);
 
       // Track active section
-      const sections = ['products', 'recipes', 'about', 'contact'];
+      const sections = ['menu', 'recipes', 'about', 'contact'];
       const current = sections.find(section => {
         const element = document.getElementById(section);
         if (element) {
@@ -61,7 +61,7 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             <NavLink href="/" active={activeSection === ''}>Home</NavLink>
-            <NavLink href="#products" active={activeSection === 'products'}>Menu</NavLink>
+            <NavLink href="#menu" active={activeSection === 'menu'}>Order</NavLink>
             <NavLink href="#recipes" active={activeSection === 'recipes'}>Recipes</NavLink>
             <NavLink href="#about" active={activeSection === 'about'}>About</NavLink>
             <NavLink href="#contact" active={activeSection === 'contact'}>Contact</NavLink>
@@ -143,11 +143,11 @@ export default function Navigation() {
               Home
             </MobileNavLink>
             <MobileNavLink
-              href="#products"
+              href="#menu"
               onClick={() => setIsMenuOpen(false)}
-              active={activeSection === 'products'}
+              active={activeSection === 'menu'}
             >
-              Menu
+              Order
             </MobileNavLink>
             <MobileNavLink
               href="#recipes"

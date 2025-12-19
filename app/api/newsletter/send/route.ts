@@ -19,7 +19,7 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
       );
     }
 
-    const { subject, content, sentBy, recipientType } = validation.data;
+    const { subject, content, sentBy, recipientType, pickupId } = validation.data;
 
     // Get recipients based on type
     let recipients: Array<{email: string, name?: string}> = [];
@@ -30,9 +30,11 @@ async function handleNewsletterSend(request: AuthenticatedRequest): Promise<Next
       recipients = subscribers.map(s => ({ email: s.email }));
       recipientTypeLabel = 'newsletter subscribers';
     } else if (recipientType === 'orders') {
-      const customers = await getOpenOrderCustomers();
+      const customers = await getOpenOrderCustomers(pickupId);
       recipients = customers.map(c => ({ email: c.email, name: c.name }));
-      recipientTypeLabel = 'customers with open orders';
+      recipientTypeLabel = pickupId && pickupId !== 'all'
+        ? 'customers with open orders for selected pickup'
+        : 'customers with open orders';
     }
     
     if (recipients.length === 0) {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaUsers, FaTrash, FaPaperPlane } from 'react-icons/fa';
-import { FiBell, FiSave } from 'react-icons/fi';
+import { FiBell, FiSave, FiCalendar } from 'react-icons/fi';
 import {
   getNewsletterSubscribers,
   sendNewsletterEmail,
@@ -10,6 +10,7 @@ import {
   NewsletterSubscriber
 } from '../../lib/newsletter-supabase';
 import { getNotificationSettings, updateNotificationSettings, NotificationSettings, MAX_MESSAGE_LENGTH } from '../../lib/notifications-supabase';
+import { getAllPickups, Pickup } from '../../lib/pickups-supabase';
 import RichTextEditor from '../../components/RichTextEditor';
 
 export default function NewsletterPanel() {
@@ -23,6 +24,8 @@ export default function NewsletterPanel() {
   const [emailContent, setEmailContent] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [recipientType, setRecipientType] = useState<'newsletter' | 'orders'>('newsletter');
+  const [pickups, setPickups] = useState<Pickup[]>([]);
+  const [selectedPickupFilter, setSelectedPickupFilter] = useState<string>('all');
 
   // Banner notification state
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
@@ -30,6 +33,19 @@ export default function NewsletterPanel() {
     isActive: false
   });
   const [savingBanner, setSavingBanner] = useState(false);
+
+  // Load pickups on mount
+  useEffect(() => {
+    const fetchPickups = async () => {
+      try {
+        const fetchedPickups = await getAllPickups();
+        setPickups(fetchedPickups);
+      } catch (error) {
+        console.error('Error fetching pickups:', error);
+      }
+    };
+    fetchPickups();
+  }, []);
 
   // Load data when component mounts or tab changes
   useEffect(() => {
@@ -108,7 +124,8 @@ export default function NewsletterPanel() {
 
     try {
       console.log('Attempting to send newsletter...');
-      await sendNewsletterEmail(emailSubject, emailContent, process.env.NEXT_PUBLIC_ADMIN_EMAIL!, recipientType);
+      const pickupId = recipientType === 'orders' ? selectedPickupFilter : undefined;
+      await sendNewsletterEmail(emailSubject, emailContent, process.env.NEXT_PUBLIC_ADMIN_EMAIL!, recipientType, pickupId);
       console.log('Newsletter sent successfully!');
       setMessage('Newsletter sent successfully!');
       setEmailSubject('');
@@ -140,6 +157,17 @@ export default function NewsletterPanel() {
     if (!timestamp) return 'Unknown';
     const date = new Date(timestamp);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
+  const formatPickupDate = (pickupDate: string | undefined) => {
+    if (!pickupDate) return 'TBD';
+    const date = new Date(pickupDate + 'T00:00:00');
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const remainingChars = MAX_MESSAGE_LENGTH - notificationSettings.message.length;
@@ -209,7 +237,7 @@ export default function NewsletterPanel() {
             <form onSubmit={handleSendEmail} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Send To</label>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
@@ -233,10 +261,40 @@ export default function NewsletterPanel() {
                     <span className="text-brown font-medium">Customers with Open Orders</span>
                   </label>
                 </div>
-                <p className="text-sm text-brown/50 mt-1">
-                  {recipientType === 'newsletter' 
+
+                {/* Pickup Filter - only shown when orders is selected */}
+                {recipientType === 'orders' && (
+                  <div className="mt-4 p-4 bg-cream/50 rounded-xl">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <div className="flex items-center gap-2 shrink-0">
+                        <FiCalendar className="text-brown" size={18} />
+                        <label className="font-semibold text-brown whitespace-nowrap">Filter by Pickup:</label>
+                      </div>
+                      <select
+                        value={selectedPickupFilter}
+                        onChange={(e) => setSelectedPickupFilter(e.target.value)}
+                        className="w-full sm:w-auto px-4 py-2 border border-accent-gold/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-gold text-brown"
+                      >
+                        <option value="all">All Open Orders</option>
+                        <option value="no-pickup">Legacy Orders (No Pickup)</option>
+                        {pickups.map(pickup => (
+                          <option key={pickup.id} value={pickup.id}>
+                            {formatPickupDate(pickup.pickup_date)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-sm text-brown/50 mt-2">
+                  {recipientType === 'newsletter'
                     ? 'Send to all newsletter subscribers'
-                    : 'Send to customers who have open orders pending pickup'
+                    : selectedPickupFilter === 'all'
+                      ? 'Send to all customers who have open orders pending pickup'
+                      : selectedPickupFilter === 'no-pickup'
+                        ? 'Send to customers with legacy orders (no pickup assigned)'
+                        : `Send to customers with orders for ${formatPickupDate(pickups.find(p => p.id === selectedPickupFilter)?.pickup_date)}`
                   }
                 </p>
               </div>

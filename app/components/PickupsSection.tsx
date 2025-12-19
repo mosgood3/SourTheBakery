@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getActivePickups, Pickup, getPickupProducts } from '../lib/pickups-supabase';
-import { FiCalendar, FiClock, FiMapPin, FiArrowRight } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiMapPin, FiArrowRight, FiPackage } from 'react-icons/fi';
 
 export default function PickupsSection() {
   const router = useRouter();
@@ -140,73 +140,88 @@ export default function PickupsSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {pickups.map((pickup) => {
             const orderStatus = getOrderWindowStatus(pickup);
+            const pickupDate = new Date(pickup.pickup_date + 'T00:00:00');
+            const dayOfWeek = pickupDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+            const month = pickupDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+            const day = pickupDate.getDate();
 
             return (
               <div
                 key={pickup.id}
-                className="group bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 border border-accent-gold/20 hover:border-accent-gold/40 cursor-pointer"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer hover:-translate-y-2 border border-brown/5"
                 onClick={() => handleViewMenu(pickup.id!)}
               >
-                {/* Placeholder Image - Will show first product image in detail page */}
-                <div className="relative h-64 bg-gradient-to-br from-accent-gold/20 to-brown/10 overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <FiCalendar className="text-brown/20 w-32 h-32" />
+                {/* Bold Header with Calendar Date */}
+                <div className="relative bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-800 p-6 text-center overflow-hidden">
+                  {/* Decorative pickup icon */}
+                  <div className="absolute bottom-2 left-2 opacity-20">
+                    <FiPackage className="w-24 h-24 text-white transform -rotate-12" strokeWidth={1.5} />
+                  </div>
+                  <div className="absolute top-2 right-12 opacity-15">
+                    <FiPackage className="w-14 h-14 text-white transform rotate-12" strokeWidth={1.5} />
                   </div>
 
                   {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${orderStatus.color} backdrop-blur-sm`}>
+                  <div className="absolute top-3 right-3 z-20">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${orderStatus.color} shadow-sm`}>
                       {orderStatus.status}
                     </span>
+                  </div>
+
+                  {/* Calendar-style Date Display */}
+                  <div className="relative z-10">
+                    <p className="text-emerald-300 font-bold text-sm tracking-widest mb-1">{dayOfWeek}</p>
+                    <p className="text-white/70 text-xs tracking-wider mb-2">{month}</p>
+                    <p className="text-white text-7xl font-bold leading-none tracking-tight">{day}</p>
                   </div>
                 </div>
 
                 {/* Card Content */}
-                <div className="p-6">
-                  {/* Pickup Date as Title */}
-                  <h3 className="text-2xl font-bold text-brown mb-6 group-hover:text-accent-gold transition-colors">
-                    {formatDate(pickup.pickup_date)}
-                  </h3>
-
-                  {/* Pickup Details */}
-                  <div className="space-y-3 mb-6">
-
-                    <div className="flex items-start gap-3 text-brown/70">
-                      <FiClock className="flex-shrink-0 mt-1 text-accent-gold" size={18} />
+                <div className="p-6 bg-gradient-to-b from-white to-cream/30">
+                  {/* Pickup Details - Compact Layout */}
+                  <div className="space-y-4 mb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-accent-gold/15 flex items-center justify-center flex-shrink-0">
+                        <FiClock className="text-accent-gold" size={18} />
+                      </div>
                       <div>
-                        <p className="text-sm font-semibold text-brown/50">Pickup Time</p>
-                        <p className="text-brown font-medium">
+                        <p className="text-xs font-semibold text-brown/50 uppercase tracking-wide">Pickup</p>
+                        <p className="text-brown font-semibold">
                           {formatTime(pickup.pickup_time_start)} - {formatTime(pickup.pickup_time_end)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 text-brown/70">
-                      <FiMapPin className="flex-shrink-0 mt-1 text-accent-gold" size={18} />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-accent-gold/15 flex items-center justify-center flex-shrink-0">
+                        <FiMapPin className="text-accent-gold" size={18} />
+                      </div>
                       <div>
-                        <p className="text-sm font-semibold text-brown/50">Location</p>
-                        <p className="text-brown font-medium line-clamp-1">{pickup.pickup_location}</p>
+                        <p className="text-xs font-semibold text-brown/50 uppercase tracking-wide">Location</p>
+                        <p className="text-brown font-semibold line-clamp-1">{pickup.pickup_location}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-accent-gold/15 flex items-center justify-center flex-shrink-0">
+                        <FiCalendar className="text-accent-gold" size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-brown/50 uppercase tracking-wide">Order By</p>
+                        <p className="text-brown font-semibold">
+                          {new Date(pickup.order_window_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Order Window Info */}
-                  <div className="mb-6 p-3 bg-accent-gold/10 rounded-xl border border-accent-gold/20">
-                    <p className="text-xs font-semibold text-brown/60 mb-1">Order Window</p>
-                    <p className="text-sm text-brown">
-                      {new Date(pickup.order_window_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      {' - '}
-                      {new Date(pickup.order_window_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </p>
-                  </div>
-
                   {/* View Menu Button */}
                   <button
-                    onClick={() => handleViewMenu(pickup.id!)}
-                    className="w-full bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-all duration-300 flex items-center justify-center gap-2 group-hover:gap-3 shadow-lg"
+                    onClick={(e) => { e.stopPropagation(); handleViewMenu(pickup.id!); }}
+                    className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold hover:from-emerald-500 hover:to-emerald-400 transition-all duration-300 flex items-center justify-center gap-2 group-hover:gap-3 shadow-md hover:shadow-lg uppercase tracking-wide text-sm"
                   >
                     View Menu
-                    <FiArrowRight size={18} />
+                    <FiArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
               </div>

@@ -150,8 +150,8 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   const handleEdit = (pickup: Pickup) => {
     setEditingId(pickup.id || null);
     setFormData({
-      order_window_start: pickup.order_window_start ? new Date(pickup.order_window_start).toISOString().slice(0, 16) : '',
-      order_window_end: pickup.order_window_end ? new Date(pickup.order_window_end).toISOString().slice(0, 16) : '',
+      order_window_start: pickup.order_window_start ? pickup.order_window_start.slice(0, 10) : '',
+      order_window_end: pickup.order_window_end ? pickup.order_window_end.slice(0, 10) : '',
       pickup_date: pickup.pickup_date || '',
       pickup_time_start: pickup.pickup_time_start || '',
       pickup_time_end: pickup.pickup_time_end || '',
@@ -207,15 +207,6 @@ export default function PickupsPanel({ admin }: { admin: any }) {
     });
   };
 
-  const handlePriceChange = (productId: string, price: string) => {
-    setProductQuantities({
-      ...productQuantities,
-      [productId]: {
-        ...productQuantities[productId],
-        price
-      }
-    });
-  };
 
   const handleSaveProducts = async () => {
     if (!managingProductsFor) return;
@@ -237,7 +228,9 @@ export default function PickupsPanel({ admin }: { admin: any }) {
       // Add or update selected products
       for (const productId of newProducts) {
         const existing = pickupProducts.find(p => p.product_id === productId);
-        const { quantity, price } = productQuantities[productId] || { quantity: 10, price: '$0.00' };
+        const product = products.find(p => p.id === productId);
+        const quantity = productQuantities[productId]?.quantity || 10;
+        const price = product?.price || '$0.00';
 
         if (existing) {
           // Update existing
@@ -301,7 +294,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const formatDateOnly = (dateString: string): string => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -310,7 +303,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
@@ -335,7 +328,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold text-brown">Manage Products</h2>
-            <p className="text-brown/70 mt-2">Assign products to pickup on {pickup ? new Date(pickup.pickup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</p>
+            <p className="text-brown/70 mt-2">Assign products to pickup on {pickup ? new Date(pickup.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -399,16 +392,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
                           min="0"
                         />
                       </div>
-                      <div>
-                        <label className="text-sm text-brown/70">Price</label>
-                        <input
-                          type="text"
-                          value={price}
-                          onChange={(e) => handlePriceChange(product.id!, e.target.value)}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                          placeholder="$12.00"
-                        />
-                      </div>
+                      <p className="text-sm text-brown/50">Price: {product.price}</p>
                     </div>
                   )}
                 </div>
@@ -437,7 +421,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
         {!isAdding && !editingId && (
           <button
             onClick={() => setIsAdding(true)}
-            className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors flex items-center gap-2"
+            className="bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors flex items-center gap-2 border-2 border-brown"
           >
             <FiPlus size={20} />
             New Pickup
@@ -581,7 +565,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
               </button>
               <button
                 type="submit"
-                className="flex-1 bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors"
+                className="flex-1 bg-accent-gold text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors border-2 border-brown"
               >
                 {editingId ? 'Update Pickup' : 'Create Pickup'}
               </button>

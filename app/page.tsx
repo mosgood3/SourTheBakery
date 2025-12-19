@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Navigation from './components/Navigation';
 import HeroSection from './components/HeroSection';
 import PickupsSection from './components/PickupsSection';
+import RecipesSection from './components/RecipesSection';
 import AboutSection from './components/AboutSection';
 import Footer from './components/Footer';
 import Cart from './components/Cart';
@@ -24,6 +25,7 @@ export default function Home() {
       <Cart onOrderSuccess={handleOrderSuccess} />
       <HeroSection />
       <PickupsSection />
+      <RecipesSection />
       <AboutSection />
       <Footer />
     </div>

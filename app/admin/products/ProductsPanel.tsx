@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { getProducts, addProduct, updateProduct, deleteProduct, Product, resetWeeklyAmounts, updateProductWeeklyAmount, archiveProduct, unarchiveProduct } from '../../lib/products-supabase';
+import { getProducts, addProduct, updateProduct, deleteProduct, Product, archiveProduct, unarchiveProduct } from '../../lib/products-supabase';
 import { uploadImageCompressed, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
-import { FiPlus, FiRefreshCw, FiArchive } from 'react-icons/fi';
+import { FiPlus, FiArchive } from 'react-icons/fi';
 
 export default function ProductsPanel({ admin }: { admin: any }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -30,11 +30,8 @@ export default function ProductsPanel({ admin }: { admin: any }) {
     name: '',
     price: '',
     image: '',
-    quantity: '',
-    weeklyCap: '',
-    weeklyAmountRemaining: ''
+    quantity: ''
   });
-  const [resetting, setResetting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
   // Fetch products
@@ -86,18 +83,16 @@ export default function ProductsPanel({ admin }: { admin: any }) {
         name: formData.name,
         price: formData.price,
         image: imageUrl,
-        quantity: formData.quantity,
-        weekly_cap: formData.weeklyCap ? parseInt(formData.weeklyCap) : undefined,
-        weekly_amount_remaining: formData.weeklyAmountRemaining ? parseInt(formData.weeklyAmountRemaining) : undefined
+        quantity: formData.quantity
       };
-      if (editingId) { 
-        await updateProduct(editingId, productData); 
-        setEditingId(null); 
-      } else { 
-        await addProduct(productData); 
+      if (editingId) {
+        await updateProduct(editingId, productData);
+        setEditingId(null);
+      } else {
+        await addProduct(productData);
         setIsAdding(false);
       }
-      setFormData({ name: '', price: '', image: '', quantity: '', weeklyCap: '', weeklyAmountRemaining: '' }); setSelectedFile(null); setImagePreview(null);
+      setFormData({ name: '', price: '', image: '', quantity: '' }); setSelectedFile(null); setImagePreview(null);
       if (fileInputRef.current) { fileInputRef.current.value = ''; }
       fetchProducts();
     } catch (err) { setError('Failed to save product'); } finally { setUploading(false); }
@@ -109,9 +104,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       name: product.name,
       price: product.price,
       image: product.image,
-      quantity: product.quantity || '',
-      weeklyCap: product.weekly_cap?.toString() || '',
-      weeklyAmountRemaining: product.weekly_amount_remaining?.toString() || ''
+      quantity: product.quantity || ''
     });
     setImagePreview(product.image); setSelectedFile(null);
   };
@@ -133,37 +126,10 @@ export default function ProductsPanel({ admin }: { admin: any }) {
   };
 
   const cancelEdit = () => {
-    setEditingId(null); setFormData({ name: '', price: '', image: '', quantity: '', weeklyCap: '', weeklyAmountRemaining: '' }); setSelectedFile(null); setImagePreview(null); if (fileInputRef.current) { fileInputRef.current.value = ''; }
+    setEditingId(null); setFormData({ name: '', price: '', image: '', quantity: '' }); setSelectedFile(null); setImagePreview(null); if (fileInputRef.current) { fileInputRef.current.value = ''; }
   };
 
   const triggerFileInput = () => { fileInputRef.current?.click(); };
-
-  // Reset all weekly amounts
-  const handleResetWeeklyAmounts = async () => {
-    if (!window.confirm('Are you sure you want to reset all weekly amounts to their weekly caps?')) return;
-    setResetting(true);
-    try {
-      await resetWeeklyAmounts();
-      fetchProducts();
-      alert('Weekly amounts have been reset to their caps.');
-    } catch (err) {
-      setError('Failed to reset weekly amounts');
-    } finally {
-      setResetting(false);
-    }
-  };
-
-  // Update weekly amount remaining for a product
-  const handleWeeklyAmountChange = async (productId: string, value: string) => {
-    const num = parseInt(value);
-    if (isNaN(num) || num < 0) return;
-    try {
-      await updateProductWeeklyAmount(productId, num);
-      fetchProducts();
-    } catch (err) {
-      setError('Failed to update weekly amount remaining');
-    }
-  };
 
   // Separate active and archived products
   const activeProducts = products.filter(p => !p.archived);
@@ -177,18 +143,10 @@ export default function ProductsPanel({ admin }: { admin: any }) {
           <p className="text-brown/70">Manage your bakery products</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <button
-            onClick={handleResetWeeklyAmounts}
-            className="flex items-center justify-center gap-2 bg-brown/10 text-brown px-6 py-3 rounded-xl font-semibold hover:bg-brown/20 transition-colors duration-300 shadow-md border border-brown/20 cursor-pointer"
-            disabled={resetting}
-          >
-            <FiRefreshCw size={18} />
-            {resetting ? 'Resetting...' : 'Reset Weekly Amounts'}
-          </button>
           {!isAdding && (
             <button
               onClick={() => setIsAdding(true)}
-              className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-accent-gold border-2 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
             >
               <FiPlus size={18} />
               Add Product
@@ -238,17 +196,6 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                 <p className="text-xs text-brown/50 mt-1">What customers get in each order (optional but recommended)</p>
               </div>
               <div></div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-brown mb-2">Weekly Cap (Optional)</label>
-                <input type="number" value={formData.weeklyCap} onChange={(e) => setFormData({ ...formData, weeklyCap: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50" placeholder="20" min={0} />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-brown mb-2">Weekly Amount Remaining</label>
-                <input type="number" value={formData.weeklyAmountRemaining} onChange={(e) => setFormData({ ...formData, weeklyAmountRemaining: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-brown/20 focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/20 transition-all duration-300 bg-white/50" placeholder="20" min={0} />
-                <p className="text-xs text-brown/50 mt-1">Set the current amount remaining for this week. Will be set to Weekly Cap when creating new products.</p>
-              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -314,35 +261,13 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-brown mb-1">Quantity per Order</label>
-                      <input 
-                        type="text" 
-                        value={formData.quantity} 
-                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} 
-                        className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
-                        placeholder="e.g., 6 cookies" 
+                      <input
+                        type="text"
+                        value={formData.quantity}
+                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70"
+                        placeholder="e.g., 6 cookies"
                       />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-semibold text-brown mb-1">Weekly Cap</label>
-                        <input 
-                          type="number" 
-                          value={formData.weeklyCap} 
-                          onChange={(e) => setFormData({ ...formData, weeklyCap: e.target.value })} 
-                          className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
-                          min={0} 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-brown mb-1">Remaining</label>
-                        <input 
-                          type="number" 
-                          value={formData.weeklyAmountRemaining} 
-                          onChange={(e) => setFormData({ ...formData, weeklyAmountRemaining: e.target.value })} 
-                          className="w-full px-3 py-2 rounded-lg border border-brown/20 focus:border-accent-gold focus:outline-none text-sm bg-white/70" 
-                          min={0} 
-                        />
-                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-brown mb-1">Image</label>
@@ -395,13 +320,6 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                       <h3 className="text-xl font-bold text-brown mb-2">{product.name}</h3>
                       <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
                       {product.quantity && <p className="text-sm text-brown/70 mb-2 font-medium">Quantity: {product.quantity}</p>}
-                      {product.weekly_cap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weekly_cap}</p>}
-                      {typeof product.weekly_amount_remaining === 'number' && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm text-brown/50">Remaining:</span>
-                          <span className="text-brown font-semibold text-base">{product.weekly_amount_remaining}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="flex gap-2 mt-4">
                       <button onClick={() => handleEdit(product)} className="bg-accent-gold text-brown px-4 py-2 rounded-lg font-semibold hover:bg-accent-gold/90 transition-colors duration-300 border-1 border-brown cursor-pointer flex-1">Edit</button>
@@ -449,13 +367,6 @@ export default function ProductsPanel({ admin }: { admin: any }) {
                     </div>
                     <p className="text-lg font-semibold text-accent-gold mb-2">{product.price}</p>
                     {product.quantity && <p className="text-sm text-brown/70 mb-2 font-medium">Quantity: {product.quantity}</p>}
-                    {product.weekly_cap && <p className="text-sm text-brown/50 mb-2">Weekly Cap: {product.weekly_cap}</p>}
-                    {typeof product.weekly_amount_remaining === 'number' && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm text-brown/50">Remaining:</span>
-                        <span className="text-brown font-semibold text-base">{product.weekly_amount_remaining}</span>
-                      </div>
-                    )}
                   </div>
                   <div className="flex gap-2 mt-4">
                     <button

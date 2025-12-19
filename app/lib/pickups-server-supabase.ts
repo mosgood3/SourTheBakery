@@ -259,3 +259,114 @@ export const deletePendingOrder = async (pendingOrderId: string): Promise<void> 
     // Don't throw - this is cleanup, not critical
   }
 };
+
+/**
+ * Cleanup old pending orders (older than specified minutes)
+ * Call this periodically to prevent orphaned pending orders
+ */
+export const cleanupOldPendingOrders = async (olderThanMinutes: number = 30): Promise<number> => {
+  try {
+    const cutoffTime = new Date(Date.now() - olderThanMinutes * 60 * 1000).toISOString();
+
+    const { data, error } = await supabaseServer
+      .from('pending_orders')
+      .delete()
+      .lt('created_at', cutoffTime)
+      .select('id');
+
+    if (error) {
+      console.error('Error cleaning up old pending orders:', error);
+      return 0;
+    }
+
+    const deletedCount = data?.length || 0;
+    if (deletedCount > 0) {
+      console.log(`Cleaned up ${deletedCount} old pending orders (older than ${olderThanMinutes} minutes)`);
+    }
+    return deletedCount;
+  } catch (error) {
+    console.error('Error cleaning up old pending orders:', error);
+    return 0;
+  }
+};
+
+// ============================================================================
+// WEBHOOK IDEMPOTENCY
+// ============================================================================
+
+/**
+ * Check if a webhook event has already been processed
+ * Returns true if already processed (should skip), false if new
+ */
+export const isWebhookEventProcessed = async (eventId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabaseServer
+      .from('processed_webhook_events')
+      .select('id')
+      .eq('event_id', eventId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking webhook event:', error);
+      // On error, assume not processed to avoid missing events
+      return false;
+    }
+
+    return data !== null;
+  } catch (error) {
+    console.error('Error checking webhook event:', error);
+    return false;
+  }
+};
+
+/**
+ * Mark a webhook event as processed
+ */
+export const markWebhookEventProcessed = async (eventId: string, eventType: string): Promise<void> => {
+  try {
+    const { error } = await supabaseServer
+      .from('processed_webhook_events')
+      .insert([{
+        event_id: eventId,
+        event_type: eventType,
+        processed_at: new Date().toISOString()
+      }]);
+
+    if (error) {
+      // Unique constraint violation means it was already processed (race condition)
+      if (error.code === '23505') {
+        console.log('Webhook event already marked as processed (race condition handled):', eventId);
+        return;
+      }
+      console.error('Error marking webhook event as processed:', error);
+    }
+  } catch (error) {
+    console.error('Error marking webhook event as processed:', error);
+  }
+};
+
+/**
+ * Cleanup old processed webhook events (older than specified days)
+ * Keep the table from growing indefinitely
+ */
+export const cleanupOldWebhookEvents = async (olderThanDays: number = 7): Promise<number> => {
+  try {
+    const cutoffTime = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabaseServer
+      .from('processed_webhook_events')
+      .delete()
+      .lt('processed_at', cutoffTime)
+      .select('id');
+
+    if (error) {
+      console.error('Error cleaning up old webhook events:', error);
+      return 0;
+    }
+
+    return data?.length || 0;
+  } catch (error) {
+    console.error('Error cleaning up old webhook events:', error);
+    return 0;
+  }
+};

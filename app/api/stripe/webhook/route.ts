@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrderWithPickup, getPendingOrder, deletePendingOrder } from '../../../lib/pickups-server-supabase';
+import {
+  createOrderWithPickup,
+  getPendingOrder,
+  deletePendingOrder,
+  isWebhookEventProcessed,
+  markWebhookEventProcessed,
+  cleanupOldPendingOrders
+} from '../../../lib/pickups-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
 import { getRecipe } from '../../../lib/recipes-supabase';
 import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
@@ -24,8 +31,19 @@ export async function POST(req: NextRequest) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  // Add idempotency check to prevent duplicate processing
   const eventId = event.id;
+
+  // Idempotency check - skip if already processed
+  const alreadyProcessed = await isWebhookEventProcessed(eventId);
+  if (alreadyProcessed) {
+    console.log('Webhook event already processed, skipping:', eventId);
+    return new NextResponse('Event already processed', { status: 200 });
+  }
+
+  // Opportunistically cleanup old pending orders (non-blocking)
+  cleanupOldPendingOrders(30).catch(err => {
+    console.error('Background cleanup failed:', err);
+  });
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -63,12 +81,16 @@ export async function POST(req: NextRequest) {
           price: recipe.price,
         });
 
+        // Mark event as processed
+        await markWebhookEventProcessed(eventId, event.type);
         return new NextResponse('Recipe purchase processed', { status: 200 });
       } catch (err: any) {
         return new NextResponse('Recipe purchase processing failed', { status: 500 });
       }
     }
-  } else if (event.type === 'payment_intent.succeeded') {
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const metadata = paymentIntent.metadata || {};
 
@@ -114,6 +136,8 @@ export async function POST(req: NextRequest) {
           price: recipe.price,
         });
 
+        // Mark event as processed
+        await markWebhookEventProcessed(eventId, event.type);
         console.log('Recipe purchase processed successfully for:', customerEmail);
         return new NextResponse('Recipe purchase processed successfully', { status: 200 });
       } catch (err: any) {
@@ -123,8 +147,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Declare variables outside try block for catch block access
-    let items, pickupId, customerName, customerEmail, pickup;
+    // Initialize variables with safe defaults for error handling
+    let items: any[] = [];
+    let pickupId: string | undefined;
+    let customerName: string = 'Customer';
+    let customerEmail: string = '';
+    let pickup: any = null;
 
     try {
       // Fetch pending order from Supabase using the ID from metadata
@@ -205,29 +233,44 @@ export async function POST(req: NextRequest) {
         console.error('Failed to send order confirmation email:', emailError);
       }
 
+      // Mark event as processed after successful order creation
+      await markWebhookEventProcessed(eventId, event.type);
+      return new NextResponse('Order created successfully', { status: 200 });
+
     } catch (err: any) {
+      const errorMessage = err?.message || 'Unknown error';
+      console.error('Order creation error:', errorMessage);
+
       // Only send failure email for critical errors, not temporary issues
-      const isTemporaryError = err.message.includes('inventory') ||
-                               err.message.includes('Database service not available') ||
-                               err.message.includes('timeout') ||
-                               err.message.includes('UNAVAILABLE');
+      const isTemporaryError = errorMessage.includes('inventory') ||
+                               errorMessage.includes('Database service not available') ||
+                               errorMessage.includes('timeout') ||
+                               errorMessage.includes('UNAVAILABLE');
 
       if (!isTemporaryError) {
         // Send failure email to customer only for non-temporary errors
-        try {
-          await sendOrderFailureEmail(
-            customerName || 'Customer',
-            customerEmail || paymentIntent.receipt_email || '',
-            paymentIntent.id
-          );
-        } catch (emailError) {
-          // Don't fail the webhook if failure email fails
-          console.error('Failed to send failure email:', emailError);
+        // Use safe defaults for all values
+        const safeCustomerName = customerName || 'Customer';
+        const safeCustomerEmail = customerEmail || paymentIntent.receipt_email || '';
+
+        if (safeCustomerEmail) {
+          try {
+            await sendOrderFailureEmail(
+              safeCustomerName,
+              safeCustomerEmail,
+              paymentIntent.id
+            );
+          } catch (emailError) {
+            // Don't fail the webhook if failure email fails
+            console.error('Failed to send failure email:', emailError);
+          }
+        } else {
+          console.error('No email address available to send failure notification');
         }
       } else {
         // For temporary errors, we should retry or handle gracefully
         // Return 500 so Stripe retries the webhook
-        console.error('Temporary error during order creation:', err);
+        console.error('Temporary error during order creation, Stripe will retry:', errorMessage);
       }
 
       return new NextResponse('Order creation failed', { status: 500 });

@@ -557,7 +557,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-foreground mb-4">Pickup Information</h4>
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
-                        <p><span className="font-semibold">Date:</span> {new Date(pickup.pickup_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                        <p><span className="font-semibold">Date:</span> {new Date(pickup.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         <p><span className="font-semibold">Time:</span> {pickup.pickup_time_start} - {pickup.pickup_time_end}</p>
                         <p><span className="font-semibold">Location:</span> {pickup.pickup_location}</p>
                       </div>

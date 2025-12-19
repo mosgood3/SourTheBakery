@@ -92,7 +92,8 @@ export const sendNewsletterEmail = async (
   subject: string,
   content: string,
   sentBy: string,
-  recipientType: 'newsletter' | 'orders' = 'newsletter'
+  recipientType: 'newsletter' | 'orders' = 'newsletter',
+  pickupId?: string
 ): Promise<string> => {
   try {
     // Get current session
@@ -113,7 +114,8 @@ export const sendNewsletterEmail = async (
         subject,
         content,
         sentBy,
-        recipientType
+        recipientType,
+        pickupId
       })
     });
 

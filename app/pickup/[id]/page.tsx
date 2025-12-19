@@ -64,7 +64,7 @@ export default function PickupDetailPage() {
   }, [pickupId]);
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
@@ -240,68 +240,26 @@ export default function PickupDetailPage() {
         </nav>
       </div>
 
-      {/* Pickup Header */}
+      {/* Pickup Header - Minimal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 mb-12">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-brown mb-6">
-            Pickup on {formatDate(pickup.pickup_date)}
-          </h1>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-start gap-3">
-              <FiCalendar className="text-accent-gold flex-shrink-0 mt-1" size={24} />
-              <div>
-                <p className="text-sm font-semibold text-brown/50 mb-1">Pickup Date</p>
-                <p className="text-brown font-medium">{formatDate(pickup.pickup_date)}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <FiClock className="text-accent-gold flex-shrink-0 mt-1" size={24} />
-              <div>
-                <p className="text-sm font-semibold text-brown/50 mb-1">Pickup Time</p>
-                <p className="text-brown font-medium">
-                  {formatTime(pickup.pickup_time_start)} - {formatTime(pickup.pickup_time_end)}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <FiMapPin className="text-accent-gold flex-shrink-0 mt-1" size={24} />
-              <div>
-                <p className="text-sm font-semibold text-brown/50 mb-1">Location</p>
-                <p className="text-brown font-medium">{pickup.pickup_location}</p>
-              </div>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-brown mb-2">Menu</h1>
+            <p className="text-brown/60 text-sm">
+              {formatDate(pickup.pickup_date)} · {formatTime(pickup.pickup_time_start)} - {formatTime(pickup.pickup_time_end)} · {pickup.pickup_location}
+            </p>
           </div>
-
-          {/* Order Window Status */}
-          <div className="mt-6 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-brown/60 mb-1">Order Window</p>
-                <p className="text-brown">
-                  {new Date(pickup.order_window_start).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                  {' - '}
-                  {new Date(pickup.order_window_end).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-              <div>
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                  orderWindowOpen
-                    ? 'bg-green-100 text-green-800 border border-green-300'
-                    : 'bg-red-100 text-red-800 border border-red-300'
-                }`}>
-                  {orderWindowOpen ? 'Orders Open' : 'Orders Closed'}
-                </span>
-              </div>
-            </div>
-          </div>
+          <span className={`self-start px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
+            orderWindowOpen
+              ? 'bg-green-100 text-green-800 border border-green-300'
+              : 'bg-red-100 text-red-800 border border-red-300'
+          }`}>
+            {orderWindowOpen ? 'Orders Open' : 'Orders Closed'}
+          </span>
         </div>
 
         {/* Products Section */}
         <div>
-          <h2 className="text-3xl font-serif font-bold text-brown mb-8">Menu</h2>
 
           {products.length === 0 ? (
             <div className="text-center py-20 bg-white/90 backdrop-blur-sm rounded-3xl border border-accent-gold/20">
@@ -366,13 +324,13 @@ export default function PickupDetailPage() {
                       <button
                         onClick={() => handleAddToCart(pickupProduct)}
                         disabled={!canAddToCart}
-                        className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+                        className={`w-full py-3.5 px-6 rounded-xl font-bold uppercase tracking-wide text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
                           canAddToCart
-                            ? 'bg-accent-gold text-brown hover:bg-accent-gold/90 shadow-lg hover:shadow-xl'
+                            ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-500 hover:to-emerald-400 shadow-md hover:shadow-lg'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        <FiShoppingCart size={18} />
+                        <FiShoppingCart size={16} />
                         {!orderWindowOpen ? 'Orders Closed' : isSoldOut ? 'Sold Out' : 'Add to Cart'}
                       </button>
                     </div>

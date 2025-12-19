@@ -163,7 +163,8 @@ export function validateNewsletterData(data: any): { valid: boolean; data?: any;
       subject: data.subject.trim(),
       content: sanitizeHtml(data.content),
       sentBy: data.sentBy.trim(),
-      recipientType: data.recipientType
+      recipientType: data.recipientType,
+      pickupId: data.pickupId || undefined
     },
     errors: []
   };

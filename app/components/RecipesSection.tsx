@@ -96,7 +96,7 @@ export default function RecipesSection() {
           {recipes.map((recipe) => (
             <div
               key={recipe.id}
-              className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-sage-green/30"
+              className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-sage-green/30 pb-20"
             >
               {/* Image with overlay effect */}
               <div className="relative h-72 w-full overflow-hidden">
@@ -122,15 +122,18 @@ export default function RecipesSection() {
                 <h3 className="text-2xl font-bold text-deep-green mb-3 group-hover:text-sage-green transition-colors">
                   {recipe.name}
                 </h3>
-                <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed">
+                <p className="text-gray-600 line-clamp-3 leading-relaxed">
                   {recipe.description}
                 </p>
+              </div>
 
+              {/* Absolute positioned button at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 pt-0">
                 <button
                   onClick={() => handlePurchase(recipe)}
-                  className="w-full flex items-center justify-center gap-2 bg-sage-green text-white px-6 py-3 rounded-xl hover:bg-deep-green transition-all duration-300 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 text-lg"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3.5 rounded-xl hover:from-emerald-500 hover:to-emerald-400 transition-all duration-300 font-bold shadow-md hover:shadow-lg uppercase tracking-wide text-sm"
                 >
-                  <FiShoppingCart size={20} />
+                  <FiShoppingCart size={16} />
                   Purchase Recipe
                 </button>
               </div>
