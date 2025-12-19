@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createOrderServer, getPendingOrder, deletePendingOrder, getOrderByPaymentIntent } from '../../../lib/products-server-supabase';
+import {
+  createOrderWithPickup,
+  getPendingOrder,
+  deletePendingOrder,
+  isWebhookEventProcessed,
+  markWebhookEventProcessed,
+  cleanupOldPendingOrders
+} from '../../../lib/pickups-server-supabase';
 import { sendOrderConfirmationEmail, sendOrderFailureEmail } from '../../../lib/order-email-service';
 import { getRecipe } from '../../../lib/recipes-supabase';
 import { createRecipePurchaseServer } from '../../../lib/recipes-server-supabase';
 import { sendRecipePurchaseEmail } from '../../../lib/recipe-email-service';
+import { getPickup } from '../../../lib/pickups-supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-11-17.clover',
@@ -23,8 +31,19 @@ export async function POST(req: NextRequest) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  // Add idempotency check to prevent duplicate processing
   const eventId = event.id;
+
+  // Idempotency check - skip if already processed
+  const alreadyProcessed = await isWebhookEventProcessed(eventId);
+  if (alreadyProcessed) {
+    console.log('Webhook event already processed, skipping:', eventId);
+    return new NextResponse('Event already processed', { status: 200 });
+  }
+
+  // Opportunistically cleanup old pending orders (non-blocking)
+  cleanupOldPendingOrders(30).catch(err => {
+    console.error('Background cleanup failed:', err);
+  });
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -62,12 +81,16 @@ export async function POST(req: NextRequest) {
           price: recipe.price,
         });
 
+        // Mark event as processed
+        await markWebhookEventProcessed(eventId, event.type);
         return new NextResponse('Recipe purchase processed', { status: 200 });
       } catch (err: any) {
         return new NextResponse('Recipe purchase processing failed', { status: 500 });
       }
     }
-  } else if (event.type === 'payment_intent.succeeded') {
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const metadata = paymentIntent.metadata || {};
 
@@ -113,6 +136,8 @@ export async function POST(req: NextRequest) {
           price: recipe.price,
         });
 
+        // Mark event as processed
+        await markWebhookEventProcessed(eventId, event.type);
         console.log('Recipe purchase processed successfully for:', customerEmail);
         return new NextResponse('Recipe purchase processed successfully', { status: 200 });
       } catch (err: any) {
@@ -122,8 +147,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Declare variables outside try block for catch block access
-    let items, pickupInfo, customerName, customerEmail;
+    // Initialize variables with safe defaults for error handling
+    let items: any[] = [];
+    let pickupId: string | undefined;
+    let customerName: string = 'Customer';
+    let customerEmail: string = '';
+    let pickup: any = null;
 
     try {
       // Idempotency check: if order already exists for this payment intent, return success
@@ -145,17 +174,43 @@ export async function POST(req: NextRequest) {
 
       // Extract data from pending order
       items = pendingOrder.items;
-      pickupInfo = pendingOrder.pickupInfo;
+      pickupId = pendingOrder.pickupId;
       customerName = pendingOrder.customerName;
       customerEmail = pendingOrder.customerEmail;
 
-      // Create pickup date from pending order (use timeStart for the timestamp)
-      const pickupDateTime = new Date(`${pickupInfo.date}T${pickupInfo.timeStart}-05:00`);
+      // Validate pickup exists
+      if (!pickupId) {
+        console.error('Missing pickup ID in pending order - this is a legacy order without pickup data', {
+          pendingOrderId: metadata.pendingOrderId,
+          customerEmail
+        });
+
+        // Send failure email to customer
+        try {
+          await sendOrderFailureEmail(
+            customerName || 'Customer',
+            customerEmail || paymentIntent.receipt_email || '',
+            paymentIntent.id
+          );
+        } catch (emailError) {
+          console.error('Failed to send failure email:', emailError);
+        }
+
+        return new NextResponse('Missing pickup ID in pending order - legacy order cannot be processed', { status: 400 });
+      }
+
+      pickup = await getPickup(pickupId);
+      if (!pickup) {
+        return new NextResponse('Pickup event not found', { status: 404 });
+      }
+
+      // Create pickup date from pickup data
+      const pickupDateTime = new Date(`${pickup.pickup_date}T${pickup.pickup_time_start}`);
 
       // Items from pending order already have correct format (productId, productName, etc.)
       const mappedItems = items;
 
-      // Create order with all required fields using server-side function
+      // Create order with all required fields using pickup-specific function
       const orderData = {
         customerName,
         customerEmail,
@@ -165,46 +220,67 @@ export async function POST(req: NextRequest) {
         pickupDate: pickupDateTime.toISOString(),
         paymentIntentId: paymentIntent.id
       };
-      const orderId = await createOrderServer(orderData);
+      const orderId = await createOrderWithPickup(orderData, pickupId);
 
       // Delete the pending order after successfully creating the final order
       await deletePendingOrder(metadata.pendingOrderId);
 
-      // Send order confirmation email
+      // Send order confirmation email with pickup details
       try {
         await sendOrderConfirmationEmail({
           ...orderData,
           orderId,
-          orderDate: new Date(), // Add orderDate for email template
-          pickupDate: pickupDateTime // Use the actual pickup date for email
+          orderDate: new Date(),
+          pickupDate: pickupDateTime,
+          pickupLocation: pickup.pickup_location,
+          pickupTimeStart: pickup.pickup_time_start,
+          pickupTimeEnd: pickup.pickup_time_end
         });
       } catch (emailError) {
         // Don't fail the webhook if email fails - order was still created successfully
+        console.error('Failed to send order confirmation email:', emailError);
       }
 
+      // Mark event as processed after successful order creation
+      await markWebhookEventProcessed(eventId, event.type);
+      return new NextResponse('Order created successfully', { status: 200 });
+
     } catch (err: any) {
+      const errorMessage = err?.message || 'Unknown error';
+      console.error('Order creation error:', errorMessage);
+
       // Only send failure email for critical errors, not temporary issues
-      const isTemporaryError = err.message.includes('weekly limit') || 
-                               err.message.includes('Database service not available') ||
-                               err.message.includes('timeout') ||
-                               err.message.includes('UNAVAILABLE');
-      
+      const isTemporaryError = errorMessage.includes('inventory') ||
+                               errorMessage.includes('Database service not available') ||
+                               errorMessage.includes('timeout') ||
+                               errorMessage.includes('UNAVAILABLE');
+
       if (!isTemporaryError) {
         // Send failure email to customer only for non-temporary errors
-        try {
-          await sendOrderFailureEmail(
-            customerName || 'Customer',
-            customerEmail || paymentIntent.receipt_email || '',
-            paymentIntent.id
-          );
-        } catch (emailError) {
-          // Don't fail the webhook if failure email fails
+        // Use safe defaults for all values
+        const safeCustomerName = customerName || 'Customer';
+        const safeCustomerEmail = customerEmail || paymentIntent.receipt_email || '';
+
+        if (safeCustomerEmail) {
+          try {
+            await sendOrderFailureEmail(
+              safeCustomerName,
+              safeCustomerEmail,
+              paymentIntent.id
+            );
+          } catch (emailError) {
+            // Don't fail the webhook if failure email fails
+            console.error('Failed to send failure email:', emailError);
+          }
+        } else {
+          console.error('No email address available to send failure notification');
         }
       } else {
         // For temporary errors, we should retry or handle gracefully
         // Return 500 so Stripe retries the webhook
+        console.error('Temporary error during order creation, Stripe will retry:', errorMessage);
       }
-      
+
       return new NextResponse('Order creation failed', { status: 500 });
     }
   }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getOrders, updateOrderStatus, Order } from '../../lib/products-supabase';
+import { getOrders, updateOrderStatus, Order, createAdminOrder, OrderItem } from '../../lib/products-supabase';
 import { getPickupInfo } from '../../lib/settings-supabase';
-import { FiRefreshCw, FiDownload, FiChevronDown, FiX, FiPrinter } from 'react-icons/fi';
+import { getAllPickups, Pickup, getPickupProducts, PickupProduct } from '../../lib/pickups-supabase';
+import { FiRefreshCw, FiDownload, FiChevronDown, FiX, FiPrinter, FiCalendar, FiPlus, FiMinus, FiShoppingCart } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 
 // Confirmation Modal Component
@@ -63,24 +64,38 @@ function ConfirmationModal({
 
 export default function OrdersPanel({ admin }: { admin: any }) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-  const [showOnlyOpen, setShowOnlyOpen] = useState(true);
+  const [selectedPickupFilter, setSelectedPickupFilter] = useState<string>('all');
   const [pickupTime, setPickupTime] = useState<string>('9:00 AM');
   const [pickupLocation, setPickupLocation] = useState<string>('Sour The Bakery');
   const [showExportDropdown, setShowExportDropdown] = useState(false);
-  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{ type: 'single' | 'bulk', orderId?: string } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ orderId: string } | null>(null);
+
+  // Manual order state
+  const [showAddOrder, setShowAddOrder] = useState(false);
+  const [addOrderPickupId, setAddOrderPickupId] = useState<string>('');
+  const [addOrderProducts, setAddOrderProducts] = useState<PickupProduct[]>([]);
+  const [addOrderItems, setAddOrderItems] = useState<Record<string, number>>({});
+  const [addOrderCustomerName, setAddOrderCustomerName] = useState('');
+  const [addOrderCustomerEmail, setAddOrderCustomerEmail] = useState('');
+  const [addOrderLoading, setAddOrderLoading] = useState(false);
+  const [addOrderError, setAddOrderError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const fetchedOrders = await getOrders();
+      const [fetchedOrders, fetchedPickups] = await Promise.all([
+        getOrders(),
+        getAllPickups()
+      ]);
       setOrders(fetchedOrders);
-      
-      // Fetch pickup time and date from settings
+      setPickups(fetchedPickups);
+
+      // Fetch pickup time and date from settings (for legacy orders)
       const pickupInfo = await getPickupInfo();
       const formatTime = (timeString: string) => {
         const [hours, minutes] = timeString.split(':');
@@ -115,7 +130,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       setUpdatingStatus(orderId);
       await updateOrderStatus(orderId, newStatus);
       fetchOrders();
-      setSelectedOrders(new Set()); // Clear selections after update
     } catch (err) {
       setError('Failed to update order status');
     } finally {
@@ -124,12 +138,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   };
 
   const requestSingleComplete = (orderId: string) => {
-    setConfirmAction({ type: 'single', orderId });
-    setShowConfirmModal(true);
-  };
-
-  const requestBulkComplete = () => {
-    setConfirmAction({ type: 'bulk' });
+    setConfirmAction({ orderId });
     setShowConfirmModal(true);
   };
 
@@ -137,41 +146,113 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     if (!confirmAction) return;
 
     try {
-      if (confirmAction.type === 'single' && confirmAction.orderId) {
-        await handleStatusUpdate(confirmAction.orderId, 'completed');
-      } else if (confirmAction.type === 'bulk') {
-        setUpdatingStatus('bulk');
-        for (const orderId of Array.from(selectedOrders)) {
-          await updateOrderStatus(orderId, 'completed');
-        }
-        fetchOrders();
-        setSelectedOrders(new Set());
-      }
+      await handleStatusUpdate(confirmAction.orderId, 'completed');
     } catch (err) {
-      setError('Failed to complete orders');
+      setError('Failed to complete order');
     } finally {
-      setUpdatingStatus(null);
       setShowConfirmModal(false);
       setConfirmAction(null);
     }
   };
 
-  const toggleOrderSelection = (orderId: string) => {
-    const newSelection = new Set(selectedOrders);
-    if (newSelection.has(orderId)) {
-      newSelection.delete(orderId);
+  // Manual order functions
+  const handlePickupSelectForOrder = async (pickupId: string) => {
+    setAddOrderPickupId(pickupId);
+    setAddOrderItems({});
+    setAddOrderError(null);
+
+    if (pickupId) {
+      try {
+        const products = await getPickupProducts(pickupId);
+        setAddOrderProducts(products);
+      } catch (err) {
+        setAddOrderError('Failed to load products for this pickup');
+        setAddOrderProducts([]);
+      }
     } else {
-      newSelection.add(orderId);
+      setAddOrderProducts([]);
     }
-    setSelectedOrders(newSelection);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedOrders.size === filteredOrders.filter(o => o.status === 'open').length) {
-      setSelectedOrders(new Set());
-    } else {
-      const allOpenOrders = new Set(filteredOrders.filter(o => o.status === 'open').map(o => o.id!));
-      setSelectedOrders(allOpenOrders);
+  const handleAddOrderItemChange = (productId: string, delta: number) => {
+    setAddOrderItems(prev => {
+      const current = prev[productId] || 0;
+      const newValue = Math.max(0, current + delta);
+      if (newValue === 0) {
+        const { [productId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [productId]: newValue };
+    });
+  };
+
+  const calculateAddOrderTotal = () => {
+    return Object.entries(addOrderItems).reduce((total, [productId, quantity]) => {
+      const product = addOrderProducts.find(p => p.product_id === productId);
+      if (product) {
+        const price = parseFloat(product.price.replace('$', ''));
+        return total + (price * quantity);
+      }
+      return total;
+    }, 0);
+  };
+
+  const resetAddOrderForm = () => {
+    setShowAddOrder(false);
+    setAddOrderPickupId('');
+    setAddOrderProducts([]);
+    setAddOrderItems({});
+    setAddOrderCustomerName('');
+    setAddOrderCustomerEmail('');
+    setAddOrderError(null);
+  };
+
+  const handleSubmitManualOrder = async () => {
+    if (!addOrderPickupId || !addOrderCustomerName.trim() || !addOrderCustomerEmail.trim()) {
+      setAddOrderError('Please fill in all required fields');
+      return;
+    }
+
+    const itemsArray = Object.entries(addOrderItems);
+    if (itemsArray.length === 0) {
+      setAddOrderError('Please add at least one item to the order');
+      return;
+    }
+
+    setAddOrderLoading(true);
+    setAddOrderError(null);
+
+    try {
+      const pickup = pickups.find(p => p.id === addOrderPickupId);
+      if (!pickup) {
+        throw new Error('Pickup not found');
+      }
+
+      const orderItems: OrderItem[] = itemsArray.map(([productId, quantity]) => {
+        const product = addOrderProducts.find(p => p.product_id === productId);
+        return {
+          productId,
+          productName: product?.product?.name || 'Unknown Product',
+          quantity,
+          price: product?.price || '$0.00'
+        };
+      });
+
+      await createAdminOrder({
+        customer_name: addOrderCustomerName.trim(),
+        customer_email: addOrderCustomerEmail.trim().toLowerCase(),
+        items: orderItems,
+        total: calculateAddOrderTotal(),
+        pickup_id: addOrderPickupId,
+        pickup_date: pickup.pickup_date
+      });
+
+      resetAddOrderForm();
+      fetchOrders();
+    } catch (err: any) {
+      setAddOrderError(err.message || 'Failed to create order');
+    } finally {
+      setAddOrderLoading(false);
     }
   };
 
@@ -191,13 +272,12 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
   const formatPickupDate = (pickupDate: string | undefined) => {
     if (!pickupDate) return 'TBD';
-    const date = new Date(pickupDate);
+    const date = new Date(pickupDate + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
-      timeZone: 'America/New_York'
+      day: 'numeric'
     });
   };
 
@@ -209,18 +289,22 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       return null;
     }
 
-    return filteredOrders.map(order => ({
-      'Order ID': order.id?.slice(-8) || 'N/A',
-      'Customer Name': order.customer_name,
-      'Customer Email': order.customer_email,
-      'Order Total': `$${order.total.toFixed(2)}`,
-      'Order Date': formatDate(order.created_at),
-      'Pickup Date': formatPickupDate(order.pickup_date),
-      'Pickup Time': pickupTime,
-      'Pickup Location': pickupLocation,
-      'Items': order.items.map(item => `${item.productName} (Qty: ${item.quantity})`).join('; '),
-      'Status': order.status
-    }));
+    return filteredOrders.map(order => {
+      const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;
+      return {
+        'Order ID': order.id?.slice(-8) || 'N/A',
+        'Pickup Event': getPickupName(order),
+        'Customer Name': order.customer_name,
+        'Customer Email': order.customer_email,
+        'Order Total': `$${order.total.toFixed(2)}`,
+        'Order Date': formatDate(order.created_at),
+        'Pickup Date': pickup ? formatPickupDate(pickup.pickup_date) : formatPickupDate(order.pickup_date),
+        'Pickup Time': pickup ? `${pickup.pickup_time_start} - ${pickup.pickup_time_end}` : pickupTime,
+        'Pickup Location': pickup ? pickup.pickup_location : pickupLocation,
+        'Items': order.items.map(item => `${item.productName} (Qty: ${item.quantity})`).join('; '),
+        'Status': order.status
+      };
+    });
   };
 
   const exportToExcel = (filterType: 'open' | 'completed') => {
@@ -267,10 +351,8 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   };
 
   const printOpenOrders = () => {
-    const openOrders = orders.filter(order => order.status === 'open');
-
-    if (openOrders.length === 0) {
-      alert('No open orders to print');
+    if (filteredOrders.length === 0) {
+      alert('No orders to print');
       return;
     }
 
@@ -440,12 +522,12 @@ export default function OrdersPanel({ admin }: { admin: any }) {
           </style>
         </head>
         <body>
-          ${openOrders.map(order => `
+          ${filteredOrders.map(order => `
             <div class="receipt">
               <div class="receipt-content">
                 <div class="header">
-                  <h1>SOUR THE BAKERY</h1>
-                  <div class="tagline">Lets get sour</div>
+                  <h1>SOUR The Bakery</h1>
+                  <div class="tagline">Lets get SOUR</div>
                 </div>
 
                 <div class="order-info">
@@ -458,13 +540,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                 <div class="section-title">CUSTOMER</div>
                 <div class="customer-line">${order.customer_name}</div>
                 <div class="customer-line">${order.customer_email}</div>
-
-                <div class="divider"></div>
-
-                <div class="pickup-box">
-                  <div><span class="label">Pickup:</span> <span class="value">${formatPickupDate(order.pickup_date)} ${pickupTime}</span></div>
-                  <div><span class="label">Location:</span> <span class="value">${pickupLocation}</span></div>
-                </div>
 
                 <div class="divider-solid"></div>
 
@@ -490,7 +565,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                 <div class="footer">
                   <div class="thank-you">THANK YOU!</div>
                   <div>Please arrive during pickup window</div>
-                  <div>Questions? info@sourthebakery.com</div>
+                  <div>Questions? sourthebakeryllc@gmail.com</div>
                 </div>
               </div>
             </div>
@@ -511,17 +586,27 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   };
 
 
-  const filteredOrders = showOnlyOpen ? orders.filter(order => order.status === 'open') : orders;
-  const openOrders = filteredOrders.filter(o => o.status === 'open');
-  const allOpenSelected = openOrders.length > 0 && selectedOrders.size === openOrders.length;
+  // Filter to only show open orders
+  let filteredOrders = orders.filter(order => order.status === 'open');
+
+  // Apply pickup filter
+  if (selectedPickupFilter !== 'all') {
+    if (selectedPickupFilter === 'no-pickup') {
+      filteredOrders = filteredOrders.filter(order => !order.pickup_id);
+    } else {
+      filteredOrders = filteredOrders.filter(order => order.pickup_id === selectedPickupFilter);
+    }
+  }
+
+  // Helper to get pickup name for an order
+  const getPickupName = (order: Order): string => {
+    if (!order.pickup_id) return 'Legacy Order';
+    const pickup = pickups.find(p => p.id === order.pickup_id);
+    return pickup ? formatPickupDate(pickup.pickup_date) : 'Unknown Pickup';
+  };
 
   const getConfirmationMessage = () => {
-    if (confirmAction?.type === 'single') {
-      return 'Are you sure you want to mark this order as completed?';
-    } else if (confirmAction?.type === 'bulk') {
-      return `Are you sure you want to mark ${selectedOrders.size} order(s) as completed?`;
-    }
-    return '';
+    return 'Are you sure you want to mark this order as completed?';
   };
 
   return (
@@ -547,17 +632,24 @@ export default function OrdersPanel({ admin }: { admin: any }) {
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <button
             onClick={fetchOrders}
-            className="flex items-center justify-center gap-2 bg-accent-gold border-1 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-accent-gold border-2 border-brown text-brown px-6 py-3 rounded-xl font-semibold hover:bg-accent-gold/90 transition-colors duration-300 shadow-md cursor-pointer"
           >
             <FiRefreshCw size={18} />
-            Refresh Orders
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowAddOrder(!showAddOrder)}
+            className="flex items-center justify-center gap-2 bg-blue-600 border-2 border-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors duration-300 shadow-md cursor-pointer"
+          >
+            <FiShoppingCart size={18} />
+            {showAddOrder ? 'Cancel' : 'Add'}
           </button>
           <button
             onClick={printOpenOrders}
-            className="flex items-center justify-center gap-2 bg-purple-600 border-1 border-purple-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors duration-300 shadow-md cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-purple-600 border-2 border-purple-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors duration-300 shadow-md cursor-pointer"
           >
             <FiPrinter size={18} />
-            Print Open Orders
+            Print
           </button>
           <div className="relative w-full sm:w-auto">
             <button
@@ -565,7 +657,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
               className="flex items-center justify-center gap-2 bg-green-600 border-1 border-green-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md cursor-pointer w-full sm:w-auto"
             >
               <FiDownload size={18} />
-              Export Orders
+              Export
               <FiChevronDown size={16} className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
             </button>
 
@@ -628,45 +720,154 @@ export default function OrdersPanel({ admin }: { admin: any }) {
         </div>
       )}
 
-      {openOrders.length > 0 && (
-        <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-accent-gold/20">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={allOpenSelected}
-                  onChange={toggleSelectAll}
-                  className="w-5 h-5 rounded border-brown/30 text-green-600 focus:ring-green-500 cursor-pointer"
-                />
-                <span className="font-medium text-brown">
-                  Select All Open Orders ({openOrders.length})
-                </span>
-              </label>
+      {/* Manual Order Form */}
+      {showAddOrder && (
+        <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-200">
+          <h3 className="text-xl font-serif font-bold text-brown mb-4 flex items-center gap-2">
+            <FiShoppingCart className="text-blue-600" />
+            Add Manual Order
+          </h3>
+
+          {addOrderError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <p className="text-red-600 text-sm">{addOrderError}</p>
             </div>
-            {selectedOrders.size > 0 && (
-              <div className="flex items-center gap-3">
-                <span className="text-brown/70 font-medium">
-                  {selectedOrders.size} order(s) selected
-                </span>
-                <button
-                  onClick={requestBulkComplete}
-                  disabled={updatingStatus !== null}
-                  className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 cursor-pointer"
-                >
-                  {updatingStatus === 'bulk' ? 'Completing...' : 'Mark Selected Complete'}
-                </button>
-                <button
-                  onClick={() => setSelectedOrders(new Set())}
-                  className="px-4 py-2 rounded-lg font-semibold transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
-                >
-                  Clear Selection
-                </button>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Customer Info */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-brown font-semibold mb-2">Customer Name *</label>
+                <input
+                  type="text"
+                  value={addOrderCustomerName}
+                  onChange={(e) => setAddOrderCustomerName(e.target.value)}
+                  placeholder="Enter customer name"
+                  className="w-full border border-accent-gold/30 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent-gold"
+                />
               </div>
-            )}
+              <div>
+                <label className="block text-brown font-semibold mb-2">Customer Email *</label>
+                <input
+                  type="email"
+                  value={addOrderCustomerEmail}
+                  onChange={(e) => setAddOrderCustomerEmail(e.target.value)}
+                  placeholder="Enter customer email"
+                  className="w-full border border-accent-gold/30 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent-gold"
+                />
+              </div>
+              <div>
+                <label className="block text-brown font-semibold mb-2">Select Pickup *</label>
+                <select
+                  value={addOrderPickupId}
+                  onChange={(e) => handlePickupSelectForOrder(e.target.value)}
+                  className="w-full border border-accent-gold/30 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent-gold"
+                >
+                  <option value="">Select a pickup event...</option>
+                  {pickups.map(pickup => (
+                    <option key={pickup.id} value={pickup.id}>
+                      {formatPickupDate(pickup.pickup_date)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Products */}
+            <div>
+              <label className="block text-brown font-semibold mb-2">Products</label>
+              {!addOrderPickupId ? (
+                <p className="text-brown/50 italic">Select a pickup to see available products</p>
+              ) : addOrderProducts.length === 0 ? (
+                <p className="text-brown/50 italic">No products available for this pickup</p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto border border-accent-gold/20 rounded-lg p-3">
+                  {addOrderProducts.map(pp => (
+                    <div key={pp.product_id} className="flex items-center justify-between bg-cream/50 rounded-lg p-2">
+                      <div className="flex-1">
+                        <span className="font-medium text-brown">{pp.product?.name}</span>
+                        <span className="text-brown/60 ml-2">{pp.price}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleAddOrderItemChange(pp.product_id, -1)}
+                          className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300 transition-colors"
+                        >
+                          <FiMinus size={14} />
+                        </button>
+                        <span className="w-8 text-center font-semibold">
+                          {addOrderItems[pp.product_id] || 0}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddOrderItemChange(pp.product_id, 1)}
+                          className="w-8 h-8 flex items-center justify-center bg-accent-gold rounded-full hover:bg-accent-gold/80 transition-colors"
+                        >
+                          <FiPlus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Order Summary & Submit */}
+          <div className="mt-6 pt-4 border-t border-accent-gold/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-lg font-semibold text-brown">
+              Total: ${calculateAddOrderTotal().toFixed(2)}
+              {Object.keys(addOrderItems).length > 0 && (
+                <span className="text-sm font-normal text-brown/60 ml-2">
+                  ({Object.values(addOrderItems).reduce((a, b) => a + b, 0)} items)
+                </span>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={resetAddOrderForm}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmitManualOrder}
+                disabled={addOrderLoading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 border-2 border-blue-700"
+              >
+                {addOrderLoading ? 'Creating...' : 'Create Order'}
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Filters */}
+      <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-accent-gold/20 overflow-hidden">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex items-center gap-2 shrink-0">
+            <FiCalendar className="text-brown" size={20} />
+            <label className="font-semibold text-brown whitespace-nowrap">Filter by Pickup:</label>
+          </div>
+          <select
+            value={selectedPickupFilter}
+            onChange={(e) => setSelectedPickupFilter(e.target.value)}
+            className="w-full sm:w-auto mx-2 px-4 py-2 border border-accent-gold/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-gold text-brown max-w-full"
+          >
+            <option value="all">All Pickups</option>
+            <option value="no-pickup">Legacy Orders (No Pickup)</option>
+            {pickups.map(pickup => (
+              <option key={pickup.id} value={pickup.id}>
+                {formatPickupDate(pickup.pickup_date)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {loading ? (
         <div className="text-center py-12">
@@ -680,20 +881,16 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       ) : (
         <div className="space-y-6">
           {filteredOrders.map((order) => (
-            <div key={order.id} className={`bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border transition-all duration-200 ${selectedOrders.has(order.id!) ? 'border-green-400 border-2' : 'border-accent-gold/20'}`}>
+            <div key={order.id} className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                <div className="flex items-start gap-3">
-                  {order.status === 'open' && (
-                    <input
-                      type="checkbox"
-                      checked={selectedOrders.has(order.id!)}
-                      onChange={() => toggleOrderSelection(order.id!)}
-                      className="mt-1 w-5 h-5 rounded border-brown/30 text-green-600 focus:ring-green-500 cursor-pointer"
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
-                    <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
+                <div>
+                  <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
+                  <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <FiCalendar size={14} className="text-brown/50" />
+                    <span className="text-sm font-medium text-brown/70">
+                      {getPickupName(order)}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">

@@ -4,15 +4,15 @@ import React, { useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ProductsPanel from './products/ProductsPanel';
 import OrdersPanel from './orders/OrdersPanel';
-import SettingsPanel from './settings/SettingsPanel';
 import NewsletterPanel from './newsletter/NewsletterPanel';
 import GalleryPanel from './gallery/GalleryPanel';
 import RecipesPanel from './recipes/RecipesPanel';
-import { FiLogOut, FiMenu, FiX, FiShoppingBag, FiPackage, FiSettings, FiMail, FiImage, FiBook } from 'react-icons/fi';
+import PickupsPanel from './pickups/PickupsPanel';
+import { FiLogOut, FiMenu, FiX, FiShoppingBag, FiPackage, FiMail, FiImage, FiBook, FiCalendar } from 'react-icons/fi';
 
 export default function AdminTabbedPanel() {
   const { admin, loading: authLoading, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'settings' | 'newsletter' | 'gallery' | 'recipes'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups'>('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -39,14 +39,14 @@ export default function AdminTabbedPanel() {
 
   const menuItems = [
     { key: 'orders', label: 'Orders', icon: FiShoppingBag },
+    { key: 'pickups', label: 'Pickups', icon: FiCalendar },
     { key: 'products', label: 'Products', icon: FiPackage },
     { key: 'recipes', label: 'Recipes', icon: FiBook },
     { key: 'gallery', label: 'Gallery', icon: FiImage },
-    { key: 'newsletter', label: 'Newsletter', icon: FiMail },
-    { key: 'settings', label: 'Settings', icon: FiSettings },
+    { key: 'correspondence', label: 'Correspondence', icon: FiMail },
   ];
 
-  const handleTabChange = (tab: 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery' | 'recipes') => {
+  const handleTabChange = (tab: 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups') => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
   };
@@ -105,7 +105,7 @@ export default function AdminTabbedPanel() {
             return (
               <button
                 key={item.key}
-                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery' | 'recipes')}
+                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups')}
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-200 mb-2 ${
                   activeTab === item.key
                     ? "bg-accent-gold/20 text-brown border-l-4 border-accent-gold"
@@ -146,7 +146,7 @@ export default function AdminTabbedPanel() {
                   ? "border-accent-gold text-brown"
                   : "border-transparent text-brown/50 hover:text-brown"
               }`}
-              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'settings' | 'newsletter' | 'gallery' | 'recipes')}
+              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups')}
             >
               <IconComponent size={18} />
               {item.label}
@@ -158,11 +158,11 @@ export default function AdminTabbedPanel() {
       {/* Tab Content */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === "orders" && <OrdersPanel admin={admin} />}
+        {activeTab === "pickups" && <PickupsPanel admin={admin} />}
         {activeTab === "products" && <ProductsPanel admin={admin} />}
         {activeTab === "recipes" && <RecipesPanel admin={admin} />}
         {activeTab === "gallery" && <GalleryPanel />}
-        {activeTab === "newsletter" && <NewsletterPanel />}
-        {activeTab === "settings" && <SettingsPanel admin={admin} />}
+        {activeTab === "correspondence" && <NewsletterPanel />}
       </main>
     </div>
   );

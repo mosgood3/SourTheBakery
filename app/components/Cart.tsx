@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { isOrderWindowOpen } from '../lib/settings-supabase';
+import { getPickup, isPickupOrderWindowOpen, Pickup } from '../lib/pickups-supabase';
 import Checkout from './Checkout';
+import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
 
 interface CartProps {
   onOrderSuccess?: () => void;
@@ -14,15 +15,41 @@ export default function Cart({ onOrderSuccess }: CartProps) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [orderWindowOpen, setOrderWindowOpen] = useState(false);
   const [checkingOrderStatus, setCheckingOrderStatus] = useState(true);
+  const [pickup, setPickup] = useState<Pickup | null>(null);
 
   useEffect(() => {
     const checkOrderWindow = async () => {
       try {
-        const isOpen = await isOrderWindowOpen();
-        setOrderWindowOpen(isOpen);
+        // If there's a pickup ID, check that specific pickup
+        if (state.currentPickupId) {
+          const pickupData = await getPickup(state.currentPickupId);
+          if (!pickupData) {
+            // Pickup no longer exists, clear cart
+            setOrderWindowOpen(false);
+            setPickup(null);
+            return;
+          }
+
+          setPickup(pickupData);
+          const isOpen = await isPickupOrderWindowOpen(state.currentPickupId);
+          setOrderWindowOpen(isOpen);
+
+          // If pickup is no longer active, clear cart
+          if (!isOpen) {
+            // Auto-clear cart if pickup window closed
+            setTimeout(() => {
+              clearCart();
+            }, 3000);
+          }
+        } else {
+          // No pickup selected, cart should be empty
+          setOrderWindowOpen(false);
+          setPickup(null);
+        }
       } catch (error) {
         console.error('Error checking order window:', error);
         setOrderWindowOpen(false);
+        setPickup(null);
       } finally {
         setCheckingOrderStatus(false);
       }
@@ -31,18 +58,40 @@ export default function Cart({ onOrderSuccess }: CartProps) {
     if (state.isOpen) {
       checkOrderWindow();
     }
-  }, [state.isOpen]);
+  }, [state.isOpen, state.currentPickupId]);
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString: string): string => {
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours, 10);
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${standardHour}:${minutes} ${period}`;
+    } catch {
+      return timeString;
+    }
+  };
 
   if (!state.isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40"
         onClick={closeCart}
       />
-      
+
       {/* Cart Panel */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-background shadow-2xl z-50 transform transition-transform duration-300 ease-in-out">
         <div className="flex flex-col h-full">
@@ -58,6 +107,27 @@ export default function Cart({ onOrderSuccess }: CartProps) {
               </svg>
             </button>
           </div>
+
+          {/* Pickup Info */}
+          {pickup && (
+            <div className="p-4 border-b border-muted bg-accent-gold/10">
+              <h3 className="text-sm font-semibold text-brown/60 mb-2">Pickup Details</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-brown/80">
+                  <FiCalendar className="text-accent-gold" size={16} />
+                  <span className="font-semibold">{formatDate(pickup.pickup_date)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-brown/80">
+                  <FiClock className="text-accent-gold" size={16} />
+                  <span>{formatTime(pickup.pickup_time_start)} - {formatTime(pickup.pickup_time_end)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-brown/80">
+                  <FiMapPin className="text-accent-gold" size={16} />
+                  <span>{pickup.pickup_location}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-6">
@@ -139,7 +209,9 @@ export default function Cart({ onOrderSuccess }: CartProps) {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     <p className="text-red-700 text-sm font-medium">
-                      Orders are currently closed. You can't proceed to checkout.
+                      {pickup
+                        ? `The order window for this pickup has closed. Your cart will be cleared.`
+                        : 'Orders are currently closed. You can\'t proceed to checkout.'}
                     </p>
                   </div>
                 </div>

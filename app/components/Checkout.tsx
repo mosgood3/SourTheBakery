@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { isOrderWindowOpen, getSettings, getPickupInfo } from '../lib/settings-supabase';
+import { getPickup, isPickupOrderWindowOpen, Pickup } from '../lib/pickups-supabase';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 import { FaCheckCircle, FaEnvelope, FaSpinner } from 'react-icons/fa';
@@ -49,7 +49,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
     color: 'text-gray-600'
   });
   const [currentStep, setCurrentStep] = useState<'form' | 'confirm'>('form');
-  const [pickupInfo, setPickupInfo] = useState<{date: string, timeStart: string, timeEnd: string, location: string} | null>(null);
+  const [pickup, setPickup] = useState<Pickup | null>(null);
   const stripe = useStripe();
   const elements = useElements();
 
@@ -172,11 +172,17 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Validate pickup exists and is active
+    if (!state.currentPickupId) {
+      setError('No pickup selected. Please add items from a pickup event.');
+      return;
+    }
+
     try {
-      const orderWindowOpen = await isOrderWindowOpen();
+      const orderWindowOpen = await isPickupOrderWindowOpen(state.currentPickupId);
       if (!orderWindowOpen) {
-        setError('Sorry, orders are currently closed. Please check back during our order window.');
+        setError('Sorry, the order window for this pickup has closed. Please check other pickup events.');
         return;
       }
     } catch (error) {
@@ -184,12 +190,12 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
       setError('Unable to verify order availability right now. Please try again in a moment.');
       return;
     }
-    
+
     if (!isStripeReady) {
       setError('Payment system is loading. Please wait a moment and try again.');
       return;
     }
-    
+
     if (!stripe || !elements) {
       setError('Payment system unavailable. Please refresh the page and try again.');
       return;
@@ -198,7 +204,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
     try {
       setIsSubmitting(true);
       setError(null);
-      
+
       // 1. Create PaymentIntent on the server
       const response = await fetch('/api/stripe/create-payment-intent', {
         method: 'POST',
@@ -207,7 +213,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
           customerName: formData.customerName,
           customerEmail: formData.customerEmail,
           items: state.items,
-          pickupInfo,
+          pickupId: state.currentPickupId,
         }),
       });
       
@@ -294,15 +300,32 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
     }
   };
 
+  // Fetch pickup information and check order window
   useEffect(() => {
-    const checkOrderWindow = async () => {
+    const fetchPickupAndCheckWindow = async () => {
       try {
-        const isOpen = await isOrderWindowOpen();
-        const settings = await getSettings();
-        const now = new Date();
-        const currentDay = now.getDay();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
+        if (!state.currentPickupId) {
+          setOrderStatus({
+            status: 'error',
+            message: 'No pickup selected',
+            color: 'text-red-600'
+          });
+          return;
+        }
 
+        const pickupData = await getPickup(state.currentPickupId);
+        if (!pickupData) {
+          setOrderStatus({
+            status: 'error',
+            message: 'Pickup event not found',
+            color: 'text-red-600'
+          });
+          return;
+        }
+
+        setPickup(pickupData);
+
+        const isOpen = await isPickupOrderWindowOpen(state.currentPickupId);
         if (isOpen) {
           setOrderStatus({
             status: 'open',
@@ -310,28 +333,23 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
             color: 'text-green-600'
           });
         } else {
+          // Compare dates only (no time component) since order windows are all-day
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const orderStart = new Date(pickupData.order_window_start);
+          orderStart.setHours(0, 0, 0, 0);
+
+          const orderEnd = new Date(pickupData.order_window_end);
+          orderEnd.setHours(23, 59, 59, 999);
+
           let message = 'Orders are currently closed. ';
-          
-          // Check if it's outside the order window days
-          if (!settings.orderWindowDays.includes(currentDay)) {
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const nextOrderDay = settings.orderWindowDays.find((day: number) => day > currentDay) || settings.orderWindowDays[0];
-            const nextDayName = dayNames[nextOrderDay];
-            message += `Orders will reopen ${nextDayName} at ${settings.orderWindowStart}.`;
-          } else {
-            // It's an order day but outside the time window
-            const [startHour, startMinute] = settings.orderWindowStart.split(':').map(Number);
-            const [endHour, endMinute] = settings.orderWindowEnd.split(':').map(Number);
-            const startTime = startHour * 60 + startMinute;
-            const endTime = endHour * 60 + endMinute;
-            
-            if (currentTime < startTime) {
-              message += `Orders will open at ${settings.orderWindowStart} today.`;
-            } else if (currentTime > endTime) {
-              message += `Orders will reopen tomorrow at ${settings.orderWindowStart}.`;
-            }
+          if (today < orderStart) {
+            message += `Orders will open ${orderStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`;
+          } else if (today > orderEnd) {
+            message += 'The order window has ended.';
           }
-          
+
           setOrderStatus({
             status: 'closed',
             message,
@@ -348,21 +366,8 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
       }
     };
 
-    checkOrderWindow();
-  }, []);
-
-  // Fetch pickup information
-  useEffect(() => {
-    const fetchPickupInfo = async () => {
-      try {
-        const info = await getPickupInfo();
-        setPickupInfo(info);
-      } catch (error) {
-        console.error('Error fetching pickup info:', error);
-      }
-    };
-    fetchPickupInfo();
-  }, []);
+    fetchPickupAndCheckWindow();
+  }, [state.currentPickupId]);
 
   // Early return after all hooks have been called
   if (!isOpen) return null;
@@ -548,13 +553,13 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
                   </div>
 
                   {/* Pickup Information */}
-                  {pickupInfo && (
+                  {pickup && (
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-foreground mb-4">Pickup Information</h4>
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
-                        <p><span className="font-semibold">Date:</span> {new Date(pickupInfo.date + 'T' + pickupInfo.timeStart + '-05:00').toLocaleDateString('en-US', { timeZone: 'America/New_York' })}</p>
-                        <p><span className="font-semibold">Time:</span> {pickupInfo.timeStart} - {pickupInfo.timeEnd}</p>
-                        <p><span className="font-semibold">Location:</span> {pickupInfo.location}</p>
+                        <p><span className="font-semibold">Date:</span> {new Date(pickup.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                        <p><span className="font-semibold">Time:</span> {pickup.pickup_time_start} - {pickup.pickup_time_end}</p>
+                        <p><span className="font-semibold">Location:</span> {pickup.pickup_location}</p>
                       </div>
                     </div>
                   )}

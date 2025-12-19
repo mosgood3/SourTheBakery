@@ -24,6 +24,7 @@ export interface Order {
   status: 'open' | 'completed' | 'cancelled';
   order_date?: string;
   pickup_date?: string;
+  pickup_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -289,6 +290,39 @@ export const updateOrderStatus = async (id: string, status: Order['status']): Pr
     if (error) throw error;
   } catch (error) {
     console.error('Error updating order status:', error);
+    throw error;
+  }
+};
+
+// Create an admin order (bypasses order window and cap checks)
+export const createAdminOrder = async (order: {
+  customer_name: string;
+  customer_email: string;
+  items: OrderItem[];
+  total: number;
+  pickup_id: string;
+  pickup_date: string;
+}): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .insert([{
+        customer_name: order.customer_name,
+        customer_email: order.customer_email,
+        items: order.items,
+        total: order.total,
+        status: 'open',
+        order_date: new Date().toISOString(),
+        pickup_date: order.pickup_date,
+        pickup_id: order.pickup_id
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data.id;
+  } catch (error) {
+    console.error('Error creating admin order:', error);
     throw error;
   }
 };

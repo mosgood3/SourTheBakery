@@ -43,12 +43,23 @@ export const getNewsletterSubscribers = async (): Promise<NewsletterSubscriber[]
 };
 
 // Get all customers with open orders (server-side)
-export const getOpenOrderCustomers = async (): Promise<OrderCustomer[]> => {
+export const getOpenOrderCustomers = async (pickupId?: string): Promise<OrderCustomer[]> => {
   try {
-    const { data, error } = await supabaseServer
+    let query = supabaseServer
       .from('orders')
-      .select('id, customer_email, customer_name')
+      .select('id, customer_email, customer_name, pickup_id')
       .eq('status', 'open');
+
+    // Apply pickup filter if specified
+    if (pickupId && pickupId !== 'all') {
+      if (pickupId === 'no-pickup') {
+        query = query.is('pickup_id', null);
+      } else {
+        query = query.eq('pickup_id', pickupId);
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
