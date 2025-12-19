@@ -229,10 +229,10 @@ export default function HeroSection() {
       {/* Styles */}
       <style jsx>{`
         .hero-title {
-          font-family: var(--font-nunito), system-ui, sans-serif;
-          font-weight: 900;
+          font-family: var(--font-cormorant), Georgia, serif;
+          font-weight: 700;
           line-height: 0.9;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.02em;
           text-transform: uppercase;
         }
 
@@ -265,7 +265,7 @@ export default function HeroSection() {
         /* Responsive font sizes */
         @media (max-width: 640px) {
           .hero-word {
-            font-size: 3.5rem;
+            font-size: 4.5rem;
           }
           .hero-word-space {
             width: 1rem;
