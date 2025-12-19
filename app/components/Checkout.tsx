@@ -171,7 +171,7 @@ function PaymentForm({
             <h4 className="text-lg font-semibold text-foreground mb-4">Pickup Information</h4>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
               <p><span className="font-semibold">Date:</span> {new Date(pickup.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-              <p><span className="font-semibold">Time:</span> {pickup.pickup_time_start} - {pickup.pickup_time_end}</p>
+              <p><span className="font-semibold">Time:</span> {new Date(`2000-01-01T${pickup.pickup_time_start}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - {new Date(`2000-01-01T${pickup.pickup_time_end}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
               <p><span className="font-semibold">Location:</span> {pickup.pickup_location}</p>
             </div>
           </div>

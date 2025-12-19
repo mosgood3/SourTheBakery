@@ -900,7 +900,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="mb-6">
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-semibold text-brown/70 mb-1">Customer</p>
@@ -909,23 +909,6 @@ export default function OrdersPanel({ admin }: { admin: any }) {
                   <div>
                     <p className="text-sm font-semibold text-brown/70 mb-1">Email</p>
                     <p className="text-brown font-medium">{order.customer_email}</p>
-                  </div>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-brown/70 mb-2">📍 Pickup Information</h4>
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-xs text-brown/60">Pickup Date</p>
-                      <p className="text-brown font-medium">{formatPickupDate(order.pickup_date)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-brown/60">Pickup Time</p>
-                      <p className="text-brown font-medium">{pickupTime}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-brown/60">Location</p>
-                      <p className="text-brown font-medium">{pickupLocation}</p>
-                    </div>
                   </div>
                 </div>
               </div>

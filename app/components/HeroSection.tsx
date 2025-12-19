@@ -118,7 +118,7 @@ export default function HeroSection() {
           </div>
         ))}
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50"></div>
       </div>
 
       {/* Content */}
@@ -141,13 +141,13 @@ export default function HeroSection() {
 
         {/* CTA Button */}
         <a
-          href="#products"
+          href="#menu"
           className="group relative px-10 py-5 bg-white text-deep-green text-lg font-bold rounded-full transition-all duration-300 shadow-2xl hover:shadow-sage-green/50 hover:scale-105 overflow-hidden"
         >
-          <span className="relative z-10">Explore Menu</span>
+          <span className="relative z-10">Order Now</span>
           <div className="absolute inset-0 bg-sage-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
           <span className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-bold">
-            Explore Menu
+            Order Now
           </span>
         </a>
 
