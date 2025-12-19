@@ -318,7 +318,7 @@ export default function PickupDetailPage() {
                       <h3 className="text-2xl font-bold text-brown mb-2">{product.name}</h3>
                       <p className="text-brown/70 mb-4">{product.quantity || 'Available'}</p>
                       <div className="flex items-center justify-between mb-4">
-                        <span className="text-2xl font-bold text-accent-gold">{pickupProduct.price}</span>
+                        <span className="text-2xl font-bold text-accent-gold">${pickupProduct.price}</span>
                       </div>
 
                       <button
@@ -326,7 +326,7 @@ export default function PickupDetailPage() {
                         disabled={!canAddToCart}
                         className={`w-full py-3.5 px-6 rounded-xl font-bold uppercase tracking-wide text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
                           canAddToCart
-                            ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-500 hover:to-emerald-400 shadow-md hover:shadow-lg'
+                            ? 'bg-deep-green text-white hover:bg-deep-green/90 shadow-md hover:shadow-lg'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
