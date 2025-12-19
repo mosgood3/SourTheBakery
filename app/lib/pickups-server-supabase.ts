@@ -16,6 +16,7 @@ export interface OrderData {
   status: 'open' | 'completed' | 'cancelled';
   orderDate?: string;
   pickupDate?: string;
+  paymentIntentId?: string;
 }
 
 export interface PendingOrderData {
@@ -110,7 +111,8 @@ export const createOrderWithPickup = async (
           status: order.status,
           order_date: new Date().toISOString(),
           pickup_date: order.pickupDate,
-          pickup_id: pickupId // Associate order with pickup
+          pickup_id: pickupId,
+          payment_intent_id: order.paymentIntentId
         }
       ])
       .select()
@@ -368,5 +370,33 @@ export const cleanupOldWebhookEvents = async (olderThanDays: number = 7): Promis
   } catch (error) {
     console.error('Error cleaning up old webhook events:', error);
     return 0;
+  }
+};
+
+// ============================================================================
+// ORDER LOOKUP BY PAYMENT INTENT
+// ============================================================================
+
+/**
+ * Get an order by its payment intent ID (for idempotency check)
+ * Returns the order if found, null otherwise
+ */
+export const getOrderByPaymentIntent = async (paymentIntentId: string): Promise<any | null> => {
+  try {
+    const { data, error } = await supabaseServer
+      .from('orders')
+      .select('id')
+      .eq('payment_intent_id', paymentIntentId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking order by payment intent:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error checking order by payment intent:', error);
+    return null;
   }
 };
