@@ -294,7 +294,9 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const formatDateOnly = (dateString: string): string => {
-    const date = new Date(dateString + 'T00:00:00');
+    // Handle both YYYY-MM-DD and full datetime formats
+    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+    const date = new Date(dateOnly + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -303,7 +305,9 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString + 'T00:00:00');
+    // Handle both YYYY-MM-DD and full datetime formats
+    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+    const date = new Date(dateOnly + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
