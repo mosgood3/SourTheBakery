@@ -115,11 +115,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       await signOut();
-      setAdmin(null);
     } catch (error: any) {
-      console.error('Logout error:', error);
-      setError(error.message || 'Logout failed. Please try again.');
-      throw error;
+      // Ignore 403 errors - session may already be expired
+      console.log('Logout server call failed (session may be expired):', error.message);
+    } finally {
+      // Always clear local state regardless of server response
+      setAdmin(null);
     }
   };
 
