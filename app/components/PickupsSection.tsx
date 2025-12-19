@@ -218,7 +218,7 @@ export default function PickupsSection() {
                   {/* View Menu Button */}
                   <button
                     onClick={(e) => { e.stopPropagation(); handleViewMenu(pickup.id!); }}
-                    className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold hover:from-emerald-500 hover:to-emerald-400 transition-all duration-300 flex items-center justify-center gap-2 group-hover:gap-3 shadow-md hover:shadow-lg uppercase tracking-wide text-sm"
+                    className="w-full bg-deep-green text-white px-6 py-3.5 rounded-xl font-bold hover:bg-deep-green/90 transition-all duration-300 flex items-center justify-center gap-2 group-hover:gap-3 shadow-md hover:shadow-lg uppercase tracking-wide text-sm"
                   >
                     View Menu
                     <FiArrowRight size={16} className="transition-transform group-hover:translate-x-1" />

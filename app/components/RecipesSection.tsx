@@ -131,7 +131,7 @@ export default function RecipesSection() {
               <div className="absolute bottom-0 left-0 right-0 p-6 pt-0">
                 <button
                   onClick={() => handlePurchase(recipe)}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3.5 rounded-xl hover:from-emerald-500 hover:to-emerald-400 transition-all duration-300 font-bold shadow-md hover:shadow-lg uppercase tracking-wide text-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-deep-green text-white px-6 py-3.5 rounded-xl hover:bg-deep-green/90 transition-all duration-300 font-bold shadow-md hover:shadow-lg uppercase tracking-wide text-sm"
                 >
                   <FiShoppingCart size={16} />
                   Purchase Recipe

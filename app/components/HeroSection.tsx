@@ -255,10 +255,10 @@ export default function HeroSection() {
 
         .hero-word {
           display: inline-block;
-          color: #9CAF88;
+          color: #2D5A3D;
           text-shadow:
-            0 0 40px rgba(156, 175, 136, 0.8),
-            0 0 80px rgba(156, 175, 136, 0.5),
+            0 0 40px rgba(45, 90, 61, 0.8),
+            0 0 80px rgba(45, 90, 61, 0.5),
             0 8px 32px rgba(0, 0, 0, 0.8);
           font-size: 5rem;
         }
