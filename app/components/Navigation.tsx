@@ -122,9 +122,17 @@ export default function Navigation() {
       {/* Decorative border */}
       <div className="h-px bg-gradient-to-r from-transparent via-sage-green/30 to-transparent" />
 
+      {/* Mobile backdrop overlay - rendered first so menu appears above it */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 top-20 bg-black/20 md:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
       {/* Mobile Navigation */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+        className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out relative z-10 ${
           isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
@@ -173,14 +181,6 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-
-      {/* Mobile backdrop overlay */}
-      {isMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
-          onClick={() => setIsMenuOpen(false)}
-        />
-      )}
     </nav>
   );
 }

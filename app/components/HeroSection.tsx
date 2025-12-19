@@ -163,17 +163,17 @@ export default function HeroSection() {
             <input
               type="email"
               name="email"
-              placeholder="Join our newsletter for fresh updates"
+              placeholder="Join our newsletter"
               required
               disabled={isSubmittingNewsletter}
-              className="w-full px-6 py-4 pr-36 bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-white/60 focus:bg-white/20 transition-all duration-300 disabled:opacity-70"
+              className="w-full px-4 py-4 pr-28 md:pr-36 md:px-6 bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-full text-white placeholder-white/60 focus:outline-none focus:border-white/60 focus:bg-white/20 transition-all duration-300 disabled:opacity-70 text-sm md:text-base"
             />
             <button
               type="submit"
               disabled={isSubmittingNewsletter}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-8 py-2.5 bg-white text-deep-green rounded-full font-bold hover:bg-sage-green hover:text-white transition-all duration-300 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 md:px-8 py-2.5 bg-white text-deep-green rounded-full font-bold hover:bg-sage-green hover:text-white transition-all duration-300 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed text-sm md:text-base"
             >
-              {isSubmittingNewsletter ? 'Sending...' : 'Subscribe'}
+              {isSubmittingNewsletter ? '...' : 'Subscribe'}
             </button>
           </form>
 

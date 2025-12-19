@@ -29,7 +29,9 @@
       "Bash(find:*)",
       "Bash(cat:*)",
       "Bash(del CartContext.tsx)",
-      "Bash(del \"C:\\Users\\matth\\Engineering\\sourthebakery\\app\\contexts\\CartContext.tsx\")"
+      "Bash(del \"C:\\Users\\matth\\Engineering\\sourthebakery\\app\\contexts\\CartContext.tsx\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
