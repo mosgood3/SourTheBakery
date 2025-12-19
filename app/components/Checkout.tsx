@@ -529,7 +529,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
 
           {/* Payment Step - with PaymentElement */}
           {!showEmailConfirmation && currentStep === 'payment' && clientSecret && (
-            <>
+            <div className="flex-1 flex flex-col overflow-hidden">
               {/* Error Message */}
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200">
@@ -561,7 +561,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
                   getTotalPrice={getTotalPrice}
                 />
               </Elements>
-            </>
+            </div>
           )}
         </div>
       </div>
