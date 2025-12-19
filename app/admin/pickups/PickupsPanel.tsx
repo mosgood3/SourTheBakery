@@ -282,11 +282,16 @@ export default function PickupsPanel({ admin }: { admin: any }) {
     const now = new Date();
     now.setHours(0, 0, 0, 0); // Start of today
 
-    const start = new Date(pickup.order_window_start);
-    start.setHours(0, 0, 0, 0);
+    // Handle both YYYY-MM-DD and full datetime formats
+    const startDateOnly = pickup.order_window_start.includes('T')
+      ? pickup.order_window_start.split('T')[0]
+      : pickup.order_window_start;
+    const endDateOnly = pickup.order_window_end.includes('T')
+      ? pickup.order_window_end.split('T')[0]
+      : pickup.order_window_end;
 
-    const end = new Date(pickup.order_window_end);
-    end.setHours(23, 59, 59, 999); // End of day
+    const start = new Date(startDateOnly + 'T00:00:00');
+    const end = new Date(endDateOnly + 'T23:59:59');
 
     if (now < start) return 'Upcoming';
     if (now > end) return 'Closed';
