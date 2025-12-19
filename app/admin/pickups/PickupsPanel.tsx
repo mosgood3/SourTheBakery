@@ -161,7 +161,8 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const handleDelete = async (id: string, pickupDate: string) => {
-    const formattedDate = new Date(pickupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const dateOnly = pickupDate.includes('T') ? pickupDate.split('T')[0] : pickupDate;
+    const formattedDate = new Date(dateOnly + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     if (window.confirm(`Are you sure you want to delete the pickup on ${formattedDate}? This will also remove all associated products and cannot be undone.`)) {
       try {
         await deletePickup(id);
