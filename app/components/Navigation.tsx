@@ -61,10 +61,10 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             <NavLink href="/" active={activeSection === ''}>Home</NavLink>
-            <NavLink href="#menu" active={activeSection === 'menu'}>Order</NavLink>
-            <NavLink href="#recipes" active={activeSection === 'recipes'}>Recipes</NavLink>
-            <NavLink href="#about" active={activeSection === 'about'}>About</NavLink>
-            <NavLink href="#contact" active={activeSection === 'contact'}>Contact</NavLink>
+            <NavLink href="/#menu" active={activeSection === 'menu'}>Order</NavLink>
+            <NavLink href="/#recipes" active={activeSection === 'recipes'}>Recipes</NavLink>
+            <NavLink href="/#about" active={activeSection === 'about'}>About</NavLink>
+            <NavLink href="/#contact" active={activeSection === 'contact'}>Contact</NavLink>
 
             {/* Cart Icon */}
             <button
@@ -151,28 +151,28 @@ export default function Navigation() {
               Home
             </MobileNavLink>
             <MobileNavLink
-              href="#menu"
+              href="/#menu"
               onClick={() => setIsMenuOpen(false)}
               active={activeSection === 'menu'}
             >
               Order
             </MobileNavLink>
             <MobileNavLink
-              href="#recipes"
+              href="/#recipes"
               onClick={() => setIsMenuOpen(false)}
               active={activeSection === 'recipes'}
             >
               Recipes
             </MobileNavLink>
             <MobileNavLink
-              href="#about"
+              href="/#about"
               onClick={() => setIsMenuOpen(false)}
               active={activeSection === 'about'}
             >
               About
             </MobileNavLink>
             <MobileNavLink
-              href="#contact"
+              href="/#contact"
               onClick={() => setIsMenuOpen(false)}
               active={activeSection === 'contact'}
             >

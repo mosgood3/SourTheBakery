@@ -282,12 +282,24 @@ export default function OrdersPanel({ admin }: { admin: any }) {
   };
 
   const getExportData = (filterType: 'open' | 'completed') => {
-    const filteredOrders = orders.filter(order => order.status === filterType);
+    let exportOrders = orders.filter(order => order.status === filterType);
 
-    if (filteredOrders.length === 0) {
-      alert(`No ${filterType} orders to export`);
+    // Apply pickup filter if set
+    if (selectedPickupFilter !== 'all') {
+      if (selectedPickupFilter === 'no-pickup') {
+        exportOrders = exportOrders.filter(order => !order.pickup_id);
+      } else {
+        exportOrders = exportOrders.filter(order => order.pickup_id === selectedPickupFilter);
+      }
+    }
+
+    if (exportOrders.length === 0) {
+      const filterDesc = selectedPickupFilter === 'all' ? '' : ' for selected pickup';
+      alert(`No ${filterType} orders${filterDesc} to export`);
       return null;
     }
+
+    const filteredOrders = exportOrders;
 
     return filteredOrders.map(order => {
       const pickup = order.pickup_id ? pickups.find(p => p.id === order.pickup_id) : null;

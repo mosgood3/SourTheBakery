@@ -77,7 +77,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
       const quantities: Record<string, { quantity: number; price: string }> = {};
       products.forEach(p => {
         quantities[p.product_id] = {
-          quantity: p.quantity_cap,
+          quantity: p.quantity_remaining,
           price: p.price
         };
       });
@@ -287,13 +287,12 @@ export default function PickupsPanel({ admin }: { admin: any }) {
       for (const productId of newProducts) {
         const existing = pickupProducts.find(p => p.product_id === productId);
         const product = products.find(p => p.id === productId);
-        const quantity = productQuantities[productId]?.quantity || 10;
+        const quantity = productQuantities[productId]?.quantity ?? 10;
         const price = product?.price || '$0.00';
 
         if (existing) {
-          // Update existing
+          // Update existing - only update quantity_remaining, preserve the cap
           await updatePickupProduct(existing.id!, {
-            quantity_cap: quantity,
             quantity_remaining: quantity,
             price
           });
@@ -460,7 +459,8 @@ export default function PickupsPanel({ admin }: { admin: any }) {
                         <input
                           type="number"
                           value={quantity}
-                          onChange={(e) => handleQuantityChange(product.id!, parseInt(e.target.value) || 0)}
+                          onChange={(e) => handleQuantityChange(product.id!, e.target.value === '' ? 0 : parseInt(e.target.value))}
+                          onFocus={(e) => e.target.select()}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
                           min="0"
                         />
