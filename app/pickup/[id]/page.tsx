@@ -280,10 +280,11 @@ export default function PickupDetailPage() {
                 return (
                   <div
                     key={pickupProduct.id}
-                    className="bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 border border-accent-gold/20"
+                    className="grid grid-rows-[220px_1fr_auto] bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+                    style={{ minHeight: '420px' }}
                   >
                     {/* Product Image */}
-                    <div className="relative h-64 overflow-hidden">
+                    <div className="relative overflow-hidden">
                       <Image
                         src={product.image}
                         alt={product.name}
@@ -291,21 +292,21 @@ export default function PickupDetailPage() {
                         className="object-cover"
                       />
                       {/* Stock Badge */}
-                      <div className="absolute top-4 right-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
+                      <div className="absolute top-3 right-3">
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
                           isSoldOut
-                            ? 'bg-red-100 text-red-800 border border-red-300'
+                            ? 'bg-red-500 text-white'
                             : remaining <= 5
-                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                            : 'bg-green-100 text-green-800 border border-green-300'
+                            ? 'bg-yellow-500 text-white'
+                            : 'bg-green-500 text-white'
                         }`}>
                           {stockStatus.text}
                         </span>
                       </div>
                       {/* Cart Badge */}
                       {inCart > 0 && (
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent-gold text-brown flex items-center gap-1">
+                        <div className="absolute top-3 left-3">
+                          <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-accent-gold text-brown flex items-center gap-1">
                             <FiShoppingCart size={12} />
                             {inCart} in cart
                           </span>
@@ -314,20 +315,21 @@ export default function PickupDetailPage() {
                     </div>
 
                     {/* Product Info */}
-                    <div className="p-6">
-                      <h3 className="text-2xl font-bold text-brown mb-2">{product.name}</h3>
-                      <p className="text-brown/70 mb-4">{product.quantity || 'Available'}</p>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-2xl font-bold text-accent-gold">${pickupProduct.price}</span>
-                      </div>
+                    <div className="p-5">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1 line-clamp-2">{product.name}</h3>
+                      <p className="text-gray-500 text-sm mb-3">{product.quantity || 'Available'}</p>
+                      <span className="text-2xl font-bold text-green-700">${pickupProduct.price}</span>
+                    </div>
 
+                    {/* Add to Cart Button */}
+                    <div className="px-5 pb-5">
                       <button
                         onClick={() => handleAddToCart(pickupProduct)}
                         disabled={!canAddToCart}
-                        className={`w-full py-3.5 px-6 rounded-xl font-bold uppercase tracking-wide text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                           canAddToCart
-                            ? 'bg-deep-green text-white hover:bg-deep-green/90 shadow-md hover:shadow-lg'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-green-700 text-white hover:bg-green-800'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         }`}
                       >
                         <FiShoppingCart size={16} />

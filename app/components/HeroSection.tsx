@@ -142,7 +142,7 @@ export default function HeroSection() {
         {/* CTA Button */}
         <a
           href="#menu"
-          className="group relative px-10 py-5 bg-white text-deep-green text-lg font-bold rounded-full transition-all duration-300 shadow-2xl hover:shadow-sage-green/50 hover:scale-105 overflow-hidden"
+          className="group relative px-10 py-5 mb-32 md:mb-40 bg-white text-deep-green text-lg font-bold rounded-full transition-all duration-300 shadow-2xl hover:shadow-sage-green/50 hover:scale-105 overflow-hidden"
         >
           <span className="relative z-10">Order Now</span>
           <div className="absolute inset-0 bg-sage-green transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
@@ -152,7 +152,7 @@ export default function HeroSection() {
         </a>
 
         {/* Newsletter Signup */}
-        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 w-full max-w-lg px-6">
+        <div className="absolute bottom-28 md:bottom-36 left-1/2 -translate-x-1/2 w-full max-w-lg px-6">
           <form ref={newsletterFormRef} className="relative group" onSubmit={handleNewsletterSubmit}>
             <input
               type="email"

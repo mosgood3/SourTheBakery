@@ -291,10 +291,10 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
             {products.map((product) => (
               <div
                 key={product.id}
-                className="relative bg-white rounded-3xl shadow-2xl overflow-hidden group transform hover:scale-[1.02] transition-all duration-500"
+                className="relative bg-white rounded-3xl shadow-2xl overflow-hidden group transform hover:scale-[1.02] transition-all duration-500 h-[420px]"
               >
                 {/* Large Product Image Background */}
-                <div className="relative h-80 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden">
                   {product.image ? (
                     <Image
                       src={product.image}
@@ -309,82 +309,82 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
                   )}
                   {/* Gradient Overlay for Text Readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  
-                  {/* Product Info Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h3 className="text-xl font-bold mb-2 drop-shadow-lg !text-white">
-                      {product.name}
-                    </h3>
-                    {product.quantity && (
-                      <div className="mb-3">
-                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
-                          <p className="text-sm font-medium text-white">
-                            Comes with {product.quantity}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-2xl font-bold text-white drop-shadow-lg">
-                        ${parseFloat(product.price).toFixed(2)}
-                      </p>
-                      <div className="flex flex-col items-end gap-1">
-                        <div className={`backdrop-blur-sm px-3 py-1 rounded-full ${
-                          getRemainingStock(product) > 5 
-                            ? 'bg-green-500/20 border border-green-400/30' 
-                            : getRemainingStock(product) > 0
-                              ? 'bg-yellow-500/20 border border-yellow-400/30'
-                              : 'bg-red-500/20 border border-red-400/30'
-                        }`}>
-                          <p className={`text-sm font-medium ${
-                            getRemainingStock(product) > 5 
-                              ? 'text-green-200' 
-                              : getRemainingStock(product) > 0
-                                ? 'text-yellow-200'
-                                : 'text-red-200'
-                          }`}>
-                            {getRemainingStock(product)} left
-                          </p>
-                        </div>
+                </div>
+
+                {/* Product Info Overlay */}
+                <div className="absolute bottom-16 left-0 right-0 p-6 text-white">
+                  <h3 className="text-xl font-bold mb-2 drop-shadow-lg !text-white">
+                    {product.name}
+                  </h3>
+                  {product.quantity && (
+                    <div className="mb-3">
+                      <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+                        <p className="text-sm font-medium text-white">
+                          Comes with {product.quantity}
+                        </p>
                       </div>
                     </div>
-                    {/* Cart quantity indicator */}
-                    {getCartQuantityForProduct(product.id || '') > 0 && (
-                      <div className="flex justify-center mb-4">
+                  )}
+                  <div className="flex items-center justify-between">
+                    <p className="text-2xl font-bold text-white drop-shadow-lg">
+                      ${parseFloat(product.price).toFixed(2)}
+                    </p>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className={`backdrop-blur-sm px-3 py-1 rounded-full ${
+                        getRemainingStock(product) > 5
+                          ? 'bg-green-500/20 border border-green-400/30'
+                          : getRemainingStock(product) > 0
+                            ? 'bg-yellow-500/20 border border-yellow-400/30'
+                            : 'bg-red-500/20 border border-red-400/30'
+                      }`}>
+                        <p className={`text-sm font-medium ${
+                          getRemainingStock(product) > 5
+                            ? 'text-green-200'
+                            : getRemainingStock(product) > 0
+                              ? 'text-yellow-200'
+                              : 'text-red-200'
+                        }`}>
+                          {getRemainingStock(product)} left
+                        </p>
+                      </div>
+                      {/* Cart quantity indicator */}
+                      {getCartQuantityForProduct(product.id || '') > 0 && (
                         <div className="bg-blue-500/20 backdrop-blur-sm px-3 py-1 rounded-full border border-blue-400/30">
                           <p className="text-sm font-medium text-blue-200">
                             {getCartQuantityForProduct(product.id || '')} in cart
                           </p>
                         </div>
-                      </div>
-                    )}
-                    
-                    {/* Add to Cart Button */}
-                    {getRemainingStock(product) <= 0 ? (
-                      <div className="bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-sm font-semibold text-center">
-                        Sold Out
-                      </div>
-                    ) : !orderWindowOpen ? (
-                      <div className="bg-gray-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-sm font-semibold text-center">
-                        Orders Closed
-                      </div>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(product);
-                        }}
-                        disabled={isAddToCartDisabled(product)}
-                        className={`w-full backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                          isAddToCartDisabled(product)
-                            ? 'bg-gray-500/90 cursor-not-allowed opacity-50'
-                            : 'bg-soft-green hover:bg-nature-green cursor-pointer'
-                        }`}
-                      >
-                        {getRemainingStock(product) <= 0 ? 'Sold Out' : 'Add to Cart'}
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
+                </div>
+
+                {/* Add to Cart Button - Absolute Bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  {getRemainingStock(product) <= 0 ? (
+                    <div className="bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-sm font-semibold text-center">
+                      Sold Out
+                    </div>
+                  ) : !orderWindowOpen ? (
+                    <div className="bg-gray-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-sm font-semibold text-center">
+                      Orders Closed
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(product);
+                      }}
+                      disabled={isAddToCartDisabled(product)}
+                      className={`w-full backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                        isAddToCartDisabled(product)
+                          ? 'bg-gray-500/90 cursor-not-allowed opacity-50'
+                          : 'bg-soft-green hover:bg-nature-green cursor-pointer'
+                      }`}
+                    >
+                      {getRemainingStock(product) <= 0 ? 'Sold Out' : 'Add to Cart'}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -394,7 +394,7 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
         {/* Modern Image-Focused Product Grid - Large Screens */}
         <div className="hidden md:block mb-20">
           <div className="relative max-w-7xl mx-auto px-4">
-            <div 
+            <div
               className="flex gap-8 overflow-x-auto pb-8 pt-6 scrollbar-hide"
               style={{
                 scrollbarWidth: 'thin',
@@ -404,10 +404,10 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="flex-shrink-0 w-[380px] bg-white rounded-3xl shadow-2xl overflow-hidden group transform hover:scale-[1.02] transition-all duration-500"
+                  className="relative flex-shrink-0 w-[380px] h-[480px] bg-white rounded-3xl shadow-2xl overflow-hidden group transform hover:scale-[1.02] transition-all duration-500"
                 >
                   {/* Large Product Image Background */}
-                  <div className="relative h-96 overflow-hidden">
+                  <div className="absolute inset-0 overflow-hidden">
                     {product.image ? (
                       <Image
                         src={product.image}
@@ -422,87 +422,87 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
                     )}
                     {/* Gradient Overlay for Text Readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                    
-                    {/* Product Info Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                      <h3 className="text-2xl font-bold mb-3 drop-shadow-lg !text-white">
-                        {product.name}
-                      </h3>
-                      {product.quantity && (
-                        <div className="mb-4">
-                          <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30 inline-block">
-                            <p className="text-sm font-semibold text-white">
-                              Comes with {product.quantity}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between mb-6">
-                        <p className="text-3xl font-bold text-white drop-shadow-lg">
-                          ${parseFloat(product.price).toFixed(2)}
-                        </p>
-                        <div className="flex flex-col items-end gap-2">
-                          <div className={`backdrop-blur-sm px-4 py-2 rounded-full border ${
-                            getRemainingStock(product) > 5 
-                              ? 'bg-green-500/20 border-green-400/30' 
-                              : getRemainingStock(product) > 0
-                                ? 'bg-yellow-500/20 border-yellow-400/30'
-                                : 'bg-red-500/20 border-red-400/30'
-                          }`}>
-                            <p className={`text-sm font-semibold ${
-                              getRemainingStock(product) > 5 
-                                ? 'text-green-200' 
-                                : getRemainingStock(product) > 0
-                                  ? 'text-yellow-200'
-                                  : 'text-red-200'
-                            }`}>
-                              {getRemainingStock(product)} left
-                            </p>
-                          </div>
+                  </div>
+
+                  {/* Product Info Overlay */}
+                  <div className="absolute bottom-20 left-0 right-0 p-8 text-white">
+                    <h3 className="text-2xl font-bold mb-3 drop-shadow-lg !text-white">
+                      {product.name}
+                    </h3>
+                    {product.quantity && (
+                      <div className="mb-4">
+                        <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30 inline-block">
+                          <p className="text-sm font-semibold text-white">
+                            Comes with {product.quantity}
+                          </p>
                         </div>
                       </div>
-                      {/* Cart quantity indicator */}
-                      {getCartQuantityForProduct(product.id || '') > 0 && (
-                        <div className="flex justify-center mb-6">
+                    )}
+                    <div className="flex items-center justify-between">
+                      <p className="text-3xl font-bold text-white drop-shadow-lg">
+                        ${parseFloat(product.price).toFixed(2)}
+                      </p>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className={`backdrop-blur-sm px-4 py-2 rounded-full border ${
+                          getRemainingStock(product) > 5
+                            ? 'bg-green-500/20 border-green-400/30'
+                            : getRemainingStock(product) > 0
+                              ? 'bg-yellow-500/20 border-yellow-400/30'
+                              : 'bg-red-500/20 border-red-400/30'
+                        }`}>
+                          <p className={`text-sm font-semibold ${
+                            getRemainingStock(product) > 5
+                              ? 'text-green-200'
+                              : getRemainingStock(product) > 0
+                                ? 'text-yellow-200'
+                                : 'text-red-200'
+                          }`}>
+                            {getRemainingStock(product)} left
+                          </p>
+                        </div>
+                        {/* Cart quantity indicator */}
+                        {getCartQuantityForProduct(product.id || '') > 0 && (
                           <div className="bg-blue-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-400/30">
                             <p className="text-sm font-semibold text-blue-200">
                               {getCartQuantityForProduct(product.id || '')} in cart
                             </p>
                           </div>
-                        </div>
-                      )}
-                      
-                      {/* Add to Cart Button */}
-                      {getRemainingStock(product) <= 0 ? (
-                        <div className="bg-red-500/90 backdrop-blur-sm text-white px-8 py-4 rounded-2xl text-base font-semibold text-center border border-red-400/50">
-                          Sold Out
-                        </div>
-                      ) : !orderWindowOpen ? (
-                        <div className="bg-gray-500/90 backdrop-blur-sm text-white px-8 py-4 rounded-2xl text-base font-semibold text-center border border-gray-400/50">
-                          Orders Closed
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(product);
-                          }}
-                          disabled={isAddToCartDisabled(product)}
-                          className={`w-full backdrop-blur-sm text-white px-8 py-4 rounded-2xl text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-white/20 ${
-                            isAddToCartDisabled(product)
-                              ? 'bg-gray-500/90 cursor-not-allowed opacity-50'
-                              : 'bg-soft-green hover:bg-nature-green cursor-pointer'
-                          }`}
-                        >
-                          {getRemainingStock(product) <= 0 ? 'Sold Out' : 'Add to Cart'}
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Add to Cart Button - Absolute Bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    {getRemainingStock(product) <= 0 ? (
+                      <div className="bg-red-500/90 backdrop-blur-sm text-white px-8 py-4 rounded-2xl text-base font-semibold text-center border border-red-400/50">
+                        Sold Out
+                      </div>
+                    ) : !orderWindowOpen ? (
+                      <div className="bg-gray-500/90 backdrop-blur-sm text-white px-8 py-4 rounded-2xl text-base font-semibold text-center border border-gray-400/50">
+                        Orders Closed
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product);
+                        }}
+                        disabled={isAddToCartDisabled(product)}
+                        className={`w-full backdrop-blur-sm text-white px-8 py-4 rounded-2xl text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-white/20 ${
+                          isAddToCartDisabled(product)
+                            ? 'bg-gray-500/90 cursor-not-allowed opacity-50'
+                            : 'bg-soft-green hover:bg-nature-green cursor-pointer'
+                        }`}
+                      >
+                        {getRemainingStock(product) <= 0 ? 'Sold Out' : 'Add to Cart'}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-            
+
           </div>
         </div>
 

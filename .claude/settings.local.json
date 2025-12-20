@@ -35,7 +35,8 @@
       "Bash(git cherry-pick:*)",
       "Bash(git reset:*)",
       "Bash(git stash:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(if exist \"C:\\\\Users\\\\matth\\\\Engineering\\\\sourthebakery\\\\.next\" rmdir /s /q \"C:\\\\Users\\\\matth\\\\Engineering\\\\sourthebakery\\\\.next\")"
     ],
     "deny": []
   }
