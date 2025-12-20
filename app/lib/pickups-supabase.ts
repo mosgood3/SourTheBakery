@@ -19,8 +19,8 @@ export interface PickupProduct {
   id?: string;
   pickup_id: string;
   product_id: string;
-  quantity_cap: number;
-  quantity_remaining: number;
+  quantity_cap: number;        // Legacy field - kept in sync with quantity_remaining
+  quantity_remaining: number;  // The actual available quantity (decremented by orders)
   price: string;
   display_order: number;
   created_at?: string;

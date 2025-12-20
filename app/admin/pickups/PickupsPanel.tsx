@@ -291,8 +291,9 @@ export default function PickupsPanel({ admin }: { admin: any }) {
         const price = product?.price || '$0.00';
 
         if (existing) {
-          // Update existing - only update quantity_remaining, preserve the cap
+          // Update existing - keep cap and remaining in sync (single quantity concept)
           await updatePickupProduct(existing.id!, {
+            quantity_cap: quantity,
             quantity_remaining: quantity,
             price
           });
