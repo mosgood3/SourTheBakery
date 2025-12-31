@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaHome, FaBook, FaAmazon, FaInstagram, FaTiktok, FaFacebook, FaYoutube } from 'react-icons/fa';
+import { FaHome, FaBook, FaAmazon, FaInstagram, FaTiktok, FaFacebook, FaYoutube, FaLink } from 'react-icons/fa';
 
 export default function SocialsPage() {
   const socialLinks = [
@@ -19,18 +19,25 @@ export default function SocialsPage() {
       description: 'Browse our sourdough recipes'
     },
     {
-      name: 'Amazon Storefront',
-      url: 'https://www.amazon.com/shop/sourthebakery?ref_=cm_sw_r_mwn_aipsfshop_MRHJW9M4R51PA9F772A2&language=en-US',
-      icon: FaAmazon,
-      color: 'bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600',
-      description: 'Shop our recommended products'
-    },
-    {
       name: 'TikTok',
       url: 'https://tiktok.com/@sourthebakery',
       icon: FaTiktok,
       color: 'bg-black hover:bg-gray-800',
       description: 'Watch our videos on TikTok'
+    },
+    {
+      name: 'Affiliate Links',
+      url: '/affiliates',
+      icon: FaLink,
+      color: 'bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600',
+      description: 'My favorite products'
+    },
+    {
+      name: 'Amazon Storefront',
+      url: 'https://www.amazon.com/shop/sourthebakery?ref_=cm_sw_r_mwn_aipsfshop_MRHJW9M4R51PA9F772A2&language=en-US',
+      icon: FaAmazon,
+      color: 'bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600',
+      description: 'Shop our recommended products'
     },
     {
       name: 'YouTube',

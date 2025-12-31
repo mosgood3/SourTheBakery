@@ -8,11 +8,12 @@ import NewsletterPanel from './newsletter/NewsletterPanel';
 import GalleryPanel from './gallery/GalleryPanel';
 import RecipesPanel from './recipes/RecipesPanel';
 import PickupsPanel from './pickups/PickupsPanel';
-import { FiLogOut, FiMenu, FiX, FiShoppingBag, FiPackage, FiMail, FiImage, FiBook, FiCalendar } from 'react-icons/fi';
+import AffiliateLinksPanel from './affiliates/AffiliateLinksPanel';
+import { FiLogOut, FiMenu, FiX, FiShoppingBag, FiPackage, FiMail, FiImage, FiBook, FiCalendar, FiLink } from 'react-icons/fi';
 
 export default function AdminTabbedPanel() {
   const { admin, loading: authLoading, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups' | 'affiliates'>('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -42,11 +43,12 @@ export default function AdminTabbedPanel() {
     { key: 'pickups', label: 'Pickups', icon: FiCalendar },
     { key: 'products', label: 'Products', icon: FiPackage },
     { key: 'recipes', label: 'Recipes', icon: FiBook },
+    { key: 'affiliates', label: 'Affiliates', icon: FiLink },
     { key: 'gallery', label: 'Gallery', icon: FiImage },
     { key: 'correspondence', label: 'Correspondence', icon: FiMail },
   ];
 
-  const handleTabChange = (tab: 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups') => {
+  const handleTabChange = (tab: 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups' | 'affiliates') => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
   };
@@ -105,7 +107,7 @@ export default function AdminTabbedPanel() {
             return (
               <button
                 key={item.key}
-                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups')}
+                onClick={() => handleTabChange(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups' | 'affiliates')}
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-200 mb-2 ${
                   activeTab === item.key
                     ? "bg-accent-gold/20 text-brown border-l-4 border-accent-gold"
@@ -146,7 +148,7 @@ export default function AdminTabbedPanel() {
                   ? "border-accent-gold text-brown"
                   : "border-transparent text-brown/50 hover:text-brown"
               }`}
-              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups')}
+              onClick={() => setActiveTab(item.key as 'products' | 'orders' | 'correspondence' | 'gallery' | 'recipes' | 'pickups' | 'affiliates')}
             >
               <IconComponent size={18} />
               {item.label}
@@ -161,6 +163,7 @@ export default function AdminTabbedPanel() {
         {activeTab === "pickups" && <PickupsPanel admin={admin} />}
         {activeTab === "products" && <ProductsPanel admin={admin} />}
         {activeTab === "recipes" && <RecipesPanel admin={admin} />}
+        {activeTab === "affiliates" && <AffiliateLinksPanel admin={admin} />}
         {activeTab === "gallery" && <GalleryPanel />}
         {activeTab === "correspondence" && <NewsletterPanel />}
       </main>
