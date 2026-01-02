@@ -6,6 +6,7 @@ import { getPickup, isPickupOrderWindowOpen, Pickup } from '../lib/pickups-supab
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { FaEnvelope } from 'react-icons/fa';
+import { getTodayEST, formatDateEST, formatTimeEST, isBeforeDateEST, isAfterDateEST } from '../lib/timezone';
 
 interface CheckoutProps {
   isOpen: boolean;
@@ -170,8 +171,8 @@ function PaymentForm({
           <div className="mb-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">Pickup Information</h4>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
-              <p><span className="font-semibold">Date:</span> {new Date(pickup.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-              <p><span className="font-semibold">Time:</span> {new Date(`2000-01-01T${pickup.pickup_time_start}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - {new Date(`2000-01-01T${pickup.pickup_time_end}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+              <p><span className="font-semibold">Date:</span> {formatDateEST(pickup.pickup_date, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              <p><span className="font-semibold">Time:</span> {formatTimeEST(pickup.pickup_time_start)} - {formatTimeEST(pickup.pickup_time_end)}</p>
               <p><span className="font-semibold">Location:</span> {pickup.pickup_location}</p>
             </div>
           </div>
@@ -278,19 +279,18 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
             color: 'text-green-600'
           });
         } else {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          const orderStart = new Date(pickupData.order_window_start);
-          orderStart.setHours(0, 0, 0, 0);
-
-          const orderEnd = new Date(pickupData.order_window_end);
-          orderEnd.setHours(23, 59, 59, 999);
+          // Use EST-aware date comparisons
+          const orderStartDate = pickupData.order_window_start.includes('T')
+            ? pickupData.order_window_start.split('T')[0]
+            : pickupData.order_window_start;
+          const orderEndDate = pickupData.order_window_end.includes('T')
+            ? pickupData.order_window_end.split('T')[0]
+            : pickupData.order_window_end;
 
           let message = 'Orders are currently closed. ';
-          if (today < orderStart) {
-            message += `Orders will open ${orderStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`;
-          } else if (today > orderEnd) {
+          if (isBeforeDateEST(orderStartDate)) {
+            message += `Orders will open ${formatDateEST(orderStartDate, { month: 'long', day: 'numeric' })}.`;
+          } else if (isAfterDateEST(orderEndDate)) {
             message += 'The order window has ended.';
           }
 

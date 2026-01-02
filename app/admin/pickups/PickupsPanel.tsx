@@ -15,6 +15,7 @@ import { getProducts, Product } from '../../lib/products-supabase';
 import { uploadImageCompressed, isValidImageFile, isValidFileSize } from '../../lib/storage-supabase';
 import Image from 'next/image';
 import { FiPlus, FiEdit2, FiTrash2, FiCalendar, FiClock, FiMapPin, FiPackage, FiX, FiImage, FiUpload } from 'react-icons/fi';
+import { formatDateEST, isBeforeDateEST, isAfterDateEST } from '../../lib/timezone';
 
 export default function PickupsPanel({ admin }: { admin: any }) {
   const [pickups, setPickups] = useState<Pickup[]>([]);
@@ -343,10 +344,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const getOrderWindowStatus = (pickup: Pickup): string => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Start of today
-
-    // Handle both YYYY-MM-DD and full datetime formats
+    // Use EST-aware date comparisons
     const startDateOnly = pickup.order_window_start.includes('T')
       ? pickup.order_window_start.split('T')[0]
       : pickup.order_window_start;
@@ -354,19 +352,13 @@ export default function PickupsPanel({ admin }: { admin: any }) {
       ? pickup.order_window_end.split('T')[0]
       : pickup.order_window_end;
 
-    const start = new Date(startDateOnly + 'T00:00:00');
-    const end = new Date(endDateOnly + 'T23:59:59');
-
-    if (now < start) return 'Upcoming';
-    if (now > end) return 'Closed';
+    if (isBeforeDateEST(startDateOnly)) return 'Upcoming';
+    if (isAfterDateEST(endDateOnly)) return 'Closed';
     return 'Open';
   };
 
   const formatDateOnly = (dateString: string): string => {
-    // Handle both YYYY-MM-DD and full datetime formats
-    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
-    const date = new Date(dateOnly + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(dateString, {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -374,10 +366,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
   };
 
   const formatDate = (dateString: string): string => {
-    // Handle both YYYY-MM-DD and full datetime formats
-    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
-    const date = new Date(dateOnly + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(dateString, {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
@@ -401,7 +390,7 @@ export default function PickupsPanel({ admin }: { admin: any }) {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold text-brown">Manage Products</h2>
-            <p className="text-brown/70 mt-2">Assign products to pickup on {pickup ? new Date(pickup.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</p>
+            <p className="text-brown/70 mt-2">Assign products to pickup on {pickup ? formatDate(pickup.pickup_date) : ''}</p>
           </div>
           <div className="flex gap-3">
             <button

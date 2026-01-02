@@ -4,6 +4,7 @@ import { getPickupInfo } from '../../lib/settings-supabase';
 import { getAllPickups, Pickup, getPickupProducts, PickupProduct } from '../../lib/pickups-supabase';
 import { FiRefreshCw, FiDownload, FiChevronDown, FiX, FiPrinter, FiCalendar, FiPlus, FiMinus, FiShoppingCart } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
+import { formatDateEST, formatTimestampEST, getTodayEST } from '../../lib/timezone';
 
 // Confirmation Modal Component
 interface ConfirmationModalProps {
@@ -267,13 +268,12 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
   const formatDate = (timestamp: string | undefined) => {
     if (!timestamp) return 'N/A';
-    return new Date(timestamp).toLocaleString();
+    return formatTimestampEST(timestamp);
   };
 
   const formatPickupDate = (pickupDate: string | undefined) => {
     if (!pickupDate) return 'TBD';
-    const date = new Date(pickupDate + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(pickupDate, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -327,7 +327,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, `${filterType.charAt(0).toUpperCase() + filterType.slice(1)} Orders`);
 
-    const fileName = `${filterType}-orders-${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = `${filterType}-orders-${getTodayEST()}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
@@ -355,7 +355,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `${filterType}-orders-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `${filterType}-orders-${getTodayEST()}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -378,7 +378,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Open Orders - ${new Date().toLocaleDateString()}</title>
+          <title>Open Orders - ${formatDateEST(getTodayEST())}</title>
           <style>
             @page {
               margin: 1in 0.5in 0.5in 0.5in;
@@ -544,7 +544,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
                 <div class="order-info">
                   <div class="order-number">ORDER #${order.id?.slice(-8)}</div>
-                  <div class="info-line">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                  <div class="info-line">${formatTimestampEST(new Date().toISOString())}</div>
                 </div>
 
                 <div class="divider"></div>

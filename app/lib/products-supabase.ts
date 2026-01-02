@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { deleteImage } from './storage-supabase';
 import { isOrderWindowOpen as isOrderWindowOpenFromSettings } from './settings-supabase';
+import { getNowEST } from './timezone';
 
 export interface Product {
   id?: string;
@@ -46,9 +47,9 @@ export interface OrderData {
   pickup_date?: string;
 }
 
-// Check if orders are currently available (Monday 6am to Thursday 5pm)
+// Check if orders are currently available (Monday 6am to Thursday 5pm) in EST
 export const isOrderWindowOpen = (): boolean => {
-  const now = new Date();
+  const now = getNowEST();
   const currentDay = now.getDay();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();

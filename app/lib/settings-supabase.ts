@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getTodayEST, getNowEST } from './timezone';
 
 export interface Settings {
   ordersEnabled: boolean;
@@ -37,7 +38,7 @@ export const getSettings = async (): Promise<Settings> => {
         orderWindowStart: '06:00',
         orderWindowEnd: '17:00',
         orderWindowDays: [1, 2, 3, 4], // Monday to Thursday
-        pickupDate: new Date().toISOString().split('T')[0],
+        pickupDate: getTodayEST(),
         pickupTimeStart: '09:00',
         pickupTimeEnd: '12:00',
         pickupLocation: 'Sour The Bakery - 123 Main St'
@@ -91,9 +92,9 @@ export const isOrderWindowOpen = async (): Promise<boolean> => {
     }
     console.log('Orders globally enabled ✓');
 
-    const now = new Date();
+    const now = getNowEST();
     const currentDay = now.getDay();
-    console.log('Current day:', currentDay, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentDay]);
+    console.log('Current day (EST):', currentDay, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentDay]);
     console.log('Allowed days:', settings.orderWindowDays);
 
     // Check if current day is in the order window days
@@ -103,7 +104,7 @@ export const isOrderWindowOpen = async (): Promise<boolean> => {
     }
     console.log('Current day is allowed ✓');
 
-    // Check if current time is within the order window
+    // Check if current time is within the order window (in EST)
     const currentTime = now.getHours() * 60 + now.getMinutes();
 
     // Parse start and end times
@@ -143,7 +144,7 @@ export const getPickupInfo = async (): Promise<{ date: string; timeStart: string
   } catch (error) {
     console.error('Error getting pickup info:', error);
     return {
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayEST(),
       timeStart: '09:00',
       timeEnd: '12:00',
       location: 'Sour The Bakery'
@@ -151,13 +152,13 @@ export const getPickupInfo = async (): Promise<{ date: string; timeStart: string
   }
 };
 
-// Check if order deadline has passed
+// Check if order deadline has passed (in EST)
 export const isOrderDeadlinePassed = async (): Promise<boolean> => {
   try {
     const settings = await getSettings();
-    const now = new Date();
+    const now = getNowEST();
 
-    // Calculate deadline time (default to 24 hours before pickup start)
+    // Calculate deadline time (default to 24 hours before pickup start) in EST
     const pickupDateTime = new Date(`${settings.pickupDate}T${settings.pickupTimeStart}`);
     const deadlineTime = new Date(pickupDateTime.getTime() - (24 * 60 * 60 * 1000));
 

@@ -5,6 +5,7 @@ import { useCart } from '../contexts/CartContext';
 import { getPickup, isPickupOrderWindowOpen, Pickup } from '../lib/pickups-supabase';
 import Checkout from './Checkout';
 import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
+import { formatDateEST, formatTimeEST } from '../lib/timezone';
 
 interface CartProps {
   onOrderSuccess?: () => void;
@@ -61,8 +62,7 @@ export default function Cart({ onOrderSuccess }: CartProps) {
   }, [state.isOpen, state.currentPickupId]);
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(dateString, {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -71,15 +71,7 @@ export default function Cart({ onOrderSuccess }: CartProps) {
   };
 
   const formatTime = (timeString: string): string => {
-    try {
-      const [hours, minutes] = timeString.split(':');
-      const hour = parseInt(hours, 10);
-      const period = hour >= 12 ? 'PM' : 'AM';
-      const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${standardHour}:${minutes} ${period}`;
-    } catch {
-      return timeString;
-    }
+    return formatTimeEST(timeString);
   };
 
   if (!state.isOpen) return null;

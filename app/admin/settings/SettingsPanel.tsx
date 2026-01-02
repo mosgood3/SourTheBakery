@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiSave, FiClock, FiCalendar, FiBell } from 'react-icons/fi';
 import { getSettings, updateSettings, Settings } from '../../lib/settings-supabase';
 import { getNotificationSettings, updateNotificationSettings, NotificationSettings, MAX_MESSAGE_LENGTH } from '../../lib/notifications-supabase';
+import { getTodayEST, formatDateEST } from '../../lib/timezone';
 
 export default function SettingsPanel({ admin }: { admin: any }) {
   const [settings, setSettings] = useState<Settings>({
@@ -9,7 +10,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
     orderWindowStart: '06:00',
     orderWindowEnd: '17:00',
     orderWindowDays: [1, 2, 3, 4], // Monday to Thursday
-    pickupDate: new Date().toISOString().split('T')[0],
+    pickupDate: getTodayEST(),
     pickupTimeStart: '09:00',
     pickupTimeEnd: '12:00',
     pickupLocation: 'Sour The Bakery - 123 Main St'
@@ -210,7 +211,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
             <div className="p-4 bg-brown/5 rounded-xl md:col-span-2">
               <p className="text-sm font-semibold text-brown/70 mb-1">Next Pickup</p>
               <p className="font-bold text-brown">
-                {new Date(settings.pickupDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {formatDateEST(settings.pickupDate, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
               <p className="text-sm text-brown/60">
                 Window: {settings.pickupTimeStart} - {settings.pickupTimeEnd} at {settings.pickupLocation}

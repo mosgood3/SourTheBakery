@@ -12,6 +12,7 @@ import {
 import { getNotificationSettings, updateNotificationSettings, NotificationSettings, MAX_MESSAGE_LENGTH } from '../../lib/notifications-supabase';
 import { getAllPickups, Pickup } from '../../lib/pickups-supabase';
 import RichTextEditor from '../../components/RichTextEditor';
+import { formatDateEST, formatTimestampEST } from '../../lib/timezone';
 
 export default function NewsletterPanel() {
   const [activeTab, setActiveTab] = useState<'compose' | 'subscribers' | 'banner'>('compose');
@@ -155,14 +156,12 @@ export default function NewsletterPanel() {
 
   const formatDate = (timestamp: string | undefined) => {
     if (!timestamp) return 'Unknown';
-    const date = new Date(timestamp);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return formatTimestampEST(timestamp);
   };
 
   const formatPickupDate = (pickupDate: string | undefined) => {
     if (!pickupDate) return 'TBD';
-    const date = new Date(pickupDate + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(pickupDate, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

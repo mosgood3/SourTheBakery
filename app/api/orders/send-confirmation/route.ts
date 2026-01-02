@@ -4,6 +4,7 @@ import { createAuthenticatedHandler, AuthenticatedRequest } from '../../../lib/a
 import { createRateLimitedHandler } from '../../../lib/rate-limiter';
 import { escapeHtml, validateEmail } from '../../../lib/input-validator';
 import { getPickupInfo } from '../../../lib/settings-supabase';
+import { formatDateEST, formatTimeEST, getTodayEST } from '../../../lib/timezone';
 
 interface OrderItem {
   id: string;
@@ -77,31 +78,17 @@ async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<N
       </tr>
     `).join('');
 
-    // Format pickup date (avoid timezone shifts by using noon)
-    const pickupDate = orderData.pickupInfo ? 
-      new Date(orderData.pickupInfo.date + 'T12:00:00').toLocaleDateString('en-US', {
+    // Format pickup date using EST timezone
+    const pickupDate = orderData.pickupInfo ?
+      formatDateEST(orderData.pickupInfo.date, {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       }) : 'TBD';
 
-    // Helper function to format time to standard 12-hour format
-    const formatTime = (militaryTime: string): string => {
-      try {
-        const [hours, minutes] = militaryTime.split(':');
-        const hour = parseInt(hours, 10);
-        const minute = minutes || '00';
-        const period = hour >= 12 ? 'PM' : 'AM';
-        const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-        return `${standardHour}:${minute} ${period}`;
-      } catch (error) {
-        return militaryTime;
-      }
-    };
-
-    const pickupTimeStart = orderData.pickupInfo?.timeStart ? formatTime(orderData.pickupInfo.timeStart) : 'TBD';
-    const pickupTimeEnd = orderData.pickupInfo?.timeEnd ? formatTime(orderData.pickupInfo.timeEnd) : 'TBD';
+    const pickupTimeStart = orderData.pickupInfo?.timeStart ? formatTimeEST(orderData.pickupInfo.timeStart) : 'TBD';
+    const pickupTimeEnd = orderData.pickupInfo?.timeEnd ? formatTimeEST(orderData.pickupInfo.timeEnd) : 'TBD';
     const pickupTime = `${pickupTimeStart} - ${pickupTimeEnd}`;
     const pickupLocation = escapeHtml(orderData.pickupInfo?.location || 'Sour the Bakery');
 
@@ -119,7 +106,7 @@ async function handleOrderConfirmation(request: AuthenticatedRequest): Promise<N
           <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
             <h3 style="color: #333; margin-top: 0;">Order Details</h3>
             <p style="margin: 5px 0;"><strong>Order ID:</strong> #${escapeHtml(orderData.orderId)}</p>
-            <p style="margin: 5px 0;"><strong>Order Date:</strong> ${new Date().toLocaleDateString('en-US', {
+            <p style="margin: 5px 0;"><strong>Order Date:</strong> ${formatDateEST(getTodayEST(), {
               weekday: 'long',
               year: 'numeric',
               month: 'long',

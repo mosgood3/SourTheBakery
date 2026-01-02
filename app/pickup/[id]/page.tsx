@@ -11,6 +11,7 @@ import Cart from '../../components/Cart';
 import Footer from '../../components/Footer';
 import NotificationBanner from '../../components/NotificationBanner';
 import { FiCalendar, FiClock, FiMapPin, FiHome, FiChevronRight, FiShoppingCart, FiAlertCircle } from 'react-icons/fi';
+import { formatDateEST, formatTimeEST } from '../../lib/timezone';
 
 export default function PickupDetailPage() {
   const params = useParams();
@@ -64,8 +65,7 @@ export default function PickupDetailPage() {
   }, [pickupId]);
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(dateString, {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -74,15 +74,7 @@ export default function PickupDetailPage() {
   };
 
   const formatTime = (timeString: string): string => {
-    try {
-      const [hours, minutes] = timeString.split(':');
-      const hour = parseInt(hours, 10);
-      const period = hour >= 12 ? 'PM' : 'AM';
-      const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${standardHour}:${minutes} ${period}`;
-    } catch {
-      return timeString;
-    }
+    return formatTimeEST(timeString);
   };
 
   const getStockStatus = (productId: string) => {

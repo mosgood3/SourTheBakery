@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getActivePickups, Pickup, getPickupProducts } from '../lib/pickups-supabase';
 import { FiCalendar, FiClock, FiMapPin, FiArrowRight, FiPackage } from 'react-icons/fi';
+import { getTodayEST, formatDateEST, isBeforeDateEST, isAfterDateEST, isTodayEST, parseDateEST } from '../lib/timezone';
 
 export default function PickupsSection() {
   const router = useRouter();
@@ -30,11 +31,7 @@ export default function PickupsSection() {
   }, []);
 
   const getOrderWindowStatus = (pickup: Pickup): { status: string; color: string } => {
-    // Compare dates only (no time component) since order windows are all-day
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Handle both YYYY-MM-DD and full datetime formats
+    // Use EST-aware date comparisons
     const startDateOnly = pickup.order_window_start.includes('T')
       ? pickup.order_window_start.split('T')[0]
       : pickup.order_window_start;
@@ -42,18 +39,15 @@ export default function PickupsSection() {
       ? pickup.order_window_end.split('T')[0]
       : pickup.order_window_end;
 
-    const start = new Date(startDateOnly + 'T00:00:00');
-    const end = new Date(endDateOnly + 'T00:00:00');
-
-    if (today < start) {
+    if (isBeforeDateEST(startDateOnly)) {
       return { status: 'Opens Soon', color: 'bg-blue-100 text-blue-800 border-blue-300' };
     }
-    if (today > end) {
+    if (isAfterDateEST(endDateOnly)) {
       return { status: 'Closed', color: 'bg-gray-100 text-gray-800 border-gray-300' };
     }
 
     // Check if it's the last day (closing today)
-    if (today.getTime() === end.getTime()) {
+    if (isTodayEST(endDateOnly)) {
       return { status: 'Closing Today', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' };
     }
 
@@ -61,10 +55,7 @@ export default function PickupsSection() {
   };
 
   const formatDate = (dateString: string): string => {
-    // Handle both YYYY-MM-DD and full datetime formats
-    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
-    const date = new Date(dateOnly + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return formatDateEST(dateString, {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -147,9 +138,9 @@ export default function PickupsSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {pickups.map((pickup) => {
             const orderStatus = getOrderWindowStatus(pickup);
-            const pickupDate = new Date(pickup.pickup_date + 'T00:00:00');
-            const dayOfWeek = pickupDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-            const month = pickupDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+            const pickupDate = parseDateEST(pickup.pickup_date);
+            const dayOfWeek = formatDateEST(pickup.pickup_date, { weekday: 'short' }).toUpperCase();
+            const month = formatDateEST(pickup.pickup_date, { month: 'short' }).toUpperCase();
             const day = pickupDate.getDate();
 
             return (
@@ -234,7 +225,7 @@ export default function PickupsSection() {
                       <div>
                         <p className="text-xs font-semibold text-brown/50 uppercase tracking-wide">Order By</p>
                         <p className="text-brown font-semibold">
-                          {new Date((pickup.order_window_end.includes('T') ? pickup.order_window_end.split('T')[0] : pickup.order_window_end) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {formatDateEST(pickup.order_window_end, { month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                     </div>

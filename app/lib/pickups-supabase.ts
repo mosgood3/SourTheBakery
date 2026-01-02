@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { Product } from './products-supabase';
+import { getTodayEST, isWithinDateRangeEST } from './timezone';
 
 export interface Pickup {
   id?: string;
@@ -43,9 +44,8 @@ export interface PickupWithProducts extends Pickup {
  */
 export const getActivePickups = async (): Promise<Pickup[]> => {
   try {
-    // Get today's date as YYYY-MM-DD (no time component)
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    // Get today's date in EST as YYYY-MM-DD
+    const todayStr = getTodayEST();
 
     const { data, error } = await supabase
       .from('pickups')
@@ -320,17 +320,8 @@ export const isPickupOrderWindowOpen = async (pickupId: string): Promise<boolean
       return false;
     }
 
-    // Compare dates only (no time component)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const windowStart = new Date(pickup.order_window_start);
-    windowStart.setHours(0, 0, 0, 0);
-
-    const windowEnd = new Date(pickup.order_window_end);
-    windowEnd.setHours(23, 59, 59, 999); // Include the entire end date
-
-    return today >= windowStart && today <= windowEnd;
+    // Compare dates in EST timezone
+    return isWithinDateRangeEST(pickup.order_window_start, pickup.order_window_end);
   } catch (error) {
     console.error('Error checking if order window is open:', error);
     return false;

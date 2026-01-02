@@ -1,5 +1,6 @@
 import { sendEmail } from './ses-email-service';
 import { escapeHtml } from './input-validator';
+import { formatDateEST, formatTimeEST } from './timezone';
 
 export interface OrderConfirmationData {
   orderId: string;
@@ -20,10 +21,10 @@ export interface OrderConfirmationData {
 }
 
 export const generateOrderConfirmationHTML = async (order: OrderConfirmationData): Promise<string> => {
-  const formatPickupDate = (pickupDate: string | Date | undefined): string => {
+  const formatPickupDateLocal = (pickupDate: string | Date | undefined): string => {
     if (!pickupDate) return 'TBD';
-    const date = new Date(pickupDate);
-    return date.toLocaleDateString('en-US', {
+    const dateStr = typeof pickupDate === 'string' ? pickupDate : pickupDate.toISOString().split('T')[0];
+    return formatDateEST(dateStr, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -32,16 +33,7 @@ export const generateOrderConfirmationHTML = async (order: OrderConfirmationData
   };
 
   const formatTime = (militaryTime: string): string => {
-    try {
-      const [hours, minutes] = militaryTime.split(':');
-      const hour = parseInt(hours, 10);
-      const minute = minutes || '00';
-      const period = hour >= 12 ? 'PM' : 'AM';
-      const standardHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${standardHour}:${minute} ${period}`;
-    } catch (error) {
-      return militaryTime;
-    }
+    return formatTimeEST(militaryTime);
   };
 
   // Extract pickup time from pickupDate if not provided separately
@@ -123,7 +115,7 @@ export const generateOrderConfirmationHTML = async (order: OrderConfirmationData
           <div style="background-color: #f0f8f0; border: 2px solid #32CD32; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
             <h3 style="color: #228B22; margin: 0 0 15px; font-size: 20px;">📍 Pickup Information</h3>
             <div style="line-height: 1.6; color: #333;">
-              <p style="margin: 0 0 10px;"><strong>Pickup Date:</strong> ${formatPickupDate(order.pickupDate)}</p>
+              <p style="margin: 0 0 10px;"><strong>Pickup Date:</strong> ${formatPickupDateLocal(order.pickupDate)}</p>
               <p style="margin: 0 0 10px;"><strong>Pickup Time:</strong> ${formatTime(pickupTimeStart)} - ${formatTime(pickupTimeEnd)}</p>
               ${order.pickupLocation ? `<p style="margin: 0 0 15px;"><strong>Location:</strong> ${escapeHtml(order.pickupLocation)}</p>` : ''}
               <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 12px; margin-top: 15px;">

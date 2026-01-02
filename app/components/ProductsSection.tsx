@@ -8,6 +8,7 @@ import { isOrderWindowOpen, getPickupInfo, getSettings } from '../lib/settings-s
 import { FaTimes } from 'react-icons/fa';
 import RecipesSection from './RecipesSection';
 import HandcraftedCreationsGallery from './HandcraftedCreationsGallery';
+import { formatDateEST } from '../lib/timezone';
 
 interface ProductsSectionProps {
   refreshTrigger?: number;
@@ -109,10 +110,9 @@ export default function ProductsSection({ refreshTrigger }: ProductsSectionProps
 
   const formatPickupDate = (date: string) => {
     try {
-      const pickupDate = new Date(date + 'T12:00:00');
-      return pickupDate.toLocaleDateString('en-US', { 
+      return formatDateEST(date, {
         weekday: 'long',
-        month: 'long', 
+        month: 'long',
         day: 'numeric'
       });
     } catch (error) {

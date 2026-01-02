@@ -70,34 +70,57 @@ export default async function AffiliatesPage() {
             <p className="text-brown/70">No affiliate links available yet. Check back soon!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {links.map((link) => (
               <a
                 key={link.id}
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                className="group relative bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-beige/50"
               >
-                <div className="relative h-48 w-full overflow-hidden">
+                {/* Image Container */}
+                <div className="relative h-72 w-full overflow-hidden">
                   <Image
                     src={link.image}
                     alt={link.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-lg font-semibold text-brown group-hover:text-cinnamon transition-colors">
-                      {link.name}
-                    </h3>
-                    <FiExternalLink className="text-brown/50 group-hover:text-cinnamon transition-colors flex-shrink-0 mt-1" size={16} />
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  {/* Shop Badge */}
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-cinnamon text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-cinnamon/20 flex items-center gap-1.5 group-hover:bg-cinnamon group-hover:text-white transition-all duration-300">
+                    <span>Shop</span>
+                    <FiExternalLink size={12} />
                   </div>
-                  <p className="text-sm text-brown/70 mt-2 line-clamp-3">
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-brown group-hover:text-cinnamon transition-colors duration-300 mb-1">
+                    {link.name}
+                  </h3>
+                  <p className="text-xs text-brown/60 leading-relaxed line-clamp-2">
                     {link.description}
                   </p>
+
+                  {/* Bottom Accent */}
+                  <div className="mt-3 pt-3 border-t border-beige/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-medium text-cinnamon/80 uppercase tracking-wide">
+                        View Product
+                      </span>
+                      <div className="w-6 h-6 rounded-full bg-cinnamon/10 flex items-center justify-center group-hover:bg-cinnamon transition-colors duration-300">
+                        <FiExternalLink className="text-cinnamon group-hover:text-white transition-colors duration-300" size={12} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Corner Decoration */}
+                <div className="absolute top-0 left-0 w-16 h-16 bg-gradient-to-br from-cinnamon/20 to-transparent rounded-br-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </a>
             ))}
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { isOrderWindowOpen, getSettings } from '../lib/settings-supabase';
+import { getNowEST } from '../lib/timezone';
 
 export default function OrderStatusBanner() {
   const [status, setStatus] = useState({
@@ -17,7 +18,8 @@ export default function OrderStatusBanner() {
           isOrderWindowOpen(),
           getSettings()
         ]);
-        const now = new Date();
+        // Use EST for all time calculations
+        const now = getNowEST();
         const currentDay = now.getDay();
         const currentTime = now.getHours() * 60 + now.getMinutes();
 
