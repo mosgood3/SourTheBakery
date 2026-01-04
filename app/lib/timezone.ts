@@ -57,8 +57,13 @@ export function formatTimeEST(
   timeString: string,
   options: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
 ): string {
-  const date = new Date(`2000-01-01T${timeString}`);
-  return date.toLocaleTimeString('en-US', { timeZone: TIMEZONE, ...options });
+  // Parse the time string directly without timezone conversion
+  // The input time (e.g., "15:00") is already in EST, so we just format it
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const hour12 = hours % 12 || 12;
+  const ampm = hours < 12 ? 'AM' : 'PM';
+  const minuteStr = minutes.toString().padStart(2, '0');
+  return `${hour12}:${minuteStr} ${ampm}`;
 }
 
 /**
