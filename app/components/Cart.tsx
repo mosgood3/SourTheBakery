@@ -89,7 +89,7 @@ export default function Cart({ onOrderSuccess }: CartProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-muted">
-            <h2 className="text-2xl font-serif font-bold text-foreground">Your Cart</h2>
+            <h2 className="text-2xl font-bold text-foreground">Your Cart</h2>
             <button
               onClick={closeCart}
               className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"

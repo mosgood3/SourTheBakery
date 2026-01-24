@@ -109,7 +109,7 @@ export default function PickupsSection() {
       <section className="relative w-full bg-gradient-to-br from-cream via-peach to-beige py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brown mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-brown mb-4">
               Coming Soon
             </h2>
             <p className="text-xl text-brown/70 mb-8">

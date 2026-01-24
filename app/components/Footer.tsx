@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <h3 className="text-3xl font-serif font-bold mb-6 !text-white">Sour The Bakery</h3>
+            <h3 className="text-3xl font-bold mb-6 !text-white">Sour The Bakery</h3>
             <p className="text-white/70 text-lg mb-6 leading-relaxed">
               Crafting delicious memories, one bite at a time. We bring the warmth and tradition of artisanal baking to every creation.
             </p>

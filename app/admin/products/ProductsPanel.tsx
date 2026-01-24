@@ -139,7 +139,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-brown mb-2">Product Management</h1>
+          <h1 className="text-4xl font-bold text-brown mb-2">Product Management</h1>
           <p className="text-brown/70">Manage your bakery products</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -156,7 +156,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       </div>
       {isAdding && !editingId && (
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 mb-8">
-          <h2 className="text-2xl font-serif font-bold text-brown mb-6">
+          <h2 className="text-2xl font-bold text-brown mb-6">
             {editingId ? 'Edit Product' : 'Add New Product'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -214,7 +214,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       )}
       {/* Active Products List */}
       <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20 mb-8">
-        <h2 className="text-2xl font-serif font-bold text-brown mb-6">Active Products</h2>
+        <h2 className="text-2xl font-bold text-brown mb-6">Active Products</h2>
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
@@ -340,7 +340,7 @@ export default function ProductsPanel({ admin }: { admin: any }) {
       {archivedProducts.length > 0 && (
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-serif font-bold text-brown">Archived Products</h2>
+            <h2 className="text-2xl font-bold text-brown">Archived Products</h2>
             <button
               onClick={() => setShowArchived(!showArchived)}
               className="text-brown/70 hover:text-brown transition-colors duration-200 text-sm font-semibold"

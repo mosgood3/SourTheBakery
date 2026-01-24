@@ -55,17 +55,14 @@ export default function AboutSection() {
               <h3 className="text-3xl font-bold text-deep-green mb-6">
                 From Family Kitchen to Community Favorite
               </h3>
-              <p className="text-xl md:text-2xl font-serif text-deep-green mb-4">
-                Hi, I'm Isabela — the baker behind SOUR the bakery.
+              <p className="text-lg md:text-xl text-deep-green mb-4">
+                SOUR began in early 2024 from a passion for sourdough, slow living, and homemade food. What started as a hobby quickly grew into a deep love for creating real, nourishing bakes.
               </p>
-              <p className="text-lg md:text-xl text-deep-green mb-2">
-                SOUR began in early 2024 from my passion for sourdough, slow living, and homemade food. What started as a hobby quickly became a deep love for creating real, nourishing bakes.
+              <p className="text-lg md:text-xl text-deep-green mb-4">
+                By June 2025, SOUR officially launched to share fresh, handmade goods with the local community.
               </p>
-              <p className="text-lg md:text-xl text-deep-green mb-2">
-                By June 2025, I launched SOUR with a small front-yard stand to share fresh, handmade goods with the local community.
-              </p>
-              <p className="text-lg md:text-xl text-deep-green mb-2">
-                Matt is the developer supporting SOUR the bakery from a technical standpoint.
+              <p className="text-lg md:text-xl text-deep-green mb-4">
+                Matt is the developer behind the scenes and the reason this website exists, supporting SOUR from a technical standpoint.
               </p>
               <p className="text-lg md:text-xl text-deep-green">
                 SOUR is just getting started — thanks for being part of the journey.
@@ -95,7 +92,7 @@ export default function AboutSection() {
               <div className="bg-gradient-to-br from-soft-green/20 to-accent-pink/20 rounded-3xl p-4 shadow-2xl">
                 <div className="relative h-96 w-full rounded-2xl overflow-hidden">
                   <Image
-                    src="/me.jpg"
+                    src="/me2.png"
                     alt="Baker at Sour The Bakery"
                     fill
                     className="object-cover"

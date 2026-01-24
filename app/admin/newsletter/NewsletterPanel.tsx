@@ -175,7 +175,7 @@ export default function NewsletterPanel() {
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-brown mb-2">Correspondence</h1>
+          <h1 className="text-4xl font-bold text-brown mb-2">Correspondence</h1>
           <p className="text-brown/70">Manage subscribers, send emails, and configure banner notifications</p>
         </div>
       </div>
@@ -232,7 +232,7 @@ export default function NewsletterPanel() {
       <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">
         {activeTab === 'compose' && (
           <div>
-            <h2 className="text-2xl font-serif font-bold text-brown mb-6">Compose Email</h2>
+            <h2 className="text-2xl font-bold text-brown mb-6">Compose Email</h2>
             <form onSubmit={handleSendEmail} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-brown mb-2">Send To</label>
@@ -335,7 +335,7 @@ export default function NewsletterPanel() {
 
         {activeTab === 'subscribers' && (
           <div>
-            <h2 className="text-2xl font-serif font-bold text-brown mb-6">
+            <h2 className="text-2xl font-bold text-brown mb-6">
               Newsletter Subscribers ({subscribers.length})
             </h2>
             {loading ? (
@@ -373,7 +373,7 @@ export default function NewsletterPanel() {
 
         {activeTab === 'banner' && (
           <div>
-            <h2 className="text-2xl font-serif font-bold text-brown mb-6">Homepage Banner</h2>
+            <h2 className="text-2xl font-bold text-brown mb-6">Homepage Banner</h2>
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>

@@ -172,7 +172,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-4xl font-serif font-bold text-brown mb-2">Store Settings</h1>
+        <h1 className="text-4xl font-bold text-brown mb-2">Store Settings</h1>
         <p className="text-brown/70">Configure order windows and pickup information</p>
       </div>
 
@@ -191,7 +191,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
       <div className="space-y-8">
         {/* Current Status Display - MOVED TO TOP */}
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
-          <h2 className="text-2xl font-serif font-bold text-brown mb-4">Current Status</h2>
+          <h2 className="text-2xl font-bold text-brown mb-4">Current Status</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-brown/5 rounded-xl">
               <p className="text-sm font-semibold text-brown/70 mb-1">Order System</p>
@@ -224,7 +224,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-serif font-bold text-brown mb-2">Order System</h2>
+              <h2 className="text-2xl font-bold text-brown mb-2">Order System</h2>
               <p className="text-brown/70">Enable or disable all orders globally</p>
             </div>
             <div className="flex items-center gap-3">
@@ -265,7 +265,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
           <div className="flex items-center gap-3 mb-6">
             <FiClock className="text-2xl text-accent-gold" />
-            <h2 className="text-2xl font-serif font-bold text-brown">Order Window Settings</h2>
+            <h2 className="text-2xl font-bold text-brown">Order Window Settings</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,7 +331,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
           <div className="flex items-center gap-3 mb-6">
             <FiCalendar className="text-2xl text-accent-gold" />
-            <h2 className="text-2xl font-serif font-bold text-brown">Pickup Settings</h2>
+            <h2 className="text-2xl font-bold text-brown">Pickup Settings</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -400,7 +400,7 @@ export default function SettingsPanel({ admin }: { admin: any }) {
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
           <div className="flex items-center gap-3 mb-6">
             <FiBell className="text-2xl text-accent-gold" />
-            <h2 className="text-2xl font-serif font-bold text-brown">Notification Banner</h2>
+            <h2 className="text-2xl font-bold text-brown">Notification Banner</h2>
           </div>
 
           <div className="space-y-6">

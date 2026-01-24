@@ -57,7 +57,7 @@ export default function AdminTabbedPanel() {
     <div className="min-h-screen bg-gradient-to-br from-cream via-peach to-beige flex flex-col">
       {/* Header */}
       <header className="w-full bg-white/90 backdrop-blur-sm border-b border-accent-gold/20 px-4 sm:px-6 py-4 flex justify-between items-center relative">
-        <h1 className="text-xl sm:text-2xl font-serif font-bold text-brown">Admin</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-brown">Admin</h1>
         <div className="flex items-center gap-4">
           <button
             onClick={handleLogout}
@@ -92,7 +92,7 @@ export default function AdminTabbedPanel() {
       `}>
         <div className="p-6 border-b border-accent-gold/20">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-brown">Menu</h2>
+            <h2 className="text-lg font-bold text-brown">Menu</h2>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="text-brown hover:text-accent-gold transition-colors duration-300"

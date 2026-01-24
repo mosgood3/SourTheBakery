@@ -131,7 +131,7 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto p-6">
-        <h3 className="text-xl font-serif font-bold text-brown mb-6">Complete Your Payment</h3>
+        <h3 className="text-xl font-bold text-brown mb-6">Complete Your Payment</h3>
 
         {/* Order Summary */}
         <div className="mb-6">
@@ -416,7 +416,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-muted">
-            <h2 className="text-2xl font-serif font-bold text-foreground">Checkout</h2>
+            <h2 className="text-2xl font-bold text-foreground">Checkout</h2>
             <button
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -483,7 +483,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
                           type="text"
                           value={formData.customerName}
                           onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white placeholder:font-serif"
+                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white"
                           placeholder="Jane Doe"
                           required
                         />
@@ -494,7 +494,7 @@ function CheckoutForm({ isOpen, onClose, onOrderSuccess }: CheckoutProps) {
                           type="email"
                           value={formData.customerEmail}
                           onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white placeholder:font-serif"
+                          className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 bg-white"
                           placeholder="jane@example.com"
                           required
                         />

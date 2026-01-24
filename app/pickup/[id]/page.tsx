@@ -236,7 +236,7 @@ export default function PickupDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-brown mb-2">Menu</h1>
+            <h1 className="text-3xl font-bold text-brown mb-2">Menu</h1>
             <p className="text-brown/60 text-sm">
               {formatDate(pickup.pickup_date)} · {formatTime(pickup.pickup_time_start)} - {formatTime(pickup.pickup_time_end)} · {pickup.pickup_location}
             </p>

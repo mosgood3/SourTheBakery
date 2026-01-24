@@ -49,7 +49,7 @@ export default function AdminLogin() {
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-accent-gold/20">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-serif font-bold text-brown mb-2">
+            <h1 className="text-3xl font-bold text-brown mb-2">
               Admin Login
             </h1>
             <p className="text-brown/70">

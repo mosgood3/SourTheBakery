@@ -32,7 +32,7 @@ function ConfirmationModal({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-serif font-bold text-brown">{title}</h3>
+          <h3 className="text-xl font-bold text-brown">{title}</h3>
           <button
             onClick={onClose}
             className="text-brown/50 hover:text-brown transition-colors"
@@ -638,7 +638,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-brown mb-2">Order Management</h1>
+          <h1 className="text-4xl font-bold text-brown mb-2">Order Management</h1>
           <p className="text-brown/70">View and manage customer orders</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -735,7 +735,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
       {/* Manual Order Form */}
       {showAddOrder && (
         <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-200">
-          <h3 className="text-xl font-serif font-bold text-brown mb-4 flex items-center gap-2">
+          <h3 className="text-xl font-bold text-brown mb-4 flex items-center gap-2">
             <FiShoppingCart className="text-blue-600" />
             Add Manual Order
           </h3>
@@ -896,7 +896,7 @@ export default function OrdersPanel({ admin }: { admin: any }) {
             <div key={order.id} className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-accent-gold/20">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <div>
-                  <h3 className="text-xl font-serif font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
+                  <h3 className="text-xl font-bold text-brown mb-2">Order #{order.id?.slice(-8)}</h3>
                   <p className="text-brown/70">Placed on {formatDate(order.created_at)}</p>
                   <div className="mt-2 flex items-center gap-2">
                     <FiCalendar size={14} className="text-brown/50" />
